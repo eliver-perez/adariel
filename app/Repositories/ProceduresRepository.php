@@ -12,23 +12,23 @@ class ProceduresRepository
     {
     }
 
-    public function getAll(): array
+    public function getAll(array $data): array
     {
         $stmt = $this->db->prepare("
             SELECT 
-                id,
-                uuid,
-                codigo,
-                servicio,
-                duracion_min,
-                costo_base,
-                requiere_material,
-                es_procedimiento,
-                activo
-            FROM servicios
-            ORDER BY id ASC
+                s.id,
+                s.uuid,
+                s.servicio,
+                s.duracion_min,
+                s.costo_base,
+                s.requiere_material,
+                s.es_procedimiento,
+                s.activo
+            FROM servicios s
+            WHERE s.empresa = :empresa
+            ORDER BY s.id ASC
         ");
-
+        $stmt->bindParam(':empresa', $data['organization']);
         $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -176,5 +176,49 @@ class ProceduresRepository
         ]);
 
         return (bool) $stmt->fetchColumn();
+    }
+    
+    public function insertProcedure(array $data): int {
+        $stmt = $this->db->prepare("
+            INSERT INTO servicios (
+                uuid,
+                empresa,
+                servicio,
+                descripcion,
+                duracion_min,
+                costo_base,
+                requiere_material,
+                es_procedimiento,
+                registro,
+                activo,
+                f_registro
+            ) VALUES (
+                :uuid,
+                :empresa,
+                :servicio,
+                :descripcion,
+                :duracion_min,
+                :costo_base,
+                :requiere_material,
+                :es_procedimiento,
+                :registro,
+                1,
+                NOW()
+            )
+        ");
+
+        $stmt->bindParam(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindParam(':empresa', $data['organization'], PDO::PARAM_STR);
+        $stmt->bindParam(':servicio', $data['procedure'], PDO::PARAM_STR);
+        $stmt->bindParam(':descripcion', $data['description'], PDO::PARAM_STR);
+        $stmt->bindParam(':duracion_min', $data['duration'], PDO::PARAM_STR);
+        $stmt->bindParam(':costo_base', $data['base_cost'], PDO::PARAM_STR);
+        $stmt->bindParam(':requiere_material', $data['requires_material'], PDO::PARAM_INT);
+        $stmt->bindParam(':es_procedimiento', $data['is_procedure'], PDO::PARAM_INT);
+        $stmt->bindParam(':registro', $data['uid'], PDO::PARAM_INT);
+
+        $stmt->execute();
+
+        return (int) $this->db->lastInsertId();
     }
 }

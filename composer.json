@@ -1,6 +1,6 @@
 {
-    "name": "helix/erp",
-    "description": "Software ERP para clinicas",
+    "name": "adariel/erp",
+    "description": "Software ERP para agenda digital",
     "type": "project",
     "require": {
         "tecnickcom/tcpdf": "^6.11",

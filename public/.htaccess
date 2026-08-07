@@ -15,4 +15,4 @@ RewriteRule ^([^/]+)(/.*)?$ $1/index.php [QSA,L]
 RewriteCond %{REQUEST_URI} .+/$
 RewriteRule ^(.+)/$ /$1 [R=301,L]
 
-ErrorDocument 404 /helix/public/404.html
+ErrorDocument 404 /adariel/public/404.html

@@ -4,7 +4,7 @@
 	$uri = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
 	$segments = explode('/', $uri);
 
-	// helix/public/staff/123
+	// adariel/public/staff/123
 	// puede venir así, así que buscas 'staff'
 	$index = array_search('staff', $segments);
 

@@ -11,9 +11,9 @@ class Session
 {
     public ?int $id = null;
     public ?string $nombre = null;
-    public ?string $usuario = null;
+    public ?string $email = null;
     public ?string $token = null;
-    public ?int $tipo_id = null;
+    public ?int $tipo_codigo = null;
     public ?string $tipo = null;
     public bool $active = false;
 
@@ -23,18 +23,18 @@ class Session
             session_start();
         }
 
-        if (empty($_SESSION['HELIX_ERP_ID']) || empty($_SESSION['HELIX_ERP_AUTH_TOKEN'])) {
+        if (empty($_SESSION['ADARIEL_ERP_ID']) || empty($_SESSION['ADARIEL_ERP_AUTH_TOKEN'])) {
             $this->destroySession();
         }
 
-        $this->id = (int) $_SESSION['HELIX_ERP_ID'];
-        $this->nombre = $_SESSION['HELIX_ERP_NOMBRE'] ?? null;
-        $this->usuario = $_SESSION['HELIX_ERP_USER'] ?? null;
-        $this->token = $_SESSION['HELIX_ERP_AUTH_TOKEN'] ?? null;
-        $this->tipo_id = isset($_SESSION['HELIX_ERP_TIPO_ID']) ? (int) $_SESSION['HELIX_ERP_TIPO_ID'] : null;
-        $this->tipo = $_SESSION['HELIX_ERP_TIPO'] ?? null;
+        $this->id = (int) $_SESSION['ADARIEL_ERP_ID'];
+        $this->nombre = $_SESSION['ADARIEL_ERP_NAME'] ?? null;
+        $this->email = $_SESSION['ADARIEL_ERP_EMAIL'] ?? null;
+        $this->token = $_SESSION['ADARIEL_ERP_AUTH_TOKEN'] ?? null;
+        $this->tipo_codigo = isset($_SESSION['ADARIEL_ERP_USER_TYPE_CODE']) ? (int) $_SESSION['ADARIEL_ERP_USER_TYPE_CODE'] : null;
+        $this->tipo = $_SESSION['ADARIEL_ERP_TIPO'] ?? null;
 
-        $_SESSION['HELIX_ERP_LAST_ACTIVITY'] = time();
+        $_SESSION['ADARIEL_ERP_LAST_ACTIVITY'] = time();
 
         if (!$this->validateToken()) {
             $this->destroySession();
@@ -50,7 +50,7 @@ class Session
 
     public function getTipoId(): ?int
     {
-        return $this->tipo_id;
+        return $this->tipo_codigo;
     }
 
     public function getTipo(): ?string
@@ -63,9 +63,9 @@ class Session
         return $this->nombre;
     }
 
-    public function getUsuario(): ?string
+    public function getEmail(): ?string
     {
-        return $this->usuario;
+        return $this->email;
     }
 
     public function getToken(): ?string
@@ -86,7 +86,7 @@ class Session
             session_destroy();
         }
 
-        header('Location: /helix/public/autenticacion/');
+        header('Location: /adariel/public/autenticacion/');
         exit;
     }
 

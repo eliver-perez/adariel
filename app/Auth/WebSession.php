@@ -14,9 +14,9 @@ class WebSession
     private $conn = null;
     public ?int $id = null;
     public ?string $nombre = null;
-    public ?string $usuario = null;
+    public ?string $email = null;
     public ?string $token = null;
-    public ?int $tipo_id = null;
+    public ?string $tipo_codigo = null;
     public ?string $tipo = null;
     public bool $active = false;
 
@@ -32,23 +32,22 @@ class WebSession
             session_start();
         }
 
-        if (empty($_SESSION['HELIX_ERP_ID']) || empty($_SESSION['HELIX_ERP_AUTH_TOKEN'])) {
+        if (empty($_SESSION['ADARIEL_ERP_ID']) || empty($_SESSION['ADARIEL_ERP_AUTH_TOKEN'])) {
             $this->destroySession();
         }
 
-        $this->id = (int) $_SESSION['HELIX_ERP_ID'];
-        $this->nombre = $_SESSION['HELIX_ERP_NOMBRE'] ?? null;
-        $this->usuario = $_SESSION['HELIX_ERP_USER'] ?? null;
-        $this->token = $_SESSION['HELIX_ERP_AUTH_TOKEN'] ?? null;
-        $this->tipo_id = isset($_SESSION['HELIX_ERP_TIPO_ID']) ? (int) $_SESSION['HELIX_ERP_TIPO_ID'] : null;
-        $this->tipo = $_SESSION['HELIX_ERP_TIPO'] ?? null;
+        $this->id = (int) $_SESSION['ADARIEL_ERP_ID'];
+        $this->nombre = $_SESSION['ADARIEL_ERP_NAME'] ?? null;
+        $this->email = $_SESSION['ADARIEL_ERP_EMAIL'] ?? null;
+        $this->token = $_SESSION['ADARIEL_ERP_AUTH_TOKEN'] ?? null;
+        $this->tipo_codigo = isset($_SESSION['ADARIEL_ERP_USER_TYPE_CODE']) ? (string) $_SESSION['ADARIEL_ERP_USER_TYPE_CODE'] : null;
+        $this->tipo = $_SESSION['ADARIEL_ERP_USER_TYPE'] ?? null;
 
-        $_SESSION['HELIX_ERP_LAST_ACTIVITY'] = time();
+        $_SESSION['ADARIEL_ERP_LAST_ACTIVITY'] = time();
 
-        if(!isset($_SESSION['HELIX_ERP_USER_ROLE'])) {
-            // die($config['url'] ?? '/helix/public/select-role/');
-            // $this->destroySession();
-            header('Location: '.$config['url'].'/select-role/' ?? '/helix/public/select-role/');
+        // die(var_dump($_SESSION));
+        if($this->tipo_codigo != 'superadmin' && !isset($_SESSION['ADARIEL_ERP_USER_ROLE'])) {
+            header('Location: '.$config['url'].'/select-role/' ?? '/adariel/public/select-role/');
         }
 
         if (!$this->validateToken($conn)) {
@@ -67,7 +66,7 @@ class WebSession
 
     public function getTipoId(): ?int
     {
-        return $this->tipo_id;
+        return $this->tipo_codigo;
     }
 
     public function getTipo(): ?string
@@ -82,7 +81,7 @@ class WebSession
 
     public function getUsuario(): ?string
     {
-        return $this->usuario;
+        return $this->email;
     }
 
     public function getToken(): ?string
@@ -103,7 +102,7 @@ class WebSession
             session_destroy();
         }
 
-        header('Location: /helix/public/autenticacion/');
+        header('Location: /adariel/public/autenticacion/');
         exit;
     }
 
@@ -170,29 +169,36 @@ class WebSession
                                         AND pu.usuario = ?
                             UNION ALL
                             SELECT put.permiso
-                                    FROM usuarios_empresas_roles uer
+                                    FROM usuarios_sucursales_roles usr
                                         INNER JOIN permisos_usuarios_tipo put
-                                            ON uer.tipo_usuario = put.tipo
+                                            ON usr.tipo_usuario = put.tipo
                                         INNER JOIN permisos p
                                             ON put.permiso = p.id
                                     WHERE put.valor = 1
-                                        AND uer.id = ?";
+                                        AND usr.id = ?";
         
         $stmt_permisos = $conn->prepare($tsql_permisos);
 
-        $stmt_permisos->execute([$_SESSION['HELIX_ERP_ID'], $_SESSION['HELIX_ERP_USER_ROLE']]);
+        $stmt_permisos->execute([$_SESSION['ADARIEL_ERP_ID'], $_SESSION['ADARIEL_ERP_USER_ROLE']]);
         $permisos = $stmt_permisos->fetchAll();
-        $_SESSION['HELIX_ERP_RIGHTS'] = array();
+        $_SESSION['ADARIEL_ERP_RIGHTS'] = array();
+        if($this->tipo_codigo == 'superadmin')
+            array_push($_SESSION['ADARIEL_ERP_RIGHTS'], 'superadmin');
         foreach($permisos as $p) {
-            array_push($_SESSION['HELIX_ERP_RIGHTS'], $p['permiso']);
+            array_push($_SESSION['ADARIEL_ERP_RIGHTS'], $p['permiso']);
         }
     }
 
     function verifyUserRights($allowed_roles) {
         foreach($allowed_roles as $p) {
-            if(in_array($p, $_SESSION['HELIX_ERP_RIGHTS']))
+            if(in_array($p, $_SESSION['ADARIEL_ERP_RIGHTS']))
                 return true;
         }
         return false;
+    }
+
+    function denyAccess() {
+        global $config;
+        header('Location: '.$config['url'].'?callBack=deniedAccess');
     }
 }

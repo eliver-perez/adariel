@@ -27,14 +27,14 @@ function NewProcedure() {
 }
 
 function EnableProcedure(v) {
-	$('#field-servicio-codigo').prop('disabled', v);
-	$('#field-servicio').prop('disabled', v);
-	$('#field-servicio-descripcion').prop('disabled', v);
-	$('#field-servicio-duracion').prop('disabled', v);
-	$('#field-servicio-costo-base').prop('disabled', v);
-	$('#chk-servicio-requiere-material').prop('disabled', v);
-	$('#chk-servicio-es-procedimiento').prop('disabled', v);
-	$('#chk-servicio-activo').prop('disabled', v);
+	$('#field-procedure').prop('disabled', v);
+	$('#field-description').prop('disabled', v);
+	$('#field-duration').prop('disabled', v);
+	$('#field-base-cost').prop('disabled', v);
+	$('#chk-requires-material').prop('disabled', v);
+	$('#chk-is-procedure').prop('disabled', v);
+	$('#chk-is-active').prop('disabled', v);
+	$('#chk-is-active').prop('checked', true);
 }
 
 function CancelProcedure() {
@@ -56,17 +56,6 @@ function CancelProcedure() {
 		$('#btn-registrar-servicio').addClass('!visible hidden');
 		$('#btn-cancelar-servicio').addClass('!visible hidden');
 	}
-}
-
-function ClearProcedure() {
-	$('#field-servicio-codigo').val('');
-	$('#field-servicio').val('');
-	$('#field-servicio-descripcion').val('');
-	$('#field-servicio-duracion').val('');
-	$('#field-servicio-costo-base').val('');
-	$('#chk-servicio-requiere-material').prop('checked', false);
-	$('#chk-servicio-es-procedimiento').prop('checked', false);
-	$('#chk-servicio-activo').prop('checked', false);
 }
 
 function GetProcedures() {
@@ -107,15 +96,64 @@ function GetProcedures() {
 			$('#table-procedures').append(rows);
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
-			console.log('STATUS:', textStatus);
-			console.log('ERROR:', errorThrown);
-			console.log('RESPONSE TEXT:', XMLHttpRequest.responseText);
-
-			alert(XMLHttpRequest.responseText);
+			try {
+				var response = JSON.parse(XMLHttpRequest.responseText);
+				console.log(response.message);
+				ShowToastMessage(response.message, 'error');
+				
+			} catch (e) {
+				ShowToastMessage(XMLHttpRequest.responseText, 'error');
+			}
 		}  
 	});
 }
 
 function SelectProcedure(id) {
 	alert(id);
+}
+
+function ClearProcedure() {
+	$('#field-procedure').val('');
+	$('#field-description').val('');
+	$('#field-duration').val('');
+	$('#field-base-cost').val('');
+	$('#chk-requires-material').prop('checked', false);
+	$('#chk-is-procedure').prop('checked', false);
+	$('#chk-is-active').prop('checked', false);
+}
+
+function RegisterProcedure() {
+	$.ajax({
+        url: `${homeURL}/api/procedures`,
+		type: 'post',
+		data: {
+			procedure: $('#field-procedure').val(),
+			description: $('#field-description').val(),
+			duration: $('#field-duration').val(),
+			base_cost: $('#field-base-cost').val(),
+			requires_material: $('#chk-requires-material').is(':checked') ? 1 : 0,
+			is_procedure: $('#chk-is-procedure').is(':checked') ? 1 : 0,
+			is_active: $('#chk-is-active').is(':checked') ? 1 : 0,
+		},
+		dataType: "json",
+		success: function(response) {
+			console.log(response);
+			if(response.success) {
+				ClearProcedure();
+				ShowToastMessage(response.message, 'success');
+			} else {
+				ShowToastMessage(response.message, 'error');
+			}
+		},
+		error: function(XMLHttpRequest, textStatus, errorThrown) { 
+			try {
+				var response = JSON.parse(XMLHttpRequest.responseText);
+				console.log(response.message);
+				ShowToastMessage(response.message, 'error');
+				
+			} catch (e) {
+				ShowToastMessage(XMLHttpRequest.responseText, 'error');
+			}
+		}  
+	});
 }

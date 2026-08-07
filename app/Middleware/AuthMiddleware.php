@@ -18,7 +18,7 @@ class AuthMiddleware
             session_start();
         }
 
-        if (empty($_SESSION['HELIX_ERP_ID']) || empty($_SESSION['HELIX_ERP_AUTH_TOKEN'])) {
+        if (empty($_SESSION['ADARIEL_ERP_ID']) || empty($_SESSION['ADARIEL_ERP_AUTH_TOKEN'])) {
             $response->json([
                 'status' => 'UNAUTHORIZED',
                 'message' => 'Sesión no autenticada'
@@ -26,7 +26,7 @@ class AuthMiddleware
             return false;
         }
 
-        $tokenHex = $_SESSION['HELIX_ERP_AUTH_TOKEN'];
+        $tokenHex = $_SESSION['ADARIEL_ERP_AUTH_TOKEN'];
 
         if (!ctype_xdigit($tokenHex) || strlen($tokenHex) !== 64) {
             session_unset();
@@ -67,7 +67,7 @@ class AuthMiddleware
             return false;
         }
 
-        if ((int)$session['usuario'] !== (int)$_SESSION['HELIX_ERP_ID']) {
+        if ((int)$session['usuario'] !== (int)$_SESSION['ADARIEL_ERP_ID']) {
             session_unset();
             session_destroy();
 
@@ -104,7 +104,7 @@ class AuthMiddleware
         $stmt->bindValue(':id', (int)$session['id'], PDO::PARAM_INT);
         $stmt->execute();
 
-        $_SESSION['HELIX_ERP_LAST_ACTIVITY'] = time();
+        $_SESSION['ADARIEL_ERP_LAST_ACTIVITY'] = time();
 
         return true;
     }

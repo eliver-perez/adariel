@@ -8,6 +8,11 @@ class Auth
 {
     public static function id(): ?int
     {
-        return $_SESSION['HELIX_ERP_ID'] ?? null;
+        return $_SESSION['ADARIEL_ERP_ID'] ?? null;
+    }
+
+    public static function organizationId(): ?int
+    {
+        return $_SESSION['ADARIEL_ERP_ORGANIZATION_ID'] ?? null;
     }
 }

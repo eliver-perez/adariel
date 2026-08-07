@@ -38,11 +38,11 @@
             <div class="flex flex-col justify-center w-full max-w-[516px] px-[30px] mx-auto my-[150px]">
                 <a href="#" class="text-center">
                     <!-- Logo for the light theme -->
-                    <img src="<?= asset('images/logos/logo-helix-200.png'); ?>"
-                        alt="image" class="inline dark:hidden">
+                    <img src="<?= asset('images/logos/logo_v.png'); ?>"
+                        alt="image" class="inline dark:hidden" style="height: 130px">
                     <!-- Logo for the dark theme -->
-                    <img src="<?= asset('images/logos/logo-helix-200.png'); ?>"
-                        alt="image" class="hidden dark:inline">
+                    <img src="<?= asset('images/logos/logo_v.png'); ?>"
+                        alt="image" class="hidden dark:inline" style="height: 130px">
                 </a>
 
                 <!-- Login form background -->
@@ -55,6 +55,7 @@
                         
                     </div>
                 </div>
+                <a href="javascript:CerrarSesion('<?= config('url'); ?>');" class="text-primary text-end text-[14px]">Cerrar Sesión</a>
             </div>
         </div>
 
@@ -69,6 +70,7 @@
     <script src="<?= asset('js/sweetalert.js') ?>"></script>
     <script src="<?= asset('js/forms.js') ?>"></script>
     <script src="<?= asset('js/select-role/index.js') ?>"></script>
+    <script src="<?= asset('js/global.js'); ?>"></script>
 
     <script>
         $(document).ready(function (e) {

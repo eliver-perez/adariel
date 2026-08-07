@@ -10,6 +10,22 @@ class SettingsService
 
     private array $cache = [];
 
+    public function getGlobal(string $id, mixed $default = null): mixed
+    {
+        if (isset($this->cache[$id])) {
+            return $this->cache[$id];
+        }
+        $setting = $this->repository->getGlobalById($id);
+
+        if (!$setting) {
+            return $default;
+        }
+
+        $value = $setting['valor'];
+
+        return $this->cache[$id] = $this->castValue($value, $setting['tipo']);
+    }
+
     public function get(string $id, mixed $default = null): mixed
     {
         if (isset($this->cache[$id])) {

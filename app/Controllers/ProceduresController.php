@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\Controller;
+use App\Core\Auth;
 use App\Core\Request;
 use App\Core\Response;
 use App\Core\Database;
@@ -42,9 +43,23 @@ class ProceduresController extends Controller
     public function index(Request $request, Response $response)
     {
         try {
+            $currentUserId = Auth::id();
+
+            if($currentUserId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
+            $organizationId = Auth::organizationId();
+
+            if($organizationId === null) {
+                throw new RuntimeException("Sin información de empresa.");
+            }
+
             $service = $this->getService();
 
-            $procedures = $service->getAll();
+            $procedures = $service->getAll([
+                'organization'  => $organizationId,
+                'uid'           => $currentUserId,
+            ]);
 
             return $response->json([
                 'status' => 'OK',
@@ -57,6 +72,54 @@ class ProceduresController extends Controller
                 'status' => 'ERROR',
                 'message' => $e->getMessage()
                 // 'message' => 'No fue posible obtener los servicios & procedimientos.'
+            ], 500);
+        }
+    }
+
+    public function store(Request $request, Response $response) {
+        try {
+            $currentUserId = Auth::id();
+
+            if($currentUserId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
+            $organizationId = Auth::organizationId();
+
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron datos para la empresa.");
+            }
+
+            $service = $this->getService();
+
+            $procedure = $service->create([
+                'procedure'                 => $request->input('procedure'),
+                'description'               => $request->input('description'),
+                'duration'                  => $request->input('duration'),
+                'base_cost'                 => $request->input('base_cost'),
+                'requires_material'         => $request->input('requires_material'),
+                'is_procedure'              => $request->input('is_procedure'),
+                'is_active'                 => $request->input('is_active'),
+
+                'organizationId'            => $organizationId,
+                'uid'                       => $currentUserId,
+            ]);
+
+            return $response->json([
+                'success' => true,
+                'message' => 'Servicio/Procedimiento registrado correctamente.',
+                'data' => [
+                    'id' => $procedure['uuid'],
+                ]
+            ], 201);
+        } catch (InvalidArgumentException | RuntimeException $e) {
+            return $response->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        } catch (Throwable $e) {
+            return $response->json([
+                'success' => false,
+                'message' => $e->getMessage()
             ], 500);
         }
     }

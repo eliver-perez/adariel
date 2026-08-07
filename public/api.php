@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Core\Request;
 use App\Core\Response;
 use App\Core\Router;
+use App\Core\Security\EncryptionService;
 
 define('BASE_PATH', dirname(__DIR__));
 define('APP_PATH', BASE_PATH . '/app');
@@ -14,6 +15,21 @@ define('STORAGE_PATH', BASE_PATH . '/storage');
 require BASE_PATH . '/vendor/autoload.php';
 
 loadEnv(BASE_PATH . '/.env');
+
+/**
+ * Encryption data
+ */
+$encryptionKey = env('APP_ENCRYPTION_KEY');
+
+if (!is_string($encryptionKey) || trim($encryptionKey) === '') {
+    throw new RuntimeException(
+        'No se encontró APP_ENCRYPTION_KEY.'
+    );
+}
+
+$encryptionService = new EncryptionService(
+    $encryptionKey
+);
 
 date_default_timezone_set('America/Mexico_City');
 

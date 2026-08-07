@@ -5,6 +5,7 @@ namespace App\Services\WhatsApp\Providers;
 use App\Core\Http\HttpClient;
 use App\Core\Http\HttpException;
 use App\Services\WhatsApp\Contracts\WhatsAppProviderInterface;
+use App\Services\WhatsApp\DTO\ConnectionTestResult;
 use App\Services\WhatsApp\DTO\SendMessageResult;
 
 final readonly class MetaWhatsAppProvider implements WhatsAppProviderInterface
@@ -14,6 +15,45 @@ final readonly class MetaWhatsAppProvider implements WhatsAppProviderInterface
         private string $phoneNumberId,
         private string $apiVersion = 'v25.0'
     ) {
+    }
+
+    public function testConnection(): ConnectionTestResult
+    {
+        try {
+            $url = sprintf(
+                'https://graph.facebook.com/%s/%s?fields=id,display_phone_number,verified_name',
+                'v' . ltrim($this->apiVersion, 'vV'),
+                rawurlencode($this->phoneNumberId)
+            );
+
+            $response = HttpClient::get($url, [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $this->accessToken,
+                ],
+            ]);
+
+            $data = $response->json();
+
+            if ($response->failed()) {
+                return new ConnectionTestResult(
+                    success: false,
+                    statusCode: $response->statusCode,
+                    response: $data,
+                    error: $this->extractError($data)
+                );
+            }
+
+            return new ConnectionTestResult(
+                success: true,
+                statusCode: $response->statusCode,
+                response: $data
+            );
+        } catch (HttpException $exception) {
+            return new ConnectionTestResult(
+                success: false,
+                error: $exception->getMessage()
+            );
+        }
     }
 
     public function sendText(

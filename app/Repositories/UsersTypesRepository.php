@@ -31,4 +31,19 @@ class UsersTypesRepository
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function getIdByCode(string $code): int {
+        $sql = "
+            SELECT
+                ut.id
+            FROM usuarios_tipos ut
+            WHERE ut.codigo = :codigo
+        ";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':codigo', $code, PDO::PARAM_STR);
+        $stmt->execute();
+
+        return $stmt->fetchColumn();
+    }
 }

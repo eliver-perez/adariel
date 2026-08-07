@@ -28,7 +28,7 @@
 	// 					AND ug.usuario = ?";
 
 	// $stmt = $conn->prepare($tsql);
-	// $stmt->execute([$_SESSION['HELIX_ERP_ID'], $_SESSION['HELIX_ERP_ID']]);
+	// $stmt->execute([$_SESSION['$_SESSION['ADARIEL__ERP_ID'], $_SESSION['$_SESSION['ADARIEL__ERP_ID']]);
 	// $data = $stmt->fetchAll();
 
 	// $CFG->permisos = array();

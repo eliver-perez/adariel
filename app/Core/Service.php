@@ -176,7 +176,7 @@ abstract class Service
         return $data;
     }
 
-    protected static function uuidBinaryToString(string $binary): string {
+    function uuidBinaryToString(string $binary): string {
         $hex = bin2hex($binary);
 
         return sprintf(
@@ -189,7 +189,7 @@ abstract class Service
         );
     }
 
-    protected static function uuidStringToBinary(string $uuid): string {
+    function uuidStringToBinary(string $uuid): string {
         return hex2bin(str_replace('-', '', $uuid));
     }
 

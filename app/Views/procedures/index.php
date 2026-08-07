@@ -52,30 +52,15 @@
                 </h2>
             </div>
 
-            <form id="form-registrar-servicio" action="RegisterProcedure()">
+            <form id="form-register-procedure" no-validate action="javascript:RegisterProcedure()">
                 <div class="sm:grid sm:grid-cols-12 max-sm:flex max-sm:flex-col px-[25px] pb-[10px] gap-[10px]">
-                    <div class="col-span-12 md:col-span-5 xl:col-span-5">
-                        <label for="field-servicio-codigo" class="inline-flex items-center w-[178px] mb-[2px] text-[14px] font-medium capitalize dark:text-title-dark">
-                            Código
-                        </label>
-                        <div class="flex flex-col flex-1 md:flex-row">
-                            <input type="text"
-                                    id="field-servicio-codigo"
-                                    name="code"
-                                    class="rounded-4 border-normal border-1 text-[14px] dark:bg-box-dark-up dark:border-box-dark-up px-[20px] py-[6px] min-h-[40px] outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full focus:ring-primary focus:border-primary" 
-                                    placeholder="Código"
-                                    maxlength="30"
-                                    required
-                                    disabled>
-                        </div>
-                    </div>
-                    <div class="col-span-12 md:col-span-7 xl:col-span-7">
-                        <label for="field-servicio" class="inline-flex items-center w-[178px] mb-[2px] text-[14px] font-medium capitalize dark:text-title-dark">
+                    <div class="col-span-12 md:col-span-12 xl:col-span-12">
+                        <label for="field-procedure" class="inline-flex items-center w-[178px] mb-[2px] text-[14px] font-medium capitalize dark:text-title-dark">
                             Servicio / Procedimiento
                         </label>
                         <div class="flex flex-col flex-1 md:flex-row">
                             <input type="text"
-                                    id="field-servicio"
+                                    id="field-procedure"
                                     name="procedure"
                                     class="rounded-4 border-normal border-1 text-[14px] dark:bg-box-dark-up dark:border-box-dark-up px-[20px] py-[6px] min-h-[40px] outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full focus:ring-primary focus:border-primary"
                                     placeholder="Servicio / Procedimiento"
@@ -85,11 +70,11 @@
                         </div>
                     </div>
                     <div class="col-span-12">
-                        <label for="field-servicio-descripcion" class="inline-flex items-center w-[178px] mb-[2px] text-[14px] font-medium capitalize dark:text-title-dark">
+                        <label for="field-description" class="inline-flex items-center w-[178px] mb-[2px] text-[14px] font-medium capitalize dark:text-title-dark">
                             Descripción
                         </label>
                         <div class="flex flex-col flex-1 md:flex-row">
-                            <textarea id="field-servicio-descripcion"
+                            <textarea id="field-description"
                                     name="procedure_description"
                                     rows="3"
                                     class="rounded-4 border-normal border-1 text-[15px] dark:bg-box-dark-up dark:border-box-dark-up px-[20px] py-[12px] outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full focus:ring-primary focus:border-primary resize-none"
@@ -99,12 +84,12 @@
                         </div>
                     </div>
                     <div class="col-span-12 md:col-span-6 xl:col-span-6">
-                        <label for="field-servicio-duracion" class="inline-flex items-center w-[178px] mb-[2px] text-[14px] font-medium capitalize dark:text-title-dark">
+                        <label for="field-duration" class="inline-flex items-center w-[178px] mb-[2px] text-[14px] font-medium capitalize dark:text-title-dark">
                             Duración
                         </label>
                         <div class="flex flex-col flex-1 md:flex-row">
                             <input type="text"
-                                    id="field-servicio-duracion"
+                                    id="field-duration"
                                     name="procedure_duration"
                                     oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                                     class="rounded-4 border-normal border-1 text-[14px] dark:bg-box-dark-up dark:border-box-dark-up px-[20px] py-[6px] min-h-[40px] outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full focus:ring-primary focus:border-primary"
@@ -115,12 +100,12 @@
                         </div>
                     </div>
                     <div class="col-span-12 md:col-span-6 xl:col-span-6">
-                        <label for="field-servicio-costo-base" class="inline-flex items-center w-[178px] mb-[2px] text-[14px] font-medium capitalize dark:text-title-dark">
+                        <label for="field-base-cost" class="inline-flex items-center w-[178px] mb-[2px] text-[14px] font-medium capitalize dark:text-title-dark">
                             Costo Base
                         </label>
                         <div class="flex flex-col flex-1 md:flex-row">
                             <input type="text"
-                                    id="field-servicio-costo-base"
+                                    id="field-base-cost"
                                     name="procedure_base_cost"
                                     oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1').replace(/^(\d+\.\d{2}).*$/, '$1')"
                                     class="rounded-4 border-normal border-1 text-[14px] dark:bg-box-dark-up dark:border-box-dark-up px-[20px] py-[6px] min-h-[40px] outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full focus:ring-primary focus:border-primary" 
@@ -132,11 +117,11 @@
                     </div>
                     <div class="col-span-12 md:col-span-6 xl:col-span-6">
                         <div class="flex flex-col pb-4 md:flex-row gap-[25px]">
-                            <label for="chk-servicio-requiere-material" class="inline-flex items-center w-[278px] mb-2 text-sm font-medium capitalize text-dark dark:text-title-dark">Requiere Material</label>
+                            <label for="chk-requires-material" class="inline-flex items-center w-[278px] mb-2 text-sm font-medium capitalize text-dark dark:text-title-dark">Requiere Material</label>
                             <div class="flex items-center flex-1">
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" 
-                                            id="chk-servicio-requiere-material"
+                                            id="chk-requires-material"
                                             name="procedure_require_material"
                                             class="sr-only peer"
                                             disabled>
@@ -148,11 +133,11 @@
                     </div>
                     <div class="col-span-12 md:col-span-6 xl:col-span-6">
                         <div class="flex flex-col pb-4 md:flex-row gap-[25px]">
-                            <label for="chk-servicio-es-procedimiento" class="inline-flex items-center w-[278px] mb-2 text-sm font-medium capitalize text-dark dark:text-title-dark">Es Procedimiento</label>
+                            <label for="chk-is-procedure" class="inline-flex items-center w-[278px] mb-2 text-sm font-medium capitalize text-dark dark:text-title-dark">Es Procedimiento</label>
                             <div class="flex items-center flex-1">
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox"
-                                            id="chk-servicio-es-procedimiento"
+                                            id="chk-is-procedure"
                                             name="procedure_is_procedure"
                                             class="sr-only peer"
                                             disabled>
@@ -164,11 +149,11 @@
                     </div>
                     <div class="col-span-12 md:col-span-12 xl:col-span-12">
                         <div class="flex flex-wrap items-center justify-between max-sm:flex-col gap-[25px]">
-                            <label for="chk-servicio-activo" class="inline-flex items-center w-[278px] mb-2 text-sm font-medium capitalize text-dark dark:text-title-dark">Activo</label>
+                            <label for="chk-is-active" class="inline-flex items-center w-[278px] mb-2 text-sm font-medium capitalize text-dark dark:text-title-dark">Activo</label>
                             <div class="flex items-center flex-1">
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" 
-                                            id="chk-servicio-activo"
+                                            id="chk-is-active"
                                             name="procedure_active"
                                             class="sr-only peer"
                                             disabled>

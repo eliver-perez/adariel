@@ -176,4 +176,5 @@
 
 <script>
     var currentLink = '<?= base_url(''); ?>';
+    var callBack = '<?= isset($_GET['callBack']) ? $_GET['callBack'] : ''; ?>';
 </script>

@@ -16,7 +16,7 @@ function Autenticar() {
 					url: `${homeURL}/api/auth/login`,
 					type: 'post',
 					data: {
-						usuario: $('#field-usuario').val(),
+						email: $('#field-email').val(),
 						password: $('#field-password').val(),
 						keep_me_logged_in: $('#chk-remember').is(':checked') ? 1 : 0
 					},
@@ -28,7 +28,7 @@ function Autenticar() {
 						if(returnedValue.status == 'OK') {
 							window.location.href = `${homeURL}`;
 						} else if(returnedValue.status == 'ERROR_AUTENTICACION') {
-							ShowSweetAlert('error', '¡Error en Autenticación!', 'Usuario o contraseña incorrectas, revise los datos y vuelva a intentarlo', 'Entendido');
+							ShowSweetAlert('error', '¡Error en Autenticación!', 'Email o contraseña incorrectas, revise los datos y vuelva a intentarlo', 'Entendido');
 						} else if(returnedValue.status == 'FAIL_PENDING_ACTIVATION') {
 							ShowSweetAlert('error', '¡Sin Activar!', 'No se ha activado la cuenta, revise su correo y siga las instrucciones de activación.', 'Entendido');
 						} else if(returnedValue.status == 'FAIL_NOT_ACTIVE') {
@@ -37,11 +37,10 @@ function Autenticar() {
 							ShowSweetAlert('error', '¡Ocurrio un Error!', 'Ocurrio un error al intentar realizar la autenticacion.', 'Entendido');	
 					},
 					error: function(XMLHttpRequest, textStatus, errorThrown) {
-						console.log('STATUS:', textStatus);
-						console.log('ERROR:', errorThrown);
-						console.log('RESPONSE TEXT:', XMLHttpRequest.responseText);
-
-						alert(XMLHttpRequest.responseText);
+						console.log(XMLHttpRequest);
+						let response = JSON.parse(XMLHttpRequest.responseText);
+						// ShowToastMessage(response.message, 'error');
+						ShowToastMessage('Ocurrio un error en la autenticación.', 'error');
 						autenticando = false;
 					}  
 			});

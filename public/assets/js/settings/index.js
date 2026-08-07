@@ -6,192 +6,206 @@ var selected_payment = '';
 var loading_status = true;
 let receiptModal = null;
 
+let testingMetaCloudAPIConnection = false;
+
 function InitializeValues(home) {
 	homeURL = home;
-	receiptModal = document.getElementById('modal-receipt');
-	$('#modal-receipt').on('hidden.te.modal', function () {
-		$('#receipt-preview').attr('src', '');
-		generated_report_id = '';
-	});
-	GetPayments();
+	$('#btn-meta-integration-test').on('click', TestMetaCloudAPIConnection);
+	$('#btn-meta-integration-test-message').on('click', SendWhatsAppTestMessage);
+	LoadIntegrationData();
 }
 
-function GetPayments() {
+function LoadIntegrationData() {
 	$.ajax({
-        url: `${homeURL}/api/payments`,
-		type: 'get',
-		data: {
-			
-		},
-		dataType: "json",
+		url: `${homeURL}/api/whatsapp-integration`,
+		type: 'GET',
+
+		contentType: 'application/json; charset=utf-8',
+		dataType: 'json',
+		processData: false,
+
 		success: function(response) {
 			console.log(response);
-			if(response.success) {
-				$.each(response.data.payments, function(k, v) {
-					$('#table-payments tbody').append(`<tr class="transition duration-300 ease-in-out border-b hover:bg-neutral-100 dark:border-neutral-500 dark:hover:bg-neutral-600 cursor-pointer">
-													<td onclick="SelectPayment('${v.id}');" class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-														<span class="font-medium capitalize text-dark dark:text-title-dark text-15">${v.folio}</span>
-													</td>
-													<td onclick="SelectPayment('${v.id}');" class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-														${v.client}
-													</td>
-													<td onclick="SelectPayment('${v.id}');" class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-														${v.payment_method}
-													</td>
-													<td onclick="SelectPayment('${v.id}');" class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-														${accounting.formatMoney(v.amount)}
-													</td>
-													<td onclick="SelectPayment('${v.id}');" class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-														${v.registered_by}
-													</td>
-													<td onclick="SelectPayment('${v.id}');" class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-														<div class="inline-flex items-center gap-[10px] text-light dark:text-subtitle-dark text-[10px] capitalize">
-															<span class="${v.status == 1 ? 'bg-primary' : 'bg-danger'} rounded-[15px] py-[4px] px-[8.23px] text-[12px] font-medium leading-[13px] text-center text-white">${v.status == 1 ? 'Activo' : 'Cancelado'}</span>
-														</div>
-													</td>
-													<td onclick="javascript:SelectPayment('${v.id}');" class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-														${v.payment_date}
-													</td>
-													<td class="ps-4 pe-0 py-2.5 font-normal last:text-end capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent rounded-e-[4px]">
-														<div class="text-primary dark:text-subtitle-dark text-[19px] flex px-2.5 justify-start m-0 gap-[5px]">
-															<button type="button" class="uil uil-eye hover:text-secondary cursor-pointer" title="Visualizar Recibo" onclick="PaymentReport('${v.id}');"></button>
-														</div>
-													</td>
-												</tr>`);
-				});
+			if (response.success) {
+				if(response.data.provider == 'meta') {
+					$('#field-meta-phone-number-id').val(response.data.settings.phone_number_id);
+					$('#field-meta-business-account-id').val(response.data.settings.whatsapp_business_account_id);
+					$('#field-meta-access-token').val('');
+					$('#chk-meta-active').prop('checked', response.data.active == 1 ? true : false);
+				}
 			}
 		},
-		error: function(XMLHttpRequest, textStatus, errorThrown) { 
+
+		error: function(xhr) {
+			console.log(xhr);
 			try {
-				var response = JSON.parse(XMLHttpRequest.responseText);
-				console.log(response.message);
-				ShowToastMessage(response.message, 'error');
-				
-			} catch (e) {
-				ShowToastMessage(XMLHttpRequest.responseText, 'error');
+				const response = JSON.parse(xhr.responseText);
+
+				ShowToastMessage(
+					response.message || 'No fue posible consultar la informacion de las integraciones.',
+					'error'
+				);
+			} catch (error) {
+				ShowToastMessage(
+					xhr.responseText || 'Ocurrió un error inesperado.',
+					'error'
+				);
 			}
-		}  
+		}
 	});
 }
 
-function ClearPaymentData() {
-	$('#field-payment-registrar').html('...');
-	$('#field-payment-status').removeClass('text-primary bg-primary/20 text-secondary bg-secondary/20 text-danger bg-danger/20 text-success bg-success/20');
-	$('#field-payment-status').addClass('text-warning bg-warning/20');
-	$('#field-payment-status').html('...');
-	$('#field-payment-folio').html('...');
-	$('#btn-payment-cancel').attr('disabled', true);
-	$('#table-sales tbody').empty();
-	$('#table-payment-details tbody').empty();
+function RegisterMetaCloudAPI() {
+	const payload = {
+		provider: 'meta',
+		configuration: {
+			phone_number_id:
+				$('#field-meta-phone-number-id').val().trim(),
+
+			business_account_id:
+				$('#field-meta-business-account-id').val().trim()
+		},
+		credentials: {
+			access_token:
+				$('#field-meta-access-token').val().trim()
+		},
+		active: $('#chk-meta-active').is(':checked')
+	};
+	
+	$.ajax({
+		url: `${homeURL}/api/whatsapp-integration`,
+		type: 'POST',
+
+		contentType: 'application/json; charset=utf-8',
+		dataType: 'json',
+		processData: false,
+
+		data: JSON.stringify(payload),
+
+		success: function(response) {
+			if (response.success) {
+				ShowToastMessage(response.message, 'success');
+			}
+		},
+
+		error: function(xhr) {
+			try {
+				const response = JSON.parse(xhr.responseText);
+
+				ShowToastMessage(
+					response.message || 'No fue posible guardar la integración.',
+					'error'
+				);
+			} catch (error) {
+				ShowToastMessage(
+					xhr.responseText || 'Ocurrió un error inesperado.',
+					'error'
+				);
+			}
+		}
+	});
 }
 
-function SelectPayment(id) {
-	if(selected_payment != id) {
-		selected_payment = id;
-		ClearPaymentData();
+function TestMetaCloudAPIConnection() {
+	if(!testingMetaCloudAPIConnection) {
+		testingMetaCloudAPIConnection = true;
+		const button = $('#btn-meta-integration-test');
+
+		button.prop('disabled', true);
+
 		$.ajax({
-			url: `${homeURL}/api/payments/${id}`,
-			type: 'get',
-			dataType: "json",
+			url: `${homeURL}/api/whatsapp-integration/test-connection`,
+			type: 'POST',
+			dataType: 'json',
+
 			success: function(response) {
-				console.log(response);
-				if(response.success) {
-					$('#field-payment-cash-reconciliation').html(response.data.cash_reconciliation_folio);
-
-					$('#field-payment-status').removeClass('text-warning bg-warning/20');
-					if(response.data.status == 1)
-						$('#field-payment-status').addClass('text-success bg-success/20');
-					else if(response.data.status == 2)
-						$('#field-payment-status').addClass('text-danger bg-danger/20');
-					else
-						$('#field-payment-status').addClass('text-warning bg-warning/20');
-					$('#field-payment-status').html(response.data.status == 1 ? 'Activo' : 'Cancelado');
-
-					$('#field-payment-folio').html(response.data.folio);
-					
-					$.each(response.data.sales, function(k, v) {
-						$('#table-sales tbody').append(`<tr class="transition duration-300 ease-in-out border-b hover:bg-neutral-100 dark:border-neutral-500 dark:hover:bg-neutral-600 cursor-pointer">
-														<td class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-															<span class="font-medium capitalize text-dark dark:text-title-dark text-15">${v.folio}</span>
-														</td>
-														<td class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-															${v.client}
-														</td>
-														<td class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-															${v.patient}
-														</td>
-														<td class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-															${accounting.formatMoney(v.balance_due_before)}
-														</td>
-														<td class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-															${accounting.formatMoney(v.payment_amount)}
-														</td>
-														<td class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-															${v.sale_date}
-														</td>
-														<td class="ps-4 pe-0 py-2.5 font-normal last:text-end capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent rounded-e-[4px]">
-															<div class="text-primary dark:text-subtitle-dark text-[19px] flex px-2.5 justify-start m-0 gap-[5px]">
-																<button type="button" class="uil uil-eye hover:text-secondary cursor-pointer" title="Detalles de Venta" onclick="SaleDetails('${v.id}');"></button>
-															</div>
-														</td>
-													</tr>`);
-					});
-					
-					$.each(response.data.payment_details, function(k, v) {
-						$('#table-payment-details tbody').append(`<tr class="transition duration-300 ease-in-out border-b hover:bg-neutral-100 dark:border-neutral-500 dark:hover:bg-neutral-600 cursor-pointer">
-														<td class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-															<span class="font-medium capitalize text-dark dark:text-title-dark text-15">${v.sale_folio}</span>
-														</td>
-														<td class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-															${v.quantity}
-														</td>
-														<td class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-															${v.description}
-														</td>
-														<td class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-															${accounting.formatMoney(v.base_cost)}
-														</td>
-														<td class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-															${accounting.formatMoney(v.total)}
-														</td>
-														<td class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-															${accounting.formatMoney(v.balance_before_payment)}
-														</td>
-														<td class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-															${accounting.formatMoney(v.payment_amount)}
-														</td>
-													</tr>`);
-					});
-				}
-			},
-			error: function(XMLHttpRequest, textStatus, errorThrown) { 
-				try {
-					var response = JSON.parse(XMLHttpRequest.responseText);
-					console.log(response.message);
+				if (!response.success) {
 					ShowToastMessage(response.message, 'error');
-					
-				} catch (e) {
-					console.log(response);
-					ShowToastMessage(XMLHttpRequest.responseText, 'error');
+					return;
 				}
-			}  
+
+				const phone = response.data?.phone_number;
+				const name = response.data?.verified_name;
+
+				let message = response.message;
+
+				if (phone) {
+					message += ` Número: ${phone}.`;
+				}
+
+				if (name) {
+					message += ` Nombre: ${name}.`;
+				}
+
+				ShowToastMessage(message, 'success');
+			},
+
+			error: function(xhr) {
+				const message =
+					xhr.responseJSON?.message ||
+					'No fue posible probar la conexión.';
+
+				ShowToastMessage(message, 'error');
+			},
+
+			complete: function() {
+				testingMetaCloudAPIConnection = false;
+				button.prop('disabled', false);
+			}
 		});
 	}
 }
 
-var generated_report_id = '';
+function SendWhatsAppTestMessage() {
+	const recipient = $('#field-meta-test-recipient')
+		.val()
+		.trim();
 
-function PaymentReport(id) {
-	const modal = new te.Modal(receiptModal);
-	
-	$('#receipt-preview').attr('src', `${homeURL}/receipt-modal?id=${id}`);
-	generated_report_id = id;
+	if (!recipient) {
+		ShowToastMessage(
+			'Debes capturar el número destinatario.',
+			'error'
+		);
 
-	modal.show();
-}
-
-function ViewReport() {
-	if(generated_report_id != '') {
-		window.open(`${homeURL}/receipt/${generated_report_id}`, '_self');
+		return;
 	}
+
+	const button = $('#btn-meta-integration-test-message');
+
+	button.prop('disabled', true);
+
+	$.ajax({
+		url: `${homeURL}/api/whatsapp-messages/test`,
+		type: 'POST',
+
+		contentType: 'application/json; charset=utf-8',
+		dataType: 'json',
+		processData: false,
+
+		data: JSON.stringify({
+			recipient: recipient,
+			template: 'hello_world',
+			language: 'en_US'
+		}),
+
+		success: function(response) {
+			ShowToastMessage(
+				response.message,
+				'success'
+			);
+		},
+
+		error: function(xhr) {
+			console.log(xhr);
+			const message =
+				xhr.responseJSON?.message ||
+				'No fue posible enviar el mensaje de prueba.';
+
+			ShowToastMessage(message, 'error');
+		},
+
+		complete: function() {
+			button.prop('disabled', false);
+		}
+	});
 }

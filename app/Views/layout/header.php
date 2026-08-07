@@ -34,11 +34,11 @@
       <div class="flex w-[280px] border-e border-[#edf2f9] dark:border-box-dark-up logo-wrapper items-center h-[71px] dark:bg-box-dark-up max-xl:hidden">
          <a href="<?= base_url(''); ?>" class="block text-center">
             <div class="logo-full">
-               <img class="ps-[27px] dark:hidden" src="<?= asset('images/logos/logo-helix-120.png'); ?>" alt="Logo">
-               <img class="ps-[27px] hidden dark:block" src="<?= asset('images/logos/logo-helix-120.png'); ?>" alt="Logo">
+               <img class="ps-[27px] dark:hidden" src="<?= asset('images/logos/logo_h.png'); ?>" alt="Logo" style="max-width: 80%;">
+               <img class="ps-[27px] hidden dark:block" src="<?= asset('images/logos/logo_h.png'); ?>" alt="Logo" style="max-width: 80%;">
             </div>
             <div class="hidden logo-fold">
-               <img class="p-[27px] max-w-[80px]" src="<?= base_url('../template/images/logos/logo-fold.png'); ?>" alt="Logo">
+               <img class="p-[27px] max-w-[80px]" src="<?= asset('images/logos/logo_fold.png'); ?>" alt="Logo">
             </div>
          </a>
       </div>
@@ -62,12 +62,12 @@
                      </li>
                   </ul>
                </li>
-            <?php if($session->verifyUserRights(['superadmin'])) { ?>
+            <?php if($session->verifyUserRights(['superadmin', 'gerente-general'])) { ?>
                <li class="relative">
                   <span class="slug dark:text-white/40 mb-[10px] mt-[30px] block px-6 text-[12px] font-medium uppercase text-light">ADMINISTRACIÓN</span>
                </li>
             <?php } ?>
-            <?php if($session->verifyUserRights(['superadmin'])) { ?>
+            <?php if($session->verifyUserRights(['superadmin', 'gerente-general'])) { ?>
                <li class="relative">
                   <a href="<?= base_url('pos'); ?>" class="rounded-e-[20px] hover:bg-primary/10 focus:bg-primary/10 active:bg-primary/10 dark:text-subtitle-dark flex h-12 cursor-pointer items-center gap-[16px] truncate px-6 py-4 text-[14px] font-medium text-body outline-none transition duration-300 ease-linear hover:text-primary dark:hover:text-title-dark hover:outline-none focus:text-primary dark:focus:text-title-dark focus:outline-none active:text-primary active:outline-none [&.active]:text-primary dark:[&.active]:text-title-dark  motion-reduce:transition-none dark:hover:bg-box-dark-up dark:focus:bg-box-dark-up dark:active:bg-box-dark-up group capitalize ">
                      <span class="nav-icon dark:text-subtitle-dark text-[18px] text-light-extra  group-hover:text-current group-[&.active]:text-current group-focus:text-current">
@@ -77,7 +77,7 @@
                   </a>
                </li>
             <?php } ?>
-            <?php if($session->verifyUserRights(['superadmin'])) { ?>
+            <?php if($session->verifyUserRights(['superadmin', 'gerente-general'])) { ?>
                <li class="relative">
                   <a href="<?= base_url('cash-reconciliation'); ?>" class="rounded-e-[20px] hover:bg-primary/10 focus:bg-primary/10 active:bg-primary/10 dark:text-subtitle-dark flex h-12 cursor-pointer items-center gap-[16px] truncate px-6 py-4 text-[14px] font-medium text-body outline-none transition duration-300 ease-linear hover:text-primary dark:hover:text-title-dark hover:outline-none focus:text-primary dark:focus:text-title-dark focus:outline-none active:text-primary active:outline-none [&.active]:text-primary dark:[&.active]:text-title-dark  motion-reduce:transition-none dark:hover:bg-box-dark-up dark:focus:bg-box-dark-up dark:active:bg-box-dark-up group capitalize ">
                      <span class="nav-icon dark:text-subtitle-dark text-[18px] text-light-extra  group-hover:text-current group-[&.active]:text-current group-focus:text-current">
@@ -87,7 +87,7 @@
                   </a>
                </li>
             <?php } ?>
-            <?php if($session->verifyUserRights(['superadmin'])) { ?>
+            <?php if($session->verifyUserRights(['superadmin', 'gerente-general'])) { ?>
                <li class="relative">
                   <a href="<?= base_url('payments'); ?>" class="rounded-e-[20px] hover:bg-primary/10 focus:bg-primary/10 active:bg-primary/10 dark:text-subtitle-dark flex h-12 cursor-pointer items-center gap-[16px] truncate px-6 py-4 text-[14px] font-medium text-body outline-none transition duration-300 ease-linear hover:text-primary dark:hover:text-title-dark hover:outline-none focus:text-primary dark:focus:text-title-dark focus:outline-none active:text-primary active:outline-none [&.active]:text-primary dark:[&.active]:text-title-dark  motion-reduce:transition-none dark:hover:bg-box-dark-up dark:focus:bg-box-dark-up dark:active:bg-box-dark-up group capitalize ">
                      <span class="nav-icon dark:text-subtitle-dark text-[18px] text-light-extra  group-hover:text-current group-[&.active]:text-current group-focus:text-current">
@@ -97,7 +97,7 @@
                   </a>
                </li>
             <?php } ?>
-            <?php if($session->verifyUserRights(['superadmin'])) { ?>
+            <?php if($session->verifyUserRights(['superadmin', 'gerente-general'])) { ?>
                <li class="relative">
                   <a href="<?= base_url('sales'); ?>" class="rounded-e-[20px] hover:bg-primary/10 focus:bg-primary/10 active:bg-primary/10 dark:text-subtitle-dark flex h-12 cursor-pointer items-center gap-[16px] truncate px-6 py-4 text-[14px] font-medium text-body outline-none transition duration-300 ease-linear hover:text-primary dark:hover:text-title-dark hover:outline-none focus:text-primary dark:focus:text-title-dark focus:outline-none active:text-primary active:outline-none [&.active]:text-primary dark:[&.active]:text-title-dark  motion-reduce:transition-none dark:hover:bg-box-dark-up dark:focus:bg-box-dark-up dark:active:bg-box-dark-up group capitalize ">
                      <span class="nav-icon dark:text-subtitle-dark text-[18px] text-light-extra  group-hover:text-current group-[&.active]:text-current group-focus:text-current">
@@ -107,18 +107,28 @@
                   </a>
                </li>
             <?php } ?>
-            <?php if($session->verifyUserRights(['superadmin'])) { ?>
+            <?php if($session->verifyUserRights(['superadmin', 'gerente-general'])) { ?>
                <li class="relative">
                   <span class="slug dark:text-white/40 mb-[10px] mt-[30px] block px-6 text-[12px] font-medium uppercase text-light">USUARIOS</span>
                </li>
             <?php } ?>
-            <?php if($session->verifyUserRights(['superadmin'])) { ?>
+            <?php if($session->verifyUserRights(['superadmin', 'gerente-general'])) { ?>
                <li class="relative">
                   <a href="<?= base_url('staff'); ?>" class="rounded-e-[20px] hover:bg-primary/10 focus:bg-primary/10 active:bg-primary/10 dark:text-subtitle-dark flex h-12 cursor-pointer items-center gap-[16px] truncate px-6 py-4 text-[14px] font-medium text-body outline-none transition duration-300 ease-linear hover:text-primary dark:hover:text-title-dark hover:outline-none focus:text-primary dark:focus:text-title-dark focus:outline-none active:text-primary active:outline-none [&.active]:text-primary dark:[&.active]:text-title-dark  motion-reduce:transition-none dark:hover:bg-box-dark-up dark:focus:bg-box-dark-up dark:active:bg-box-dark-up group capitalize">
                      <span class="nav-icon dark:text-subtitle-dark text-[18px] text-light-extra  group-hover:text-current group-[&.active]:text-current group-focus:text-current">
                         <i class="uil uil-house-user"></i>
                      </span>
                      <span class="capitalize title">Personal</span>
+                  </a>
+               </li>
+            <?php } ?>
+            <?php if($session->verifyUserRights(['superadmin'])) { ?>
+               <li class="relative">
+                  <a href="<?= base_url('organizations'); ?>" class="rounded-e-[20px] hover:bg-primary/10 focus:bg-primary/10 active:bg-primary/10 dark:text-subtitle-dark flex h-12 cursor-pointer items-center gap-[16px] truncate px-6 py-4 text-[14px] font-medium text-body outline-none transition duration-300 ease-linear hover:text-primary dark:hover:text-title-dark hover:outline-none focus:text-primary dark:focus:text-title-dark focus:outline-none active:text-primary active:outline-none [&.active]:text-primary dark:[&.active]:text-title-dark  motion-reduce:transition-none dark:hover:bg-box-dark-up dark:focus:bg-box-dark-up dark:active:bg-box-dark-up group capitalize ">
+                     <span class="nav-icon dark:text-subtitle-dark text-[18px] text-light-extra  group-hover:text-current group-[&.active]:text-current group-focus:text-current">
+                        <i class="uil uil-building"></i>
+                     </span>
+                     <span class="capitalize title">Empresas</span>
                   </a>
                </li>
             <?php } ?>
@@ -142,7 +152,7 @@
                   </a>
                </li>
             <?php } ?>
-            <?php if($session->verifyUserRights(['superadmin'])) { ?>
+            <?php if($session->verifyUserRights(['superadmin', 'gerente-general'])) { ?>
                <li class="relative">
                   <a href="<?= base_url('staff-availibility'); ?>" class="rounded-e-[20px] hover:bg-primary/10 focus:bg-primary/10 active:bg-primary/10 dark:text-subtitle-dark flex h-12 cursor-pointer items-center gap-[16px] truncate px-6 py-4 text-[14px] font-medium text-body outline-none transition duration-300 ease-linear hover:text-primary dark:hover:text-title-dark hover:outline-none focus:text-primary dark:focus:text-title-dark focus:outline-none active:text-primary active:outline-none [&.active]:text-primary dark:[&.active]:text-title-dark  motion-reduce:transition-none dark:hover:bg-box-dark-up dark:focus:bg-box-dark-up dark:active:bg-box-dark-up group capitalize ">
                      <span class="nav-icon dark:text-subtitle-dark text-[18px] text-light-extra  group-hover:text-current group-[&.active]:text-current group-focus:text-current">
@@ -152,7 +162,7 @@
                   </a>
                </li>
             <?php } ?>
-            <?php if($session->verifyUserRights(['superadmin', 'citas-atender'])) { ?>
+            <?php if($session->verifyUserRights(['superadmin', 'gerente-general', 'citas-atender'])) { ?>
                <li class="relative">
                   <span class="slug dark:text-white/40 mb-[10px] mt-[30px] block px-6 text-[12px] font-medium uppercase text-light">CLINICA</span>
                </li>
@@ -167,7 +177,7 @@
                   </a>
                </li>
             <?php } ?>
-            <?php if($session->verifyUserRights(['superadmin'])) { ?>
+            <?php if($session->verifyUserRights(['superadmin', 'gerente-general'])) { ?>
                <li class="relative">
                   <a href="<?= base_url('procedures'); ?>" class="rounded-e-[20px] hover:bg-primary/10 focus:bg-primary/10 active:bg-primary/10 dark:text-subtitle-dark flex h-12 cursor-pointer items-center gap-[16px] truncate px-6 py-4 text-[14px] font-medium text-body outline-none transition duration-300 ease-linear hover:text-primary dark:hover:text-title-dark hover:outline-none focus:text-primary dark:focus:text-title-dark focus:outline-none active:text-primary active:outline-none [&.active]:text-primary dark:[&.active]:text-title-dark  motion-reduce:transition-none dark:hover:bg-box-dark-up dark:focus:bg-box-dark-up dark:active:bg-box-dark-up group capitalize ">
                      <span class="nav-icon dark:text-subtitle-dark text-[18px] text-light-extra  group-hover:text-current group-[&.active]:text-current group-focus:text-current">
@@ -177,7 +187,7 @@
                   </a>
                </li>
             <?php } ?>
-            <?php if($session->verifyUserRights(['superadmin'])) { ?>
+            <?php if($session->verifyUserRights(['superadmin', 'gerente-general'])) { ?>
                <li class="relative">
                   <a href="<?= base_url('consents'); ?>" class="rounded-e-[20px] hover:bg-primary/10 focus:bg-primary/10 active:bg-primary/10 dark:text-subtitle-dark flex h-12 cursor-pointer items-center gap-[16px] truncate px-6 py-4 text-[14px] font-medium text-body outline-none transition duration-300 ease-linear hover:text-primary dark:hover:text-title-dark hover:outline-none focus:text-primary dark:focus:text-title-dark focus:outline-none active:text-primary active:outline-none [&.active]:text-primary dark:[&.active]:text-title-dark  motion-reduce:transition-none dark:hover:bg-box-dark-up dark:focus:bg-box-dark-up dark:active:bg-box-dark-up group capitalize ">
                      <span class="nav-icon dark:text-subtitle-dark text-[18px] text-light-extra  group-hover:text-current group-[&.active]:text-current group-focus:text-current">
@@ -187,7 +197,7 @@
                   </a>
                </li>
             <?php } ?>
-            <?php if($session->verifyUserRights(['superadmin'])) { ?>
+            <?php if($session->verifyUserRights(['superadmin', 'gerente-general'])) { ?>
                <li class="relative">
                   <a href="<?= base_url('patients'); ?>" class="rounded-e-[20px] hover:bg-primary/10 focus:bg-primary/10 active:bg-primary/10 dark:text-subtitle-dark flex h-12 cursor-pointer items-center gap-[16px] truncate px-6 py-4 text-[14px] font-medium text-body outline-none transition duration-300 ease-linear hover:text-primary dark:hover:text-title-dark hover:outline-none focus:text-primary dark:focus:text-title-dark focus:outline-none active:text-primary active:outline-none [&.active]:text-primary dark:[&.active]:text-title-dark  motion-reduce:transition-none dark:hover:bg-box-dark-up dark:focus:bg-box-dark-up dark:active:bg-box-dark-up group capitalize ">
                      <span class="nav-icon dark:text-subtitle-dark text-[18px] text-light-extra  group-hover:text-current group-[&.active]:text-current group-focus:text-current">
@@ -197,7 +207,7 @@
                   </a>
                </li>
             <?php } ?>
-            <?php if($session->verifyUserRights(['superadmin'])) { ?>
+            <?php if($session->verifyUserRights(['superadmin', 'gerente-general'])) { ?>
                <li class="relative">
                   <a href="<?= base_url('appointments'); ?>" class="rounded-e-[20px] hover:bg-primary/10 focus:bg-primary/10 active:bg-primary/10 dark:text-subtitle-dark flex h-12 cursor-pointer items-center gap-[16px] truncate px-6 py-4 text-[14px] font-medium text-body outline-none transition duration-300 ease-linear hover:text-primary dark:hover:text-title-dark hover:outline-none focus:text-primary dark:focus:text-title-dark focus:outline-none active:text-primary active:outline-none [&.active]:text-primary dark:[&.active]:text-title-dark  motion-reduce:transition-none dark:hover:bg-box-dark-up dark:focus:bg-box-dark-up dark:active:bg-box-dark-up group capitalize ">
                      <span class="nav-icon dark:text-subtitle-dark text-[18px] text-light-extra  group-hover:text-current group-[&.active]:text-current group-focus:text-current">
@@ -207,7 +217,7 @@
                   </a>
                </li>
             <?php } ?>
-            <?php if($session->verifyUserRights(['superadmin'])) { ?>
+            <?php if($session->verifyUserRights(['superadmin', 'gerente-general'])) { ?>
                <li class="relative">
                   <a href="<?= base_url('appointments/add'); ?>" class="rounded-e-[20px] hover:bg-primary/10 focus:bg-primary/10 active:bg-primary/10 dark:text-subtitle-dark flex h-12 cursor-pointer items-center gap-[16px] truncate px-6 py-4 text-[14px] font-medium text-body outline-none transition duration-300 ease-linear hover:text-primary dark:hover:text-title-dark hover:outline-none focus:text-primary dark:focus:text-title-dark focus:outline-none active:text-primary active:outline-none [&.active]:text-primary dark:[&.active]:text-title-dark  motion-reduce:transition-none dark:hover:bg-box-dark-up dark:focus:bg-box-dark-up dark:active:bg-box-dark-up group capitalize ">
                      <span class="nav-icon dark:text-subtitle-dark text-[18px] text-light-extra  group-hover:text-current group-[&.active]:text-current group-focus:text-current">
@@ -217,12 +227,12 @@
                   </a>
                </li>
             <?php } ?>
-            <?php if($session->verifyUserRights(['superadmin'])) { ?>
+            <?php if($session->verifyUserRights(['superadmin', 'gerente-general'])) { ?>
                <li class="relative">
                   <span class="slug dark:text-white/40 mb-[10px] mt-[30px] block px-6 text-[12px] font-medium uppercase text-light">INVENTARIOS</span>
                </li>
             <?php } ?>
-            <?php if($session->verifyUserRights(['superadmin'])) { ?>
+            <?php if($session->verifyUserRights(['superadmin', 'gerente-general'])) { ?>
                <li class="relative">
                   <a href="<?= base_url('suppliers'); ?>" class="rounded-e-[20px] hover:bg-primary/10 focus:bg-primary/10 active:bg-primary/10 dark:text-subtitle-dark flex h-12 cursor-pointer items-center gap-[16px] truncate px-6 py-4 text-[14px] font-medium text-body outline-none transition duration-300 ease-linear hover:text-primary dark:hover:text-title-dark hover:outline-none focus:text-primary dark:focus:text-title-dark focus:outline-none active:text-primary active:outline-none [&.active]:text-primary dark:[&.active]:text-title-dark  motion-reduce:transition-none dark:hover:bg-box-dark-up dark:focus:bg-box-dark-up dark:active:bg-box-dark-up group capitalize ">
                      <span class="nav-icon dark:text-subtitle-dark text-[18px] text-light-extra  group-hover:text-current group-[&.active]:text-current group-focus:text-current">
@@ -232,7 +242,7 @@
                   </a>
                </li>
             <?php } ?>
-            <?php if($session->verifyUserRights(['superadmin'])) { ?>
+            <?php if($session->verifyUserRights(['superadmin', 'gerente-general'])) { ?>
                <li class="relative">
                   <a href="<?= base_url('inventory'); ?>" class="rounded-e-[20px] hover:bg-primary/10 focus:bg-primary/10 active:bg-primary/10 dark:text-subtitle-dark flex h-12 cursor-pointer items-center gap-[16px] truncate px-6 py-4 text-[14px] font-medium text-body outline-none transition duration-300 ease-linear hover:text-primary dark:hover:text-title-dark hover:outline-none focus:text-primary dark:focus:text-title-dark focus:outline-none active:text-primary active:outline-none [&.active]:text-primary dark:[&.active]:text-title-dark  motion-reduce:transition-none dark:hover:bg-box-dark-up dark:focus:bg-box-dark-up dark:active:bg-box-dark-up group capitalize ">
                      <span class="nav-icon dark:text-subtitle-dark text-[18px] text-light-extra  group-hover:text-current group-[&.active]:text-current group-focus:text-current">
@@ -242,7 +252,7 @@
                   </a>
             </li>
             <?php } ?>
-            <?php if($session->verifyUserRights(['superadmin'])) { ?>
+            <?php if($session->verifyUserRights(['superadmin', 'gerente-general'])) { ?>
                <li class="relative">
                   <a href="<?= base_url('products'); ?>" class="rounded-e-[20px] hover:bg-primary/10 focus:bg-primary/10 active:bg-primary/10 dark:text-subtitle-dark flex h-12 cursor-pointer items-center gap-[16px] truncate px-6 py-4 text-[14px] font-medium text-body outline-none transition duration-300 ease-linear hover:text-primary dark:hover:text-title-dark hover:outline-none focus:text-primary dark:focus:text-title-dark focus:outline-none active:text-primary active:outline-none [&.active]:text-primary dark:[&.active]:text-title-dark  motion-reduce:transition-none dark:hover:bg-box-dark-up dark:focus:bg-box-dark-up dark:active:bg-box-dark-up group capitalize ">
                      <span class="nav-icon dark:text-subtitle-dark text-[18px] text-light-extra  group-hover:text-current group-[&.active]:text-current group-focus:text-current">
@@ -252,7 +262,7 @@
                   </a>
                </li>
             <?php } ?>
-            <?php if($session->verifyUserRights(['superadmin'])) { ?>
+            <?php if($session->verifyUserRights(['superadmin', 'gerente-general'])) { ?>
                <li class="relative">
                   <a href="<?= base_url('requisition'); ?>" class="rounded-e-[20px] hover:bg-primary/10 focus:bg-primary/10 active:bg-primary/10 dark:text-subtitle-dark flex h-12 cursor-pointer items-center gap-[16px] truncate px-6 py-4 text-[14px] font-medium text-body outline-none transition duration-300 ease-linear hover:text-primary dark:hover:text-title-dark hover:outline-none focus:text-primary dark:focus:text-title-dark focus:outline-none active:text-primary active:outline-none [&.active]:text-primary dark:[&.active]:text-title-dark  motion-reduce:transition-none dark:hover:bg-box-dark-up dark:focus:bg-box-dark-up dark:active:bg-box-dark-up group capitalize ">
                      <span class="nav-icon dark:text-subtitle-dark text-[18px] text-light-extra  group-hover:text-current group-[&.active]:text-current group-focus:text-current">
@@ -262,7 +272,7 @@
                   </a>
                </li>
             <?php } ?>
-            <?php if($session->verifyUserRights(['superadmin'])) { ?>
+            <?php if($session->verifyUserRights(['superadmin', 'gerente-general'])) { ?>
                <li class="relative">
                   <a href="<?= base_url('purchase-orders'); ?>" class="rounded-e-[20px] hover:bg-primary/10 focus:bg-primary/10 active:bg-primary/10 dark:text-subtitle-dark flex h-12 cursor-pointer items-center gap-[16px] truncate px-6 py-4 text-[14px] font-medium text-body outline-none transition duration-300 ease-linear hover:text-primary dark:hover:text-title-dark hover:outline-none focus:text-primary dark:focus:text-title-dark focus:outline-none active:text-primary active:outline-none [&.active]:text-primary dark:[&.active]:text-title-dark  motion-reduce:transition-none dark:hover:bg-box-dark-up dark:focus:bg-box-dark-up dark:active:bg-box-dark-up group capitalize ">
                      <span class="nav-icon dark:text-subtitle-dark text-[18px] text-light-extra  group-hover:text-current group-[&.active]:text-current group-focus:text-current">
@@ -272,12 +282,12 @@
                   </a>
                </li>
             <?php } ?>
-            <?php if($session->verifyUserRights(['superadmin'])) { ?>
+            <?php if($session->verifyUserRights(['superadmin', 'gerente-general'])) { ?>
                <li class="relative">
                   <span class="slug dark:text-white/40 mb-[10px] mt-[30px] block px-6 text-[12px] font-medium uppercase text-light">AJUSTES</span>
                </li>
             <?php } ?>
-            <?php if($session->verifyUserRights(['superadmin'])) { ?>
+            <?php if($session->verifyUserRights(['superadmin', 'gerente-general'])) { ?>
                <li class="relative sub-item-wrapper group">
                   <a class="group-[.open]:bg-primary/10 rounded-e-[20px] hover:bg-primary/10 focus:bg-primary/10 dark:text-subtitle-dark flex h-12 cursor-pointer items-center gap-[16px] truncate px-6 py-4 text-[14px] font-medium text-body outline-none transition duration-300 ease-linear hover:text-primary dark:hover:text-title-dark hover:outline-none focus:text-primary dark:focus:text-title-dark focus:outline-none motion-reduce:transition-none dark:hover:bg-box-dark-up dark:focus:bg-box-dark-up group capitalize">
                      <span class="nav-icon dark:text-subtitle-dark text-[18px] text-light-extra group-hover:text-current group-focus:text-current">
@@ -297,7 +307,7 @@
                   </ul>
                </li>
             <?php } ?>
-            <?php if($session->verifyUserRights(['superadmin'])) { ?>
+            <?php if($session->verifyUserRights(['superadmin', 'gerente-general'])) { ?>
                <li class="relative">
                   <a href="<?= base_url('settings'); ?>" class="rounded-e-[20px] hover:bg-primary/10 focus:bg-primary/10 active:bg-primary/10 dark:text-subtitle-dark flex h-12 cursor-pointer items-center gap-[16px] truncate px-6 py-4 text-[14px] font-medium text-body outline-none transition duration-300 ease-linear hover:text-primary dark:hover:text-title-dark hover:outline-none focus:text-primary dark:focus:text-title-dark focus:outline-none active:text-primary active:outline-none [&.active]:text-primary dark:[&.active]:text-title-dark  motion-reduce:transition-none dark:hover:bg-box-dark-up dark:focus:bg-box-dark-up dark:active:bg-box-dark-up group capitalize ">
                      <span class="nav-icon dark:text-subtitle-dark text-[18px] text-light-extra  group-hover:text-current group-[&.active]:text-current group-focus:text-current">
@@ -370,10 +380,10 @@
                   <li>
 
                      <div class="relative" data-te-dropdown-ref>
-                        <button type="button" id="author-dropdown" data-te-dropdown-toggle-ref aria-expanded="false" class="flex items-center me-1.5 text-body dark:text-subtitle-dark text-sm font-medium capitalize rounded-full md:me-0 group whitespace-nowrap">
+                        <button type="button" id="author-dropdown" data-te-dropdown-toggle-ref aria-expanded="false" class="flex items-center me-1.5 text-body dark:text-subtitle-dark text-sm font-medium rounded-full md:me-0 group whitespace-nowrap">
                            <span class="sr-only">Men&uacute; de Usuario</span>
                            <img class="min-w-[32px] w-8 h-8 rounded-full xl:me-2" src="<?= base_url('../template/images/avatars/thumbs.png'); ?>" alt="user photo">
-                           <span class="hidden xl:block"><?php echo $_SESSION['HELIX_ERP_USER']; ?></span>
+                           <span class="hidden xl:block"><?php echo $_SESSION['ADARIEL_ERP_EMAIL']; ?></span>
                            <i class="uil uil-angle-down text-light dark:text-subtitle-dark text-[18px] hidden xl:block"></i>
                         </button>
 
@@ -383,8 +393,9 @@
                               <figure class="flex items-center text-sm rounded-[8px] bg-section dark:bg-box-dark-up py-[20px] px-[25px] mb-[12px] gap-[15px]">
                                  <img class="w-8 h-8 rounded-full bg-regular" src="<?= base_url('../template/images/avatars/thumbs.png'); ?>" alt="user">
                                  <figcaption>
-                                    <div class="text-dark dark:text-title-dark mb-0.5 text-sm"><?php echo $_SESSION['HELIX_ERP_USER']; ?></div>
-                                    <div class="mb-0 text-xs text-body dark:text-subtitle-dark"><?php echo $_SESSION['HELIX_ERP_USER_TYPE']; ?></div>
+                                    <div class="text-dark dark:text-title-dark mb-0.5 text-sm"><?php echo $_SESSION['ADARIEL_ERP_EMAIL']; ?></div>
+                                    <div class="mb-0 text-xs font-medium dark:text-subtitle-dark"><?php echo $_SESSION['ADARIEL_ERP_ORGANIZATION']; ?></div>
+                                    <div class="mb-0 text-xs text-body dark:text-subtitle-dark"><?php echo $_SESSION['ADARIEL_ERP_USER_TYPE']; ?></div>
                                  </figcaption>
                               </figure>
                               <ul class="m-0 pb-[10px] overflow-x-hidden overflow-y-auto scrollbar bg-transparent max-h-[230px]">

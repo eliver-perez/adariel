@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Core\Service;
 use App\Core\Controller;
 
 use App\Core\Request;
 use App\Core\Response;
 use App\Auth\Session;
 use App\Core\Database;
+
+use App\Services\AuthService;
 
 use PDO;
 use DateTimeImmutable;
@@ -19,8 +22,16 @@ use function App\Helpers\getDeviceType;
 
 class AuthController extends Controller
 {
+
+    private function getService(): AuthService
+    {
+        return new AuthService();
+    }
+
     public function login(Request $request, Response $response)
     {
+        $service = $this->getService();
+
         $salt = env('HMAC_SALT');
 
         if(!$salt) {
@@ -35,28 +46,38 @@ class AuthController extends Controller
         $conn = $database->getConnection();
 
         try {
-            $usuario = trim((string)$request->input('usuario', ''));
+            $email = trim((string)$request->input('email', ''));
             $password = (string)$request->input('password', '');
             $keep = (int)$request->input('keep_me_logged_in', 0) === 1;
 
-            if ($usuario === '' || $password === '') {
+            if ($email === '' || $password === '') {
                 return $response->json([
                     'status' => 'VALIDATION_ERROR',
-                    'message' => 'Usuario y password son obligatorios'
+                    'message' => 'Email y password son obligatorios'.$email
                 ], 422);
             }
 
             $stmt = $conn->prepare("
                 SELECT u.id,
+                       e.id empresa_id,
+                       e.uuid empresa_uuid,
+                       e.empresa empresa,
                        u.nombre,
-                       u.usuario,
+                       u.email,
                        u.password_hash,
-                       u.activo
+                       u.activo,
+                       ut.id tipo_usuario_id,
+                       ut.codigo tipo_usuario_codigo,
+                       ut.tipo tipo_usuario
                 FROM usuarios u
-                WHERE u.usuario = :usuario
+                    INNER JOIN usuarios_tipos ut
+                        ON u.tipo_usuario = ut.id
+                    LEFT JOIN empresas e
+                        ON u.empresa = e.id
+                WHERE u.email = :email
                 LIMIT 1
             ");
-            $stmt->bindValue(':usuario', $usuario, PDO::PARAM_STR);
+            $stmt->bindValue(':email', $email, PDO::PARAM_STR);
             $stmt->execute();
 
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -73,18 +94,26 @@ class AuthController extends Controller
                 return $response->json(['status' => 'FAIL_NOT_ACTIVE'], 403);
             }
 
+            $organization_id = $user['empresa_id'];
+            $organization_uuid = $user['empresa_uuid'];
+            $organization = $user['empresa'];
+            $user_role = null;
+            $user_type_id = $user['tipo_usuario_id'];
+            $user_type_code = $user['tipo_usuario_codigo'];
+            $user_type = $user['tipo_usuario'];
+
             $stmt = $conn->prepare("
                 SELECT
-                uer.id,
-                e.uuid empresa_id,
-                e.empresa,
+                usr.id,
+                s.uuid sucursal_id,
+                s.sucursal,
                 TRIM(
                     CONCAT(
-                        COALESCE(e.calle, ''), ' ',
-                        COALESCE(e.num_ext, ''), ' ',
-                        COALESCE(e.num_int, ''), ', ',
+                        COALESCE(s.calle, ''), ' ',
+                        COALESCE(s.num_ext, ''), ' ',
+                        COALESCE(s.num_int, ''), ', ',
                         COALESCE(ce.colonia, ''), ' ',
-                        COALESCE(e.cp, ''), ', ',
+                        COALESCE(s.cp, ''), ', ',
                         COALESCE(me.municipio, ''), ', ',
                         COALESCE(ee.estado, ''), ', ',
                         COALESCE(pe.pais, '')
@@ -93,11 +122,13 @@ class AuthController extends Controller
                 ut.id tipo_usuario_id,
                 ut.codigo tipo_usuario_codigo,
                 ut.tipo tipo_usuario
-                FROM usuarios_empresas_roles uer
-                    INNER JOIN empresas e
-                        ON uer.empresa = e.id
+                FROM usuarios u
+                    LEFT JOIN usuarios_sucursales_roles usr
+                        ON u.id = usr.usuario
+                    LEFT JOIN sucursales s
+                        ON usr.sucursal = s.id
                     LEFT JOIN colonias ce
-                        ON e.colonia = ce.id
+                        ON s.colonia = ce.id
                     LEFT JOIN municipios me
                         ON ce.municipio = me.id
                     LEFT JOIN estados ee
@@ -105,9 +136,9 @@ class AuthController extends Controller
                     LEFT JOIN paises pe
                         ON ee.pais = pe.id
                     INNER JOIN usuarios_tipos ut
-                        ON uer.tipo_usuario = ut.id
-                WHERE uer.usuario = :usuario
-                    AND uer.f_baja IS NULL
+                        ON usr.tipo_usuario = ut.id
+                WHERE usr.usuario = :usuario
+                    AND usr.f_baja IS NULL
             ");
 
             $stmt->bindParam(':usuario', $user['id']);
@@ -116,8 +147,8 @@ class AuthController extends Controller
             $tipos_usuario = array();
             foreach($data as $tu) {
                 array_push($tipos_usuario, array('id'                   => $tu['id'],
-                                                'empresa_id'            => $tu['empresa_id'],
-                                                'empresa'               => $tu['empresa'],
+                                                'sucursal_id'           => $tu['sucursal_id'],
+                                                'sucursal'              => $tu['sucursal'],
                                                 'domicilio'             => $tu['domicilio'],
                                                 'tipo_usuario_id'       => $tu['tipo_usuario_id'],
                                                 'tipo_usuario_codigo'   => $tu['tipo_usuario_codigo'],
@@ -144,21 +175,30 @@ class AuthController extends Controller
             }
 
             $ahora = new DateTimeImmutable();
-            $_SESSION['HELIX_ERP_AUTH_TIME'] = $ahora->format('Y-m-d H:i:s');
+            $_SESSION['ADARIEL_ERP_AUTH_TIME'] = $ahora->format('Y-m-d H:i:s');
             $expiraEn = $keep ? $ahora->modify('+30 days') : $ahora->modify('+8 hours');
-            $_SESSION['HELIX_ERP_AUTH_EXPIRES'] = $expiraEn->format('Y-m-d H:i:s');
+            $_SESSION['ADARIEL_ERP_AUTH_EXPIRES'] = $expiraEn->format('Y-m-d H:i:s');
 
             $session_id = random_bytes(16);
-            $_SESSION['HELIX_ERP_LAST_ACTIVITY'] = time();
-            $_SESSION['HELIX_ERP_AUTH_TOKEN'] = $token;
-            $_SESSION['HELIX_ERP_ID'] = (int)$user['id'];
-            $_SESSION['HELIX_ERP_USER'] = $user['usuario'];
-            $_SESSION['HELIX_ERP_NOMBRE'] = $user['nombre'];
-            $_SESSION['HELIX_ERP_USER_ROLE'] = count($tipos_usuario) == 1 ? $tipos_usuario[0]['id'] : null;
-            $_SESSION['HELIX_ERP_USER_TYPE_CD'] = count($tipos_usuario) == 1 ? $tipos_usuario[0]['tipo_usuario_codigo'] : null;
-            $_SESSION['HELIX_ERP_USER_TYPE'] = count($tipos_usuario) == 1 ? $tipos_usuario[0]['tipo_usuario'] : null;
+            $_SESSION['ADARIEL_ERP_LAST_ACTIVITY'] = time();
+            $_SESSION['ADARIEL_ERP_AUTH_TOKEN'] = $token;
+            $_SESSION['ADARIEL_ERP_ID'] = (int)$user['id'];
+            $_SESSION['ADARIEL_ERP_EMAIL'] = $user['email'];
+            $_SESSION['ADARIEL_ERP_NAME'] = $user['nombre'];
+            $_SESSION['ADARIEL_ERP_ORGANIZATION_ID'] = $organization_id;
+            $_SESSION['ADARIEL_ERP_ORGANIZATION_UUID'] = $organization_uuid != null ? $service->uuidBinarytoString($organization_uuid) : '';
+            $_SESSION['ADARIEL_ERP_ORGANIZATION'] = $organization;
+            if(count($tipos_usuario) > 0) {
+                $_SESSION['ADARIEL_ERP_USER_ROLE'] = count($tipos_usuario) == 1 ? $tipos_usuario[0]['id'] : null;
+                $_SESSION['ADARIEL_ERP_USER_TYPE_CODE'] = count($tipos_usuario) == 1 ? $tipos_usuario[0]['tipo_usuario_codigo'] : null;
+                $_SESSION['ADARIEL_ERP_USER_TYPE'] = count($tipos_usuario) == 1 ? $tipos_usuario[0]['tipo_usuario'] : null;
+            } else {
+                $_SESSION['ADARIEL_ERP_USER_ROLE'] = $user_role;
+                $_SESSION['ADARIEL_ERP_USER_TYPE_CODE'] = $user_type_code;
+                $_SESSION['ADARIEL_ERP_USER_TYPE'] = $user_type;
+            }
 
-            $_SESSION['HELIX_ERP_AVAILABLE_ROLES'] = count($tipos_usuario) > 1 ? $tipos_usuario : null;
+            $_SESSION['ADARIEL_ERP_AVAILABLE_ROLES'] = count($tipos_usuario) > 1 ? $tipos_usuario : null;
 
             $stmt = $conn->prepare("
                 INSERT INTO usuarios_sesiones
@@ -211,7 +251,7 @@ class AuthController extends Controller
                 'data' => [
                     'id' => (int)$user['id'],
                     'nombre' => $user['nombre'],
-                    'usuario' => $user['usuario']
+                    'email' => $user['email']
                 ]
             ]);
         } catch (Throwable $e) {
@@ -244,8 +284,8 @@ class AuthController extends Controller
     //     $conn = $database->GetDatabaseConnector();
 
     //     try {
-    //         if (!empty($_SESSION['HELIX_ERP_AUTH_TOKEN'])) {
-    //             $tokenHex = $_SESSION['HELIX_ERP_AUTH_TOKEN'];
+    //         if (!empty($_SESSION['ADARIEL_ERP_AUTH_TOKEN'])) {
+    //             $tokenHex = $_SESSION['ADARIEL_ERP_AUTH_TOKEN'];
 
     //             if (ctype_xdigit($tokenHex) && strlen($tokenHex) === 64) {
     //                 $tokenBin = hex2bin($tokenHex);
@@ -313,7 +353,7 @@ class AuthController extends Controller
             session_start();
         }
 
-        if (empty($_SESSION['HELIX_ERP_ID'])) {
+        if (empty($_SESSION['ADARIEL_ERP_ID'])) {
             return $response->json([
                 'status' => 'UNAUTHORIZED'
             ], 401);
@@ -322,10 +362,10 @@ class AuthController extends Controller
         return $response->json([
             'status' => 'OK',
             'data' => [
-                'id' => $_SESSION['HELIX_ERP_ID'],
-                'usuario' => $_SESSION['HELIX_ERP_USER'] ?? null,
-                'nombre' => $_SESSION['HELIX_ERP_NOMBRE'] ?? null,
-                'auth_time' => $_SESSION['HELIX_ERP_AUTH_TIME'] ?? null,
+                'id' => $_SESSION['ADARIEL_ERP_ID'],
+                'email' => $_SESSION['ADARIEL_ERP_EMAIL'] ?? null,
+                'nombre' => $_SESSION['ADARIEL_ERP_NAME'] ?? null,
+                'auth_time' => $_SESSION['ADARIEL_ERP_AUTH_TIME'] ?? null,
             ]
         ]);
     }

@@ -38,11 +38,11 @@
             <div class="flex flex-col justify-center w-full max-w-[516px] px-[30px] mx-auto my-[150px]">
                 <a href="#" class="text-center">
                     <!-- Logo for the light theme -->
-                    <img src="<?= asset('images/logos/logo-helix-200.png'); ?>"
-                        alt="image" class="inline dark:hidden">
+                    <img src="<?= asset('images/logos/logo_v.png'); ?>"
+                        alt="image" class="inline dark:hidden" style="height: 130px">
                     <!-- Logo for the dark theme -->
-                    <img src="<?= asset('images/logos/logo-helix-200.png'); ?>"
-                        alt="image" class="hidden dark:inline">
+                    <img src="<?= asset('images/logos/logo_v.png'); ?>"
+                        alt="image" class="hidden dark:inline" style="height: 120px">
                 </a>
 
                 <!-- Login form background -->
@@ -59,11 +59,11 @@
 
                             <!-- Email Address input -->
                             <div class="mb-6">
-                                <label for="field-usuario"
-                                    class="text-[14px] w-full leading-[1.4285714286] font-medium text-dark dark:text-gray-300 mb-[8px] capitalize inline-block">Usuario</label>
-                                <input type="text" id="field-usuario"
+                                <label for="field-email"
+                                    class="text-[14px] w-full leading-[1.4285714286] font-medium text-dark dark:text-gray-300 mb-[8px] capitalize inline-block">E-Mail</label>
+                                <input type="text" id="field-email"
                                     class="flex items-center shadow-none py-[10px] px-[20px] h-[48px] border-1 border-regular rounded-4 w-full text-[14px] font-normal leading-[1.5] placeholder:text-[#A0A0A0] focus:ring-primary focus:border-primary"
-                                    placeholder="Nombre de usuario" autocomplete="off" value="" required>
+                                    placeholder="E-Mail" autocomplete="off" value="" required>
                             </div>
 
                             <!-- Password input -->

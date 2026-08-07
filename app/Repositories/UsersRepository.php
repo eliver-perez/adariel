@@ -120,28 +120,60 @@ class UsersRepository
         $stmt = $this->db->prepare("
             INSERT INTO usuarios (
                 uuid,
+                empresa,
+                email,
                 nombre,
-                usuario,
                 password_hash,
+                tipo_usuario,
+                registro,
                 activo,
                 f_registro
             ) VALUES (
                 :uuid,
+                :empresa,
+                :email,
                 :nombre,
-                :usuario,
                 :password_hash,
+                :tipo_usuario,
+                :registro,
                 1,
                 NOW()
             )
         ");
 
-        $stmt->execute([
-            'uuid'                  => $data['uuid'],
-            'nombre'                => $data['name'],
-            'usuario'               => $data['username'],
-            'password_hash'         => $data['password_hash']
-        ]);
+        $stmt->bindParam('uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindParam('empresa', $data['organization'], PDO::PARAM_STR);
+        $stmt->bindParam('email', $data['email'], PDO::PARAM_STR);
+        $stmt->bindParam('nombre', $data['name'], PDO::PARAM_STR);
+        $stmt->bindParam('password_hash', $data['password'], PDO::PARAM_STR);
+        $stmt->bindParam('tipo_usuario', $data['user_type'], PDO::PARAM_STR);
+        $stmt->bindParam('registro', $data['uid'], PDO::PARAM_STR);
 
+        $stmt->execute();
+
+        return (int) $this->db->lastInsertId();
+    }
+    
+    public function insertUserBranch(array $data): int {
+        $stmt = $this->db->prepare("
+            INSERT INTO usuarios_sucursales_roles (
+                usuario,
+                sucursal,
+                tipo_usuario,
+                activo,
+                f_registro
+            ) VALUES (
+                :usuario,
+                :sucursal,
+                :tipo_usuario,
+                1,
+                NOW()
+            )
+        ");
+        $stmt->bindParam('usuario', $data['user'], PDO::PARAM_LOB);
+        $stmt->bindParam('sucursal', $data['branch'], PDO::PARAM_STR);
+        $stmt->bindParam('tipo_usuario', $data['user_type'], PDO::PARAM_STR);
+        $stmt->execute();
         return (int) $this->db->lastInsertId();
     }
 

@@ -22,7 +22,7 @@ final readonly class WhatsAppIntegrationRepository
         $statement = $this->database->prepare(
             'SELECT
                 id,
-                BIN_TO_UUID(uuid) AS uuid,
+                uuid,
                 empresa,
                 proveedor,
                 nombre,
@@ -63,7 +63,7 @@ final readonly class WhatsAppIntegrationRepository
         $statement = $this->database->prepare(
             'SELECT
                 id,
-                BIN_TO_UUID(uuid) AS uuid,
+                uuid,
                 empresa,
                 proveedor,
                 nombre,
@@ -102,6 +102,7 @@ final readonly class WhatsAppIntegrationRepository
      * $credentials debe recibirse ya cifrado.
      */
     public function save(
+        string $uuid,
         int $companyId,
         string $provider,
         string $name,
@@ -114,12 +115,13 @@ final readonly class WhatsAppIntegrationRepository
 
         if ($integration === null) {
             return $this->insert(
+                uuid: $uuid,
                 companyId: $companyId,
                 provider: $provider,
                 name: $name,
-                configuration: $configuration,
+                configuration: $this->encodeJson($configuration),
                 credentials: $credentials,
-                active: $active,
+                active: $active ? 1 : 0,
                 userId: $userId
             );
         }
@@ -164,10 +166,11 @@ final readonly class WhatsAppIntegrationRepository
     }
 
     private function insert(
+        string $uuid,
         int $companyId,
         string $provider,
         string $name,
-        array $configuration,
+        string $configuration,
         string $credentials,
         bool $active,
         int $userId
@@ -184,7 +187,7 @@ final readonly class WhatsAppIntegrationRepository
                 registrado_por,
                 actualizado_por
             ) VALUES (
-                UUID_TO_BIN(UUID()),
+                :uuid,
                 :empresa,
                 :proveedor,
                 :nombre,
@@ -196,16 +199,17 @@ final readonly class WhatsAppIntegrationRepository
             )'
         );
 
-        $statement->execute([
-            'empresa'         => $companyId,
-            'proveedor'       => $provider,
-            'nombre'          => $name,
-            'configuracion'   => $this->encodeJson($configuration),
-            'credenciales'    => $credentials,
-            'activo'          => $active ? 1 : 0,
-            'registrado_por'  => $userId,
-            'actualizado_por' => $userId,
-        ]);
+        $statement->bindParam(':uuid', $uuid, PDO::PARAM_LOB);
+        $statement->bindParam(':empresa', $companyId, PDO::PARAM_INT);
+        $statement->bindParam(':proveedor', $provider, PDO::PARAM_STR);
+        $statement->bindParam(':nombre', $name, PDO::PARAM_STR);
+        $statement->bindParam(':configuracion', $configuration, PDO::PARAM_STR);
+        $statement->bindParam(':credenciales', $credentials, PDO::PARAM_STR);
+        $statement->bindParam(':activo', $active, PDO::PARAM_INT);
+        $statement->bindParam(':registrado_por', $userId, PDO::PARAM_INT);
+        $statement->bindParam(':actualizado_por', $userId, PDO::PARAM_INT);
+
+        $statement->execute();
 
         return (int) $this->database->lastInsertId();
     }

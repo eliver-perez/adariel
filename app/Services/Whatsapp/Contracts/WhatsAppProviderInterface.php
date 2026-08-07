@@ -2,10 +2,13 @@
 
 namespace App\Services\WhatsApp\Contracts;
 
+use App\Services\WhatsApp\DTO\ConnectionTestResult;
 use App\Services\WhatsApp\DTO\SendMessageResult;
 
 interface WhatsAppProviderInterface
 {
+    public function testConnection(): ConnectionTestResult;
+    
     public function sendText(
         string $recipient,
         string $message,

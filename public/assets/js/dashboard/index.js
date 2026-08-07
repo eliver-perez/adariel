@@ -5,6 +5,17 @@ var homeURL;
 function InitializeValues(home) {
 	homeURL = home;
 	salesPaymentsGraph('.graph-sales-payments', '100%', 425);
+  if(callBack != null && callBack != '') {
+    processCallBack(callBack);
+  }
+}
+
+function processCallBack(callBack) {
+  switch(callBack) {
+    case 'deniedAccess':
+      ShowToastMessage('Acceso denegado', 'error');
+      break;
+  }
 }
 
 /* Line chart */

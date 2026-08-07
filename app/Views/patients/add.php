@@ -320,7 +320,7 @@
                                     <span class="inline-flex items-center text-sm text-light dark:text-subtitle-dark me-[8px]">
                                     <i class="uil uil-building text-[16px]"></i>
                                     </span>
-                                    <input type="text" id="field-facturacion-rfc" name="facturacion_rfc" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="HELIXXXXXX1H8" required maxlength="18" value="PEVE9004111V9">
+                                    <input type="text" id="field-facturacion-rfc" name="facturacion_rfc" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="ERPXXXXX1H8" required maxlength="18" value="PEVE9004111V9">
                                 </div>
                             </div>
                         </div>

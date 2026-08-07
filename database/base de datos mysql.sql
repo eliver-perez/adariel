@@ -1,62 +1,3 @@
-CREATE TABLE tipos_datos (
-    id              TINYINT AUTO_INCREMENT PRIMARY KEY,
-    codigo          VARCHAR(20) NOT NULL UNIQUE,
-    tipo            VARCHAR(30) NOT NULL
-);
-
-INSERT INTO tipos_datos(codigo, tipo) VALUES('int', 'Entero'),
-                                                    ('string', 'Texto'),
-                                                    ('float', 'Flotante'),
-                                                    ('double', 'Double'),
-                                                    ('money', 'Dinero'),
-                                                    ('date', 'Fecha'),
-                                                    ('datetime', 'Fecha y Hora');
-                                                    
-CREATE TABLE ajustes_tipo (
-    id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
-    codigo                          VARCHAR(15) NOT NULL UNIQUE,
-    tipo                            VARCHAR(25) NOT NULL
-);
-
-INSERT INTO ajustes_tipo(codigo, tipo) VALUES('int', 'Entero'),
-                                                    ('float', 'Float'),
-                                                    ('money', 'Money'),
-                                                    ('string', 'String'),
-                                                    ('json', 'JSON'),
-                                                    ('boolean', 'Boolean');
-
-CREATE TABLE ajustes_categoria (
-    id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
-    codigo                          VARCHAR(15) NOT NULL UNIQUE,
-    categoria                       VARCHAR(30) NOT NULL
-);
-
-INSERT INTO ajustes_categoria(codigo, categoria) VALUES('general', 'General'),
-                                                            ('agenda', 'Agenda'),
-                                                            ('facturacion', 'Facturacion'),
-                                                            ('seguridad', 'Seguridad'),
-                                                            ('notificaciones', 'Notificaciones');
-
-CREATE TABLE ajustes (
-    id                              VARCHAR(100) PRIMARY KEY,
-    descripcion                     VARCHAR(255) NOT NULL,
-    valor                           TEXT NOT NULL,
-    valor_defecto                   TEXT NOT NULL,
-    categoria                       SMALLINT NOT NULL,
-    tipo                            SMALLINT NOT NULL DEFAULT 4,
-    f_actualizacion                 DATETIME NOT NULL,
-    activo                          SMALLINT NOT NULL DEFAULT 1,
-    CONSTRAINT FK_ajustes_tipo FOREIGN KEY(tipo) REFERENCES ajustes_tipo(id),
-    CONSTRAINT FK_ajustes_categoria FOREIGN KEY(categoria) REFERENCES ajustes_categoria(id)
-);
-
-CREATE INDEX idx_ajustes_categoria ON ajustes(categoria);
-
-INSERT INTO ajustes(id, descripcion, valor, valor_defecto, categoria, tipo, f_actualizacion) VALUES('clinica', 'Nombre de la Clinica.', 'gLa Podología', 'Podología', 1, 4, NOW());
-INSERT INTO ajustes(id, descripcion, valor, valor_defecto, categoria, tipo, f_actualizacion) VALUES('codigo_paciente', 'Codigo para la clave de pacientes.', 'PE', 'PE', 1, 4, NOW());
-INSERT INTO ajustes(id, descripcion, valor, valor_defecto, categoria, tipo, f_actualizacion) VALUES('codigo_cliente', 'Codigo para la clave de clientes.', 'CE', 'CE', 1, 4, NOW());
-INSERT INTO ajustes(id, descripcion, valor, valor_defecto, categoria, tipo, f_actualizacion) VALUES('agenda_intervalo_minutos', 'Intervalo de tiempo en minutos para busqueda de bloques de citas', '15', '15', 2, 1, NOW());
-
 CREATE TABLE paises (
     id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
     pais                            VARCHAR(50) NOT NULL,
@@ -90,6 +31,8 @@ CREATE TABLE colonias (
 CREATE TABLE empresas (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
+    consecutivo                     INT DEFAULT NULL,
+    clave                           VARCHAR(20) DEFAULT NULL,
     empresa                         VARCHAR(120) NOT NULL,
     calle                           VARCHAR(120) DEFAULT NULL,
     num_ext                         VARCHAR(12) DEFAULT NULL,
@@ -100,14 +43,20 @@ CREATE TABLE empresas (
     movil                           VARCHAR(40) DEFAULT NULL,
     email                           VARCHAR(255) DEFAULT NULL,
     encargado                       VARCHAR(255) DEFAULT NULL,
-    CONSTRAINT FK_empresas_colonia FOREIGN KEY(colonia) REFERENCES colonias(id)
+    activo                          TINYINT NOT NULL DEFAULT 1,
+    registro                        INT NOT NULL,
+    f_registro                      DATETIME NOT NULL,
+    CONSTRAINT UK_empresas_clave UNIQUE(clave),
+    CONSTRAINT FK_empresas_colonia FOREIGN KEY(colonia) REFERENCES colonias(id),
 );
 
-INSERT INTO empresas(uuid, empresa, domicilio, esta_empresa) VALUES(X'30313866386333612d386630622d3762', 'Clinica 1', 'Domicilio Conocido 1');
+-- INSERT INTO empresas(uuid, empresa, domicilio, esta_empresa) VALUES(X'30313866386333612d386630622d3762', 'Clinica 1', 'Domicilio Conocido 1');
 
 CREATE TABLE sucursales (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
+    consecutivo                     INT DEFAULT NULL,
+    clave                           VARCHAR(20) DEFAULT NULL,
     empresa                         INT NOT NULL,
     sucursal                        VARCHAR(120) NOT NULL,
     calle                           VARCHAR(120) DEFAULT NULL,
@@ -119,9 +68,27 @@ CREATE TABLE sucursales (
     movil                           VARCHAR(40) DEFAULT NULL,
     email                           VARCHAR(255) DEFAULT NULL,
     encargado                       VARCHAR(255) DEFAULT NULL,
+    activo                          TINYINT NOT NULL DEFAULT 1,
+    registro                        INT NOT NULL,
+    f_registro                      DATETIME NOT NULL,
+    CONSTRAINT UK_sucursales_clave UNIQUE(clave, empresa),
     CONSTRAINT FK_sucursales_empresa FOREIGN KEY(empresa) REFERENCES empresas(id),
     CONSTRAINT FK_sucursales_colonia FOREIGN KEY(colonia) REFERENCES colonias(id)
 );
+
+CREATE TABLE tipos_datos (
+    id              TINYINT AUTO_INCREMENT PRIMARY KEY,
+    codigo          VARCHAR(20) NOT NULL UNIQUE,
+    tipo            VARCHAR(30) NOT NULL
+);
+
+INSERT INTO tipos_datos(codigo, tipo) VALUES('int', 'Entero'),
+                                                    ('string', 'Texto'),
+                                                    ('float', 'Flotante'),
+                                                    ('double', 'Double'),
+                                                    ('money', 'Dinero'),
+                                                    ('date', 'Fecha'),
+                                                    ('datetime', 'Fecha y Hora');
 
 CREATE TABLE unidades (
     id                              VARCHAR(8) PRIMARY KEY,
@@ -176,8 +143,9 @@ CREATE TABLE usuarios_tipos (
     tipo                            VARCHAR(30) NOT NULL
 );
 
-INSERT INTO usuarios_tipos(codigo, tipo) VALUES('administrador', 'Administrador'),
-                                                    ('recepcion', 'Recepción'),
+INSERT INTO usuarios_tipos(codigo, tipo) VALUES('superadmin', 'Super Administrador'),
+                                                    ('administrador', 'Administrador'),
+                                                    ('gerente', 'Gerente'),
                                                     ('supervisor', 'Supervisor'),
                                                     ('podologo', 'Podologo'),
                                                     ('finanzas', 'Finanzas'),
@@ -230,6 +198,7 @@ INSERT INTO personal_estatus(codigo, estatus) VALUES('vacations', 'Vacaciones');
 CREATE TABLE personal (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
+    empresa                         INT NOT NULL,
     rfc                             VARCHAR(14) DEFAULT NULL,
     nombre                          VARCHAR(60) NOT NULL,
     paterno                         VARCHAR(40) DEFAULT NULL,
@@ -242,20 +211,39 @@ CREATE TABLE personal (
     email                           VARCHAR(255) DEFAULT NULL,
     curp                            VARCHAR(20) DEFAULT NULL,
     telefono                        VARCHAR(40) DEFAULT NULL,
-    movil                         VARCHAR(40) DEFAULT NULL,
+    movil                           VARCHAR(40) DEFAULT NULL,
     genero                          VARCHAR(1) NOT NULL,
     puesto                          SMALLINT NOT NULL,
     estatus                         SMALLINT NOT NULL,
     f_registro                      DATETIME NOT NULL,
     f_actualizacion                 DATETIME DEFAULT NULL,
+    CONSTRAINT FK_personal_empresa FOREIGN KEY(empresa) REFERENCES empresas(id),
     CONSTRAINT FK_personal_colonia FOREIGN KEY(colonia) REFERENCES colonias(id),
     CONSTRAINT FK_personal_genero FOREIGN KEY(genero) REFERENCES generos(id),
     CONSTRAINT FK_personal_puesto FOREIGN KEY(puesto) REFERENCES puestos(id),
     CONSTRAINT FK_personal_estatus FOREIGN KEY(estatus) REFERENCES personal_estatus(id)
 );
 
-INSERT INTO personal(uuid, nombre, paterno, puesto, estatus, genero, f_registro) VALUES(X'A6B3D104D4594260B300A8B2A0EAB2D7', 'Juan', 'Perez', 4, 1, 'H', NOW()),
-                                                                                        (X'3EFFBD0D74F1402796755BAC96ACE4BA', 'Eliver', 'Perez', 4, 1, 'H', NOW());
+-- INSERT INTO personal(uuid, nombre, paterno, puesto, estatus, genero, f_registro) VALUES(X'A6B3D104D4594260B300A8B2A0EAB2D7', 'Juan', 'Perez', 4, 1, 'H', NOW()),
+--                                                                                         (X'3EFFBD0D74F1402796755BAC96ACE4BA', 'Eliver', 'Perez', 4, 1, 'H', NOW());
+
+CREATE TABLE personal_sucursales (
+    id                              INT AUTO_INCREMENT PRIMARY KEY,
+    uuid                            BINARY(16) NOT NULL UNIQUE,
+
+    personal                        INT NOT NULL,
+    sucursal                        INT NOT NULL,
+
+    principal                       TINYINT NOT NULL DEFAULT 0,
+    activo                          TINYINT NOT NULL DEFAULT 1,
+
+    f_registro                      DATETIME NOT NULL,
+    f_baja                          DATETIME DEFAULT NULL,
+
+    CONSTRAINT UK_personalsucursales UNIQUE(personal, sucursal),
+    CONSTRAINT FK_personalsucursales_personal FOREIGN KEY(personal) REFERENCES personal(id),
+    CONSTRAINT FK_personalsucursales_sucursal FOREIGN KEY(sucursal) REFERENCES sucursales(id)
+);
 
 CREATE TABLE personal_profesional (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
@@ -286,23 +274,32 @@ CREATE TABLE personal_altas (
 CREATE TABLE usuarios (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
-    email                           VARCHAR(150) DEFAULT NULL,
+    empresa                         INT DEFAULT NULL,
+    email                           VARCHAR(150) NOT NULL UNIQUE,
     nombre                          VARCHAR(120) DEFAULT NULL,
-    usuario                         VARCHAR(30) NOT NULL UNIQUE,
     password_hash                   VARCHAR(255) NOT NULL,
     tipo_usuario                    SMALLINT NOT NULL,
     activo                          SMALLINT NOT NULL DEFAULT 1,
+    registro                        INT DEFAULT NULL,
     f_registro                      DATETIME NOT NULL,
     f_ultima_conexion               DATETIME DEFAULT NULL,
     f_actualizacion                 DATETIME DEFAULT NULL,
     CONSTRAINT UK_usuarios_email UNIQUE(email),
-    CONSTRAINT FK_usuarios_tipo FOREIGN KEY(tipo_usuario) REFERENCES usuarios_tipos(id)
+    CONSTRAINT FK_usuarios_empresa FOREIGN KEY(empresa) REFERENCES empresas(id),
+    CONSTRAINT FK_usuarios_tipo FOREIGN KEY(tipo_usuario) REFERENCES usuarios_tipos(id),
+    CONSTRAINT FK_usuarios_registro FOREIGN KEY(registro) REFERENCES usuarios(id)
 );
 
-INSERT INTO usuarios(uuid, nombre, usuario, password_hash, tipo_usuario, activo, f_registro) 
-                VALUES(X'C475E751FD1547DDA8500D566F200F24', 'Admin', 'admin', '$2y$10$MqUTuFBUs.OIhkWSAxL3A.RfbglmDA9Uy/vgfYNOUvs2kI0EkBaYK', 1, 1, NOW()),
-                        (X'f47d622e396b465f968a75a9beaa966f', 'Juan', 'juan', '$2y$10$r/SCylnVyrMQ9kJybTpkj.UFvAOKpR6eRSw6/fgbs09Rw8Fe.RGGq', 4, 1, NOW()),
-                        (X'0xf47d622e396b465f968a75a9beaa966f', 'Eliver', 'eliver', '$2y$10$r/SCylnVyrMQ9kJybTpkj.UFvAOKpR6eRSw6/fgbs09Rw8Fe.RGGq', 4, 1, NOW());
+INSERT INTO usuarios(uuid, email, nombre, password_hash, tipo_usuario, activo, f_registro) 
+                VALUES(X'C475E751FD1547DDA8500D566F200F24', 'eliverperez90@gmail.com' 'Administrador', '$2y$10$MqUTuFBUs.OIhkWSAxL3A.RfbglmDA9Uy/vgfYNOUvs2kI0EkBaYK', 1, 1, NOW()),
+
+-- INSERT INTO usuarios(uuid, nombre, usuario, password_hash, tipo_usuario, activo, f_registro) 
+--                 VALUES(X'C475E751FD1547DDA8500D566F200F24', 'Admin', 'admin', '$2y$10$MqUTuFBUs.OIhkWSAxL3A.RfbglmDA9Uy/vgfYNOUvs2kI0EkBaYK', 1, 1, NOW()),
+--                         (X'f47d622e396b465f968a75a9beaa966f', 'Juan', 'juan', '$2y$10$r/SCylnVyrMQ9kJybTpkj.UFvAOKpR6eRSw6/fgbs09Rw8Fe.RGGq', 4, 1, NOW()),
+--                         (X'0xf47d622e396b465f968a75a9beaa966f', 'Eliver', 'eliver', '$2y$10$r/SCylnVyrMQ9kJybTpkj.UFvAOKpR6eRSw6/fgbs09Rw8Fe.RGGq', 4, 1, NOW());
+
+ALTER TABLE empresas ADD CONSTRAINT FK_empresas_registro FOREIGN KEY(registro) REFERENCES usuarios(id);
+ALTER TABLE sucursales ADD CONSTRAINT FK_sucursales_registro FOREIGN KEY(registro) REFERENCES usuarios(id);
 
 CREATE TABLE personal_usuarios (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
@@ -315,8 +312,8 @@ CREATE TABLE personal_usuarios (
     CONSTRAINT FK_personalusuarios_usuario FOREIGN KEY(usuario) REFERENCES usuarios(id)
 );
 
-INSERT INTO personal_usuarios(personal, usuario, f_registro) VALUES(1, 2, NOW()),
-                                                                    (2, 3, NOW());
+-- INSERT INTO personal_usuarios(personal, usuario, f_registro) VALUES(1, 2, NOW()),
+--                                                                     (2, 3, NOW());
 
 CREATE TABLE personal_sueldos (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
@@ -330,25 +327,139 @@ CREATE TABLE personal_sueldos (
     CONSTRAINT FK_personalsueldos_actualizo FOREIGN KEY(actualizo) REFERENCES usuarios(id)
 );
 
-CREATE TABLE usuarios_empresas_roles (
+CREATE TABLE usuarios_sucursales_roles (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     usuario                         INT NOT NULL,
-    empresa                         INT NOT NULL,
+    sucursal                        INT NOT NULL,
     tipo_usuario                    SMALLINT NOT NULL,
     activo                          TINYINT NOT NULL DEFAULT 1,
     f_registro                      DATETIME NOT NULL,
     f_baja                          DATETIME DEFAULT NULL,
 
-    UNIQUE(usuario, empresa, tipo_usuario),
+    UNIQUE(usuario, sucursal, tipo_usuario),
 
     FOREIGN KEY(usuario) REFERENCES usuarios(id),
-    FOREIGN KEY(empresa) REFERENCES empresas(id),
+    FOREIGN KEY(sucursal) REFERENCES sucursales(id),
     FOREIGN KEY(tipo_usuario) REFERENCES usuarios_tipos(id)
 );
 
-INSERT INTO usuarios_empresas_roles(usuario, empresa, tipo_usuario, f_registro) VALUES(1, 1, 1, NOW()),
-                                                                                        (2, 1, 4, NOW()),
-                                                                                        (3, 1, 7, NOW());
+-- INSERT INTO usuarios_sucursales_roles(usuario, sucursal, tipo_usuario, f_registro) VALUES(1, 1, 1, NOW()),
+--                                                                                         (2, 1, 4, NOW()),
+--                                                                                         (3, 1, 7, NOW());
+                                                    
+CREATE TABLE ajustes_tipo (
+    id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
+    codigo                          VARCHAR(15) NOT NULL UNIQUE,
+    tipo                            VARCHAR(25) NOT NULL
+);
+
+INSERT INTO ajustes_tipo(codigo, tipo) VALUES('int', 'Entero'),
+                                                    ('float', 'Float'),
+                                                    ('money', 'Money'),
+                                                    ('string', 'String'),
+                                                    ('json', 'JSON'),
+                                                    ('boolean', 'Boolean');
+
+CREATE TABLE ajustes_categoria (
+    id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
+    codigo                          VARCHAR(15) NOT NULL UNIQUE,
+    categoria                       VARCHAR(30) NOT NULL
+);
+
+INSERT INTO ajustes_categoria(codigo, categoria) VALUES('general', 'General'),
+                                                            ('agenda', 'Agenda'),
+                                                            ('facturacion', 'Facturacion'),
+                                                            ('seguridad', 'Seguridad'),
+                                                            ('notificaciones', 'Notificaciones');
+
+CREATE TABLE ajustes (
+    id                      VARCHAR(100) PRIMARY KEY,
+
+    descripcion             VARCHAR(255) NOT NULL,
+
+    valor_defecto           TEXT NOT NULL,
+
+    categoria               SMALLINT NOT NULL,
+    tipo                    SMALLINT NOT NULL DEFAULT 4,
+
+    activo                  TINYINT NOT NULL DEFAULT 1,
+
+    CONSTRAINT FK_ajustes_tipo
+        FOREIGN KEY(tipo) REFERENCES ajustes_tipo(id),
+
+    CONSTRAINT FK_ajustes_categoria
+        FOREIGN KEY(categoria) REFERENCES ajustes_categoria(id)
+);
+
+CREATE INDEX idx_ajustes_categoria ON ajustes(categoria);
+
+INSERT INTO ajustes (
+    id,
+    descripcion,
+    valor_defecto,
+    categoria,
+    tipo
+) VALUES
+(
+    'clinica',
+    'Nombre de la Clinica.',
+    'Mi Empresa',
+    1,
+    4
+),
+(
+    'codigo_empresa',
+    'Código para la clave de empresas.',
+    'AE',
+    1,
+    4
+),
+(
+    'codigo_sucursal',
+    'Código para la clave de empresas.',
+    'AES',
+    1,
+    4
+),
+(
+    'codigo_paciente',
+    'Código para la clave de pacientes.',
+    'PE',
+    1,
+    4
+),
+(
+    'codigo_cliente',
+    'Codigo para la clave de clientes.',
+    'CE',
+    1,
+    4
+),
+(
+    'agenda_intervalo_minutos',
+    'Intervalo de tiempo para bloques de citas.',
+    '15',
+    2,
+    1
+);
+
+CREATE TABLE ajustes_empresas (
+    id                      INT AUTO_INCREMENT PRIMARY KEY,
+
+    empresa                 INT NOT NULL,
+    ajuste                  VARCHAR(100) NOT NULL,
+
+    valor                   TEXT NOT NULL,
+
+    registro                INT NOT NULL,
+    f_registro              DATETIME NOT NULL,
+    f_actualizacion         DATETIME DEFAULT NULL,
+
+    CONSTRAINT UK_ajustesempresa UNIQUE(empresa, ajuste),
+    CONSTRAINT FK_ajustesempresa_empresa FOREIGN KEY(empresa) REFERENCES empresas(id),
+    CONSTRAINT FK_ajustesempresa_ajuste FOREIGN KEY(ajuste) REFERENCES ajustes(id),
+    CONSTRAINT FK_ajustesempresa_registro FOREIGN KEY(registro) REFERENCES usuarios(id)
+);
 
 CREATE TABLE permisos (
     id                              VARCHAR(30) PRIMARY KEY,
@@ -359,6 +470,7 @@ CREATE TABLE permisos (
 
 INSERT INTO permisos(id, permiso, f_registro) VALUES('superadmin', 'Administrador con permisos elevados.', NOW()),
                                                     ('admin', 'Usuario administrador', NOW()),
+                                                    ('gerente-general', 'Gerente general de empresa', NOW()),
                                                     ('personal', 'Personal - Visualizar personal registrado.', NOW()),
                                                     ('personal-modificar', 'Personal - Registrar/Modificar.', NOW()),
                                                     ('usuarios', 'Usuario - Visualizar usuarios registrados.', NOW()),
@@ -392,13 +504,15 @@ CREATE TABLE permisos_usuarios (
     uuid                            BINARY(16) NOT NULL UNIQUE,
     permiso                         VARCHAR(30) NOT NULL,
     usuario                         INT NOT NULL,
-    empresa                         INT NOT NULL,
+    sucursal                        INT NOT NULL,
     valor                           SMALLINT NOT NULL DEFAULT 1,
     f_actualizacion                 DATETIME NOT NULL,
     CONSTRAINT FK_permisosusuarios_permiso FOREIGN KEY(permiso) REFERENCES permisos(id),
     CONSTRAINT FK_permisosusuarios_usuario FOREIGN KEY(usuario) REFERENCES usuarios(id),
-    CONSTRAINT FK_permisosusuarios_empresa FOREIGN KEY(empresa) REFERENCES empresas(id)
+    CONSTRAINT FK_permisosusuarios_sucursal FOREIGN KEY(sucursal) REFERENCES sucursales(id)
 );
+
+INSERT INTO permisos_usuarios(permiso, usuario, uuid, valor, f_actualizacion) VALUES('superadmin', 1, X'A8DA1C3FF8EB4F4C9AD57350B8984EE1', 1, NOW());
 
 CREATE TABLE permisos_usuarios_tipo (
     uuid                            BINARY(16) NOT NULL UNIQUE,
@@ -410,8 +524,11 @@ CREATE TABLE permisos_usuarios_tipo (
     CONSTRAINT FK_permisosusuariostipo_tipo FOREIGN KEY(tipo) REFERENCES usuarios_tipos(id)
 );
 
-INSERT INTO permisos_usuarios_tipo(permiso, tipo, uuid, valor, f_actualizacion) VALUES('superadmin', 1, X'E8DABC3FFEEB444C9AD57350B8984EE1', 1, NOW()),
-                                                                                    ('citas-atender', 4, X'9A5A8BB863B74902B9DF74150B522879', 1, NOW());
+INSERT INTO permisos_usuarios_tipo(permiso, tipo, uuid, valor, f_actualizacion) VALUES('superadmin', 1, X'E8DABC3FFEEB444C9AD57350B8984EE1', 1, NOW());
+INSERT INTO permisos_usuarios_tipo(permiso, tipo, uuid, valor, f_actualizacion) VALUES('gerente-general', 3, X'b1e75d0d33914a17a795925cf18776a6', 1, NOW());
+
+-- INSERT INTO permisos_usuarios_tipo(permiso, tipo, uuid, valor, f_actualizacion) VALUES('superadmin', 1, X'E8DABC3FFEEB444C9AD57350B8984EE1', 1, NOW()),
+--                                                                                     ('citas-atender', 4, X'9A5A8BB863B74902B9DF74150B522879', 1, NOW());
 
 CREATE TABLE usuarios_sesiones (
     id                              BINARY(16) PRIMARY KEY,
@@ -436,11 +553,13 @@ CREATE TABLE usuarios_sesiones (
 CREATE TABLE plantillas_horarios (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
+    empresa                         INT NOT NULL,
     nombre                          VARCHAR(80) NOT NULL,
     descripcion                     VARCHAR(255) DEFAULT NULL,
     usuario                         INT DEFAULT NULL,
     f_registro                      DATETIME NOT NULL,
     f_actualizacion                 DATETIME NOT NULL,
+    CONSTRAINT FK_plantillashorarios_empresa FOREIGN KEY(empresa) REFERENCES empresas(id),
     CONSTRAINT FK_plantillashorarios_usuario FOREIGN KEY(usuario) REFERENCES usuarios(id)
 );
 
@@ -456,6 +575,7 @@ CREATE TABLE plantillas_horarios_detalles (
 
 CREATE TABLE horarios_laborales (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
+    sucursal                        INT NOT NULL,
     personal                        INT NOT NULL,
     consultas                       SMALLINT NOT NULL DEFAULT 1,
     plantilla                       INT DEFAULT NULL,
@@ -463,12 +583,13 @@ CREATE TABLE horarios_laborales (
     registro                        INT NOT NULL,
     f_registro                      DATETIME NOT NULL,
     f_actualizacion                 DATETIME NOT NULL,
+    CONSTRAINT FK_horarioslaborales_sucursal FOREIGN KEY(sucursal) REFERENCES sucursales(id),
     CONSTRAINT FK_horarioslaborales_personal FOREIGN KEY(personal) REFERENCES personal(id),
     CONSTRAINT FK_horarioslaborales_registro FOREIGN KEY(registro) REFERENCES usuarios(id)
 );
 
-INSERT INTO horarios_laborales(id, personal, consultas, activo, registro, f_registro, f_actualizacion) VALUES(1, 1, 1, 1, 1, NOW(), NOW()),
-                                                                                                                (2, 2, 1, 1, 1, NOW(), NOW());
+-- INSERT INTO horarios_laborales(id, personal, consultas, activo, registro, f_registro, f_actualizacion) VALUES(1, 1, 1, 1, 1, NOW(), NOW()),
+--                                                                                                                 (2, 2, 1, 1, 1, NOW(), NOW());
 
 
 CREATE TABLE horarios_laborales_detalles (
@@ -482,19 +603,19 @@ CREATE TABLE horarios_laborales_detalles (
 
 CREATE INDEX IDX_horarioslaboralesdetalles_horario_dia ON horarios_laborales_detalles(horario, dia_semana);
 
-INSERT INTO horarios_laborales_detalles(horario, dia_semana, hora_inicio, hora_fin) VALUES(1, 1, 480, 780),
-                                                                                                (1, 2, 480, 900),
-                                                                                                (1, 3, 480, 900),
-                                                                                                (1, 4, 480, 900),
-                                                                                                (1, 5, 480, 900),
-                                                                                                (1, 6, 540, 900),
+-- INSERT INTO horarios_laborales_detalles(horario, dia_semana, hora_inicio, hora_fin) VALUES(1, 1, 480, 780),
+--                                                                                                 (1, 2, 480, 900),
+--                                                                                                 (1, 3, 480, 900),
+--                                                                                                 (1, 4, 480, 900),
+--                                                                                                 (1, 5, 480, 900),
+--                                                                                                 (1, 6, 540, 900),
 
-                                                                                                (2, 1, 480, 1080),
-                                                                                                (2, 2, 480, 1080),
-                                                                                                (2, 3, 480, 1080),
-                                                                                                (2, 4, 480, 1080),
-                                                                                                (2, 5, 480, 1080),
-                                                                                                (2, 6, 540, 1080);
+--                                                                                                 (2, 1, 480, 1080),
+--                                                                                                 (2, 2, 480, 1080),
+--                                                                                                 (2, 3, 480, 1080),
+--                                                                                                 (2, 4, 480, 1080),
+--                                                                                                 (2, 5, 480, 1080),
+--                                                                                                 (2, 6, 540, 1080);
 
 CREATE TABLE bloqueos_agenda_razones (
     id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
@@ -511,6 +632,7 @@ INSERT INTO bloqueos_agenda_razones(codigo, razon) VALUES('vacaciones', 'Vacacio
 
 CREATE TABLE bloqueos_agenda (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
+    sucursal                        INT NOT NULL,
     personal                        INT NOT NULL,
     titulo                          VARCHAR(30) NOT NULL,
     razon                           SMALLINT NOT NULL,
@@ -525,6 +647,7 @@ CREATE TABLE bloqueos_agenda (
     activo                          SMALLINT NOT NULL DEFAULT 1,
     f_registro                      DATETIME NOT NULL,
     f_actualizacion                 DATETIME NOT NULL,
+    CONSTRAINT FK_bloqueosagenda_sucursal FOREIGN KEY(sucursal) REFERENCES sucursales(id),
     CONSTRAINT FK_bloqueosagenda_personal FOREIGN KEY(personal) REFERENCES personal(id),
     CONSTRAINT FK_bloqueosagenda_razon FOREIGN KEY(razon) REFERENCES bloqueos_agenda_razones(id),
     CONSTRAINT FK_bloqueosagenda_registro FOREIGN KEY(registro) REFERENCES usuarios(id)
@@ -535,10 +658,11 @@ CREATE INDEX IDX_bloqueosagenda_personal_inicio_fin ON bloqueos_agenda(personal,
 CREATE TABLE clientes (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
+    empresa                         INT NOT NULL,
     consecutivo                     INT DEFAULT NULL,
     clave                           VARCHAR(16) UNIQUE,
     es_empresa                      SMALLINT NOT NULL DEFAULT 0,
-    empresa                         VARCHAR(255) DEFAULT NULL,
+    razon_social                    VARCHAR(255) DEFAULT NULL,
     nombre                          VARCHAR(100) NOT NULL,
     paterno                         VARCHAR(80) DEFAULT NULL,
     materno                         VARCHAR(80) DEFAULT NULL,
@@ -559,6 +683,7 @@ CREATE TABLE clientes (
     f_registro                      DATETIME NOT NULL,
     f_actualizacion                 DATETIME DEFAULT NULL,
     f_ultimo_pago                   DATETIME DEFAULT NULL,
+    CONSTRAINT FK_clientes_empresa FOREIGN KEY(empresa) REFERENCES empresas(id),
     CONSTRAINT FK_clientes_genero FOREIGN KEY(genero) REFERENCES generos(id),
     CONSTRAINT FK_clientes_colonia FOREIGN KEY(colonia) REFERENCES colonias(id),
     CONSTRAINT FK_clientes_registro FOREIGN KEY(registro) REFERENCES usuarios(id)
@@ -647,6 +772,7 @@ INSERT INTO parentescos(codigo, descripcion) VALUES('self', 'El cliente es el mi
 CREATE TABLE pacientes (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
+    empresa                         INT NOT NULL,
     consecutivo                     INT DEFAULT NULL,
     clave                           VARCHAR(16) UNIQUE,
     nombre                          VARCHAR(60) NOT NULL,
@@ -671,6 +797,7 @@ CREATE TABLE pacientes (
     f_registro                      DATETIME NOT NULL,
     f_actualizacion                 DATETIME DEFAULT NULL,
     f_ultima_visita                 DATETIME DEFAULT NULL,
+    CONSTRAINT FK_pacientes_empresa FOREIGN KEY(empresa) REFERENCES empresas(id),
     CONSTRAINT FK_pacientes_genero FOREIGN KEY(genero) REFERENCES generos(id),
     CONSTRAINT FK_pacientes_colonia FOREIGN KEY(colonia) REFERENCES colonias(id),
     CONSTRAINT FK_pacientes_registro FOREIGN KEY(registro) REFERENCES usuarios(id)
@@ -694,118 +821,372 @@ CREATE TABLE clientes_pacientes (
     CONSTRAINT FK_clientespacientes_registro FOREIGN KEY(registro) REFERENCES usuarios(id)
 );
 
-CREATE TABLE antecedentes_categorias (
-    id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
-    codigo                          VARCHAR(30) UNIQUE NOT NULL,
-    nombre                          VARCHAR(100) NOT NULL,
-    descripcion                     VARCHAR(512) DEFAULT NULL
+/*
+|--------------------------------------------------------------------------
+| TIPOS DE CAMPO
+|--------------------------------------------------------------------------
+*/
+
+CREATE TABLE hc_tipos_campo (
+    id                      SMALLINT AUTO_INCREMENT PRIMARY KEY,
+    codigo                  VARCHAR(30) NOT NULL UNIQUE,
+    tipo                    VARCHAR(60) NOT NULL,
+    tipo_valor              VARCHAR(20) NOT NULL,
+    usa_opciones            TINYINT NOT NULL DEFAULT 0,
+    seleccion_multiple      TINYINT NOT NULL DEFAULT 0,
+    activo                  TINYINT NOT NULL DEFAULT 1
 );
 
-INSERT INTO antecedentes_categorias(codigo, nombre) VALUES('personal_patologico', 'Antecedentes personales patológicos'),
-                                                                ('quirurgico', 'Antecedentes quirúrgicos'),
-                                                                ('alergico', 'Antecedentes alérgicos'),
-                                                                ('familiar', 'Antecedentes familiares'),
-                                                                ('no_patologico', 'Antecedentes no patológicos'),
-                                                                ('gineco', 'Gineco-obstétricos'),
-                                                                ('infecciones', 'Antecedentes infecciosos');
 
-CREATE TABLE antecedentes_tipos (
-    id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
-    categoria                       SMALLINT NOT NULL,
-    codigo                          VARCHAR(40) UNIQUE NOT NULL,
-    nombre                          VARCHAR(100) NOT NULL,
-    descripcion                     VARCHAR(512) DEFAULT NULL,
-    CONSTRAINT FK_tiposantecedentes_categoria FOREIGN KEY (categoria) REFERENCES antecedentes_categorias(id)
+INSERT INTO hc_tipos_campo (
+    codigo,
+    tipo,
+    tipo_valor,
+    usa_opciones,
+    seleccion_multiple
+) VALUES
+('texto',               'Texto corto',           'texto',    0, 0),
+('texto_largo',         'Texto largo',           'texto',    0, 0),
+('entero',              'Número entero',         'numero',   0, 0),
+('decimal',             'Número decimal',        'numero',   0, 0),
+('fecha',               'Fecha',                 'fecha',    0, 0),
+('fecha_hora',          'Fecha y hora',          'datetime', 0, 0),
+('si_no',               'Sí / No',               'boolean',  0, 0),
+('seleccion',           'Selección única',       'opcion',   1, 0),
+('seleccion_multiple',  'Selección múltiple',    'opcion',   1, 1);
+
+/*
+|--------------------------------------------------------------------------
+| PLANTILLAS DE HISTORIA CLÍNICA
+|--------------------------------------------------------------------------
+*/
+
+CREATE TABLE hc_plantillas (
+    id                      INT AUTO_INCREMENT PRIMARY KEY,
+    uuid                    BINARY(16) NOT NULL UNIQUE,
+
+    empresa                 INT NOT NULL,
+
+    nombre                  VARCHAR(120) NOT NULL,
+    descripcion             VARCHAR(500) DEFAULT NULL,
+
+    activo                  TINYINT NOT NULL DEFAULT 1,
+
+    registro                INT NOT NULL,
+    f_registro              DATETIME NOT NULL,
+    f_actualizacion         DATETIME DEFAULT NULL,
+
+    CONSTRAINT UK_hcplantilla_nombre
+        UNIQUE(empresa, nombre),
+
+    CONSTRAINT FK_hcplantilla_empresa
+        FOREIGN KEY(empresa) REFERENCES empresas(id),
+
+    CONSTRAINT FK_hcplantilla_registro
+        FOREIGN KEY(registro) REFERENCES usuarios(id)
 );
 
-INSERT INTO antecedentes_tipos(categoria, codigo, nombre) VALUES(1, 'diabetes-mellitus', 'Diabetes mellitus'),
-                                                                    (1, 'hipertension-arterial', 'Hipertensión arterial'),
-                                                                    (1, 'dislipidemia', 'Dislipidemia (colesterol / triglicéridos altos)'),
-                                                                    (1, 'cardiopatia', 'Cardiopatía'),
-                                                                    (1, 'arritmias', 'Arritmias'),
-                                                                    (1, 'insuficiencia-renal', 'Insuficiencia renal'),
-                                                                    (1, 'insuficiencia-hepatica', 'Insuficiencia hepática'),
-                                                                    (1, 'asma', 'Asma'),
-                                                                    (1, 'epoc', 'EPOC'),
-                                                                    (1, 'tiroides', 'Enfermedad tiroidea (hipotiroidismo / hipertiroidismo)'),
-                                                                    (1, 'epilepsia', 'Epilepsia'),
-                                                                    (1, 'cerebrovascular', 'Enfermedad cerebrovascular (EVC / derrame)'),
-                                                                    (1, 'coagulacion', 'Trastornos de coagulación'),
-                                                                    (1, 'cancer', 'Cáncer (neoplasia)'),
-                                                                    (1, 'vih', 'VIH'),
-                                                                    (1, 'hepatitis', 'Hepatitis'),
-                                                                    (1, 'tuberculosis', 'Tuberculosis'),
-                                                                    (1, 'artritis', 'Artritis / enfermedades reumatológicas'),
-                                                                    (1, 'autoinmune', 'Enfermedades autoinmunes'),
-                                                                    (2, 'cirugia-previa', 'Cirugías previas'),
-                                                                    (2, 'cirugia-cardiovascular', 'Cirugía cardiovascular'),
-                                                                    (2, 'cirugia-abdominal', 'Cirugía abdominal'),
-                                                                    (2, 'cesarea', 'Cesárea'),
-                                                                    (2, 'apendicectomia', 'Apendicectomía'),
-                                                                    (2, 'colecistectomia', 'Colecistectomía'),
-                                                                    (2, 'protesis', 'Prótesis / implantes'),
-                                                                    (2, 'transplante', 'Transplante'),
-                                                                    (3, 'alergia-medicamentos', 'Alergia a medicamentos'),
-                                                                    (3, 'alergia-alimentos', 'Alergia a alimentos'),
-                                                                    (3, 'alergia-anestesicos', 'Alergia a anestésicos'),
-                                                                    (3, 'alergia-latex', 'Alergia a látex'),
-                                                                    (3, 'alergia-otros', 'Otras alergias'),
-                                                                    (4, 'diabetes-familiar', 'Diabetes familiar'),
-                                                                    (4, 'hipertension-familiar', 'Hipertensión familiar'),
-                                                                    (4, 'cardiopatia-familiar', 'Cardiopatía familiar'),
-                                                                    (4, 'cancer-familiar', 'Cáncer familiar'),
-                                                                    (4, 'hereditarias', 'Enfermedades hereditarias'),
-                                                                    (5, 'tabaquismo', 'Tabaquismo'),
-                                                                    (5, 'alcoholismo', 'Alcoholismo'),
-                                                                    (5, 'drogadiccion', 'Drogadicción'),
-                                                                    (5, 'sedentarismo', 'Sedentarismo'),
-                                                                    (5, 'obesidad', 'Obesidad'),
-                                                                    (5, 'actividad-fisica-regular', 'Actividad física regular'),
-                                                                    (5, 'exposicion-laboral-riesgos', 'Exposición laboral a riesgos'),
-                                                                    (6, 'embarazo', 'Embarazo actual'),
-                                                                    (6, 'embarazo-previo', 'Embarazos previos'),
-                                                                    (6, 'parto', 'Partos'),
-                                                                    (6, 'aborto', 'Abortos'),
-                                                                    (6, 'cesareas', 'Cesáreas'),
-                                                                    (6, 'complicaciones-obstetricas', 'Complicaciones obstétricas'),
-                                                                    (6, 'menopausia', 'Menopausia'),
-                                                                    (7, 'covid', 'COVID-19'),
-                                                                    (7, 'influenza-recurrente', 'Influenza recurrente'),
-                                                                    (7, 'infecciones-respiratorias-frecuentes', 'Infecciones respiratorias frecuentes'),
-                                                                    (7, 'infecciones-urinarias-frecuentes', 'Infecciones urinarias recurrentes');
+/*
+|--------------------------------------------------------------------------
+| VERSIONES DE PLANTILLAS
+|--------------------------------------------------------------------------
+*/
 
-CREATE TABLE pacientes_antecedentes (
-    id                              INT AUTO_INCREMENT PRIMARY KEY,
-    uuid                            BINARY(16) NOT NULL UNIQUE,
-    paciente                        INT NOT NULL,
-    tipo_antecedente                SMALLINT NOT NULL,
-    diagnostico                     VARCHAR(512) DEFAULT NULL,
-    fecha_diagnostico               DATE DEFAULT NULL,
-    tratamiento_actual              VARCHAR(512) DEFAULT NULL,
-    observaciones                   VARCHAR(1024) DEFAULT NULL,
-    registro                        INT NOT NULL,
-    f_registro                      DATETIME NOT NULL,
-    f_actualizacion                 DATETIME NOT NULL,
-    CONSTRAINT FK_pacientesantecedentes_paciente FOREIGN KEY(paciente) REFERENCES pacientes(id),
-    CONSTRAINT FK_pacientesantecedentes_tipo FOREIGN KEY(tipo_antecedente) REFERENCES antecedentes_tipos(id),
-    CONSTRAINT FK_pacientesantecedentes_registro FOREIGN KEY(registro) REFERENCES usuarios(id)
+CREATE TABLE hc_plantillas_versiones (
+    id                      INT AUTO_INCREMENT PRIMARY KEY,
+    uuid                    BINARY(16) NOT NULL UNIQUE,
+
+    plantilla               INT NOT NULL,
+    numero_version          SMALLINT NOT NULL,
+
+    descripcion             VARCHAR(500) DEFAULT NULL,
+
+    publicada               TINYINT NOT NULL DEFAULT 0,
+    vigente                 TINYINT NOT NULL DEFAULT 0,
+
+    registro                INT NOT NULL,
+    publico                 INT DEFAULT NULL,
+
+    f_registro              DATETIME NOT NULL,
+    f_publicacion           DATETIME DEFAULT NULL,
+    f_actualizacion         DATETIME DEFAULT NULL,
+
+    CONSTRAINT UK_hcversion
+        UNIQUE(plantilla, numero_version),
+
+    CONSTRAINT FK_hcversion_plantilla
+        FOREIGN KEY(plantilla) REFERENCES hc_plantillas(id),
+
+    CONSTRAINT FK_hcversion_registro
+        FOREIGN KEY(registro) REFERENCES usuarios(id),
+
+    CONSTRAINT FK_hcversion_publico
+        FOREIGN KEY(publico) REFERENCES usuarios(id)
+);
+
+/*
+|--------------------------------------------------------------------------
+| SECCIONES
+|--------------------------------------------------------------------------
+*/
+
+CREATE TABLE hc_secciones (
+    id                      INT AUTO_INCREMENT PRIMARY KEY,
+    uuid                    BINARY(16) NOT NULL UNIQUE,
+
+    version                 INT NOT NULL,
+
+    codigo                  VARCHAR(60) NOT NULL,
+    nombre                  VARCHAR(120) NOT NULL,
+    descripcion             VARCHAR(500) DEFAULT NULL,
+
+    /*
+     * Si es repetible, permite agregar múltiples grupos de respuestas.
+     *
+     * Ejemplo:
+     *
+     * Antecedentes familiares
+     *   Padre    | Diabetes
+     *   Madre    | Hipertensión
+     *   Abuelo   | Cáncer
+     */
+    repetible               TINYINT NOT NULL DEFAULT 0,
+    min_instancias          SMALLINT NOT NULL DEFAULT 0,
+    max_instancias          SMALLINT DEFAULT NULL,
+
+    orden                   SMALLINT NOT NULL DEFAULT 0,
+    activo                  TINYINT NOT NULL DEFAULT 1,
+
+    f_registro              DATETIME NOT NULL,
+
+    CONSTRAINT UK_hcseccion_codigo
+        UNIQUE(version, codigo),
+
+    CONSTRAINT FK_hcseccion_version
+        FOREIGN KEY(version) REFERENCES hc_plantillas_versiones(id)
+);
+
+/*
+|--------------------------------------------------------------------------
+| CAMPOS
+|--------------------------------------------------------------------------
+*/
+
+CREATE TABLE hc_campos (
+    id                      INT AUTO_INCREMENT PRIMARY KEY,
+    uuid                    BINARY(16) NOT NULL UNIQUE,
+
+    seccion                 INT NOT NULL,
+    tipo                    SMALLINT NOT NULL,
+
+    codigo                  VARCHAR(60) NOT NULL,
+    etiqueta                VARCHAR(150) NOT NULL,
+
+    descripcion             VARCHAR(500) DEFAULT NULL,
+    placeholder             VARCHAR(255) DEFAULT NULL,
+    ayuda                   VARCHAR(500) DEFAULT NULL,
+
+    obligatorio             TINYINT NOT NULL DEFAULT 0,
+
+    /*
+     * Valor inicial, si se requiere.
+     */
+    valor_defecto           LONGTEXT DEFAULT NULL,
+
+    /*
+     * Configuración adicional del campo en JSON.
+     * Lo dejamos LONGTEXT para no depender del tipo JSON del motor.
+     *
+     * Ejemplo:
+     *
+     * {
+     *     "min": 0,
+     *     "max": 250,
+     *     "decimales": 2
+     * }
+     */
+    configuracion           LONGTEXT DEFAULT NULL,
+
+    orden                   SMALLINT NOT NULL DEFAULT 0,
+    activo                  TINYINT NOT NULL DEFAULT 1,
+
+    f_registro              DATETIME NOT NULL,
+
+    CONSTRAINT UK_hccampo_codigo
+        UNIQUE(seccion, codigo),
+
+    CONSTRAINT FK_hccampo_seccion
+        FOREIGN KEY(seccion) REFERENCES hc_secciones(id),
+
+    CONSTRAINT FK_hccampo_tipo
+        FOREIGN KEY(tipo) REFERENCES hc_tipos_campo(id)
+);
+
+/*
+|--------------------------------------------------------------------------
+| OPCIONES
+|--------------------------------------------------------------------------
+*/
+
+CREATE TABLE hc_campo_opciones (
+    id                      INT AUTO_INCREMENT PRIMARY KEY,
+    uuid                    BINARY(16) NOT NULL UNIQUE,
+
+    campo                   INT NOT NULL,
+
+    valor                   VARCHAR(100) NOT NULL,
+    etiqueta                VARCHAR(150) NOT NULL,
+
+    orden                   SMALLINT NOT NULL DEFAULT 0,
+    activo                  TINYINT NOT NULL DEFAULT 1,
+
+    f_registro              DATETIME NOT NULL,
+
+    CONSTRAINT UK_hcopcion
+        UNIQUE(campo, valor),
+
+    CONSTRAINT FK_hcopcion_campo
+        FOREIGN KEY(campo) REFERENCES hc_campos(id)
+);
+
+/*
+|--------------------------------------------------------------------------
+| HISTORIAS CLÍNICAS DE PACIENTES
+|--------------------------------------------------------------------------
+*/
+
+CREATE TABLE pacientes_historias_clinicas (
+    id                      INT AUTO_INCREMENT PRIMARY KEY,
+    uuid                    BINARY(16) NOT NULL UNIQUE,
+
+    empresa                 INT NOT NULL,
+    paciente                INT NOT NULL,
+
+    version                 INT NOT NULL,
+
+    /*
+     * Permite dejarla incompleta y continuar después.
+     */
+    finalizada              TINYINT NOT NULL DEFAULT 0,
+    anulada                 TINYINT NOT NULL DEFAULT 0,
+
+    observaciones           TEXT DEFAULT NULL,
+
+    registro                INT NOT NULL,
+    finalizo                INT DEFAULT NULL,
+    anulo                   INT DEFAULT NULL,
+
+    f_registro              DATETIME NOT NULL,
+    f_actualizacion         DATETIME DEFAULT NULL,
+    f_finalizacion          DATETIME DEFAULT NULL,
+    f_anulacion             DATETIME DEFAULT NULL,
+
+    CONSTRAINT FK_pachist_empresa
+        FOREIGN KEY(empresa) REFERENCES empresas(id),
+
+    CONSTRAINT FK_pachist_paciente
+        FOREIGN KEY(paciente) REFERENCES pacientes(id),
+
+    CONSTRAINT FK_pachist_version
+        FOREIGN KEY(version) REFERENCES hc_plantillas_versiones(id),
+
+    CONSTRAINT FK_pachist_registro
+        FOREIGN KEY(registro) REFERENCES usuarios(id),
+
+    CONSTRAINT FK_pachist_finalizo
+        FOREIGN KEY(finalizo) REFERENCES usuarios(id),
+
+    CONSTRAINT FK_pachist_anulo
+        FOREIGN KEY(anulo) REFERENCES usuarios(id)
+);
+
+/*
+|--------------------------------------------------------------------------
+| RESPUESTAS
+|--------------------------------------------------------------------------
+*/
+
+CREATE TABLE pacientes_historias_respuestas (
+    id                      BIGINT AUTO_INCREMENT PRIMARY KEY,
+    uuid                    BINARY(16) NOT NULL UNIQUE,
+
+    historia                INT NOT NULL,
+    campo                   INT NOT NULL,
+
+    /*
+     * Para secciones repetibles.
+     *
+     * Sección normal:
+     * instancia = 1
+     *
+     * Sección repetible:
+     *
+     * Padre:
+     * instancia = 1
+     *
+     * Madre:
+     * instancia = 2
+     *
+     * Abuelo:
+     * instancia = 3
+     */
+    instancia               SMALLINT NOT NULL DEFAULT 1,
+
+    /*
+     * Texto, número, fecha y boolean se almacenan aquí.
+     * El tipo real se obtiene desde hc_campos -> hc_tipos_campo.
+     */
+    valor                   LONGTEXT DEFAULT NULL,
+
+    registro                INT NOT NULL,
+    f_registro              DATETIME NOT NULL,
+    f_actualizacion         DATETIME DEFAULT NULL,
+
+    CONSTRAINT UK_pachistrespuesta
+        UNIQUE(historia, campo, instancia),
+
+    CONSTRAINT FK_pachistresp_historia
+        FOREIGN KEY(historia) REFERENCES pacientes_historias_clinicas(id),
+
+    CONSTRAINT FK_pachistresp_campo
+        FOREIGN KEY(campo) REFERENCES hc_campos(id),
+
+    CONSTRAINT FK_pachistresp_registro
+        FOREIGN KEY(registro) REFERENCES usuarios(id)
+);
+
+/*
+|--------------------------------------------------------------------------
+| OPCIONES SELECCIONADAS
+|--------------------------------------------------------------------------
+*/
+
+CREATE TABLE pacientes_historias_respuestas_opciones (
+    respuesta               BIGINT NOT NULL,
+    opcion                  INT NOT NULL,
+    PRIMARY KEY(respuesta, opcion),
+    CONSTRAINT FK_pachistrespop_respuesta FOREIGN KEY(respuesta) REFERENCES pacientes_historias_respuestas(id),
+    CONSTRAINT FK_pachistrespop_opcion FOREIGN KEY(opcion) REFERENCES hc_campo_opciones(id)
 );
 
 CREATE TABLE articulos_categoria (
-    id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
+    id                              INT AUTO_INCREMENT PRIMARY KEY,
     codigo                          VARCHAR(30) NOT NULL UNIQUE,
+    empresa                         INT DEFAULT NULL,
     categoria                       VARCHAR(80) NOT NULL,
-    descripcion                     VARCHAR(255) DEFAULT NULL
+    descripcion                     VARCHAR(255) DEFAULT NULL,
+    CONSTRAINT FK_articuloscategoria_empresa FOREIGN KEY(empresa) REFERENCES empresas(id)
 );
 
 CREATE TABLE articulos (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
+    empresa                         INT NOT NULL,
     clave                           VARCHAR(12) NOT NULL UNIQUE,
     codigo_barras                   VARCHAR(32) NOT NULL UNIQUE,
     nombre                          VARCHAR(100) NOT NULL,
     nombre_ticket                   VARCHAR(32) NOT NULL,
-    categoria                       SMALLINT NOT NULL,
+    categoria                       INT NOT NULL,
     descripcion                     VARCHAR(255) DEFAULT NULL,
     unidad_uso                      VARCHAR(8) NOT NULL DEFAULT 1,
     unidad_compra                   VARCHAR(8) NOT NULL DEFAULT 1,
@@ -818,6 +1199,7 @@ CREATE TABLE articulos (
     registro                        INT NOT NULL,
     f_registro                      DATETIME NOT NULL,
     f_actualizacion                 DATETIME NOT NULL,
+    CONSTRAINT FK_articulos_empresa FOREIGN KEY(empresa) REFERENCES empresas(id),
     CONSTRAINT FK_articulos_categoria FOREIGN KEY(categoria) REFERENCES articulos_categoria(id),
     CONSTRAINT FK_articulos_registro FOREIGN KEY(registro) REFERENCES usuarios(id),
     CONSTRAINT FK_articulos_unidaduso FOREIGN KEY(unidad_uso) REFERENCES unidades(id),
@@ -825,51 +1207,54 @@ CREATE TABLE articulos (
 );
 
 CREATE TABLE servicios (
-    id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
+    id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
-    codigo                          VARCHAR(30) NOT NULL UNIQUE,
+    empresa                         INT NOT NULL,
     servicio                        VARCHAR(120) NOT NULL,
     descripcion                     VARCHAR(500) DEFAULT NULL,
     duracion_min                    SMALLINT NOT NULL,
     costo_base                      NUMERIC(18,2) NOT NULL,
     requiere_material               BOOLEAN NOT NULL DEFAULT 0,
     es_procedimiento                BOOLEAN NOT NULL DEFAULT 0,
+    registro                        INT NOT NULL,
     activo                          BOOLEAN NOT NULL DEFAULT 1,
     f_registro                      DATETIME NOT NULL,
-    f_actualizacion                 DATETIME NOT NULL
+    f_actualizacion                 DATETIME DEFAULT NULL,
+    CONSTRAINT FK_servicios_empresa FOREIGN KEY(empresa) REFERENCES empresas(id),
+    CONSTRAINT FK_servicios_usuario FOREIGN KEY(registro) REFERENCES usuarios(id)
 );
 
-INSERT INTO servicios (uuid, codigo, servicio, descripcion, duracion_min, costo_base, requiere_material, es_procedimiento, f_registro, f_actualizacion) VALUES
+-- INSERT INTO servicios (uuid, codigo, servicio, descripcion, duracion_min, costo_base, requiere_material, es_procedimiento, f_registro, f_actualizacion) VALUES
 
-(0x62d6d842b600493496ce7ec7491f5dfc, 'consulta-general',        'Consulta General Podológica',        'Valoración inicial del estado del pie y diagnóstico básico',                  30, 500, 0, 0, NOW(), NOW()),
-(0x4d9414124c5249398909cb991285db12, 'consulta-seguimiento',    'Consulta de Seguimiento',             'Revisión de evolución de tratamiento o control posterior',                   20, 350, 0, 0, NOW(), NOW()),
+-- (0x62d6d842b600493496ce7ec7491f5dfc, 'consulta-general',        'Consulta General Podológica',        'Valoración inicial del estado del pie y diagnóstico básico',                  30, 500, 0, 0, NOW(), NOW()),
+-- (0x4d9414124c5249398909cb991285db12, 'consulta-seguimiento',    'Consulta de Seguimiento',             'Revisión de evolución de tratamiento o control posterior',                   20, 350, 0, 0, NOW(), NOW()),
 
-(0x48e8284b8cd5478aa8ccac03216f6a22, 'limpieza-podologica',     'Limpieza Podológica',                 'Corte de uñas, limado, limpieza de hiperqueratosis leve',                     45, 700, 1, 0, NOW(), NOW()),
-(0xf3b204852e3440f5b83a1256f9365d77, 'corte-unas-especial',     'Corte Especializado de Uñas',         'Corte clínico para uñas engrosadas o deformadas',                              30, 400, 0, 0, NOW(), NOW()),
+-- (0x48e8284b8cd5478aa8ccac03216f6a22, 'limpieza-podologica',     'Limpieza Podológica',                 'Corte de uñas, limado, limpieza de hiperqueratosis leve',                     45, 700, 1, 0, NOW(), NOW()),
+-- (0xf3b204852e3440f5b83a1256f9365d77, 'corte-unas-especial',     'Corte Especializado de Uñas',         'Corte clínico para uñas engrosadas o deformadas',                              30, 400, 0, 0, NOW(), NOW()),
 
-(0xe54747640a2c4faf93ee1772800a002d, 'una-encarnada',           'Tratamiento de Uña Encarnada',        'Retiro parcial de espícula ungueal',                                            60, 1200, 1, 1, NOW(), NOW()),
-(0x375d0571ab8042a3b50516bea8f2ec5b, 'onicomicosis-control',    'Control de Onicomicosis',              'Limpieza y control de uñas con hongo',                                          45, 650, 1, 0, NOW(), NOW()),
-(0xa3eb7ca2d3a24e138f6f87f3f2438b55, 'hiperqueratosis',         'Retiro de Hiperqueratosis',            'Eliminación de durezas profundas',                                              40, 600, 1, 0, NOW(), NOW()),
-(0x53d445624e4e4caa8f2a899ecfde8856, 'helomas',                 'Eliminación de Helomas (Callos)',      'Retiro de callosidades nucleadas',                                              40, 650, 1, 1, NOW(), NOW()),
+-- (0xe54747640a2c4faf93ee1772800a002d, 'una-encarnada',           'Tratamiento de Uña Encarnada',        'Retiro parcial de espícula ungueal',                                            60, 1200, 1, 1, NOW(), NOW()),
+-- (0x375d0571ab8042a3b50516bea8f2ec5b, 'onicomicosis-control',    'Control de Onicomicosis',              'Limpieza y control de uñas con hongo',                                          45, 650, 1, 0, NOW(), NOW()),
+-- (0xa3eb7ca2d3a24e138f6f87f3f2438b55, 'hiperqueratosis',         'Retiro de Hiperqueratosis',            'Eliminación de durezas profundas',                                              40, 600, 1, 0, NOW(), NOW()),
+-- (0x53d445624e4e4caa8f2a899ecfde8856, 'helomas',                 'Eliminación de Helomas (Callos)',      'Retiro de callosidades nucleadas',                                              40, 650, 1, 1, NOW(), NOW()),
 
-(0xa2e36819385d461bbbe8ad7b6fefd919, 'valoracion-pie-diabetico','Valoración de Pie Diabético',          'Evaluación de riesgo y cuidado especializado',                                  30, 550, 0, 0, NOW(), NOW()),
-(0xb663ebc64b1a40fead4219c3b34fadcb, 'curacion-pie-diabetico',  'Curación Pie Diabético',               'Curación de lesiones en paciente diabético',                                    45, 750, 1, 1, NOW(), NOW()),
+-- (0xa2e36819385d461bbbe8ad7b6fefd919, 'valoracion-pie-diabetico','Valoración de Pie Diabético',          'Evaluación de riesgo y cuidado especializado',                                  30, 550, 0, 0, NOW(), NOW()),
+-- (0xb663ebc64b1a40fead4219c3b34fadcb, 'curacion-pie-diabetico',  'Curación Pie Diabético',               'Curación de lesiones en paciente diabético',                                    45, 750, 1, 1, NOW(), NOW()),
 
-(0x85398f105542413a8a0167f7bd12aca2, 'curacion-simple',         'Curación Simple',                      'Limpieza y vendaje de lesión leve',                                             20, 300, 1, 0, NOW(), NOW()),
-(0xe174df4fd2cf489882f10af20e4166e3, 'curacion-avanzada',       'Curación Avanzada',                    'Curación de herida con mayor profundidad o riesgo',                             40, 600, 1, 1, NOW(), NOW()),
+-- (0x85398f105542413a8a0167f7bd12aca2, 'curacion-simple',         'Curación Simple',                      'Limpieza y vendaje de lesión leve',                                             20, 300, 1, 0, NOW(), NOW()),
+-- (0xe174df4fd2cf489882f10af20e4166e3, 'curacion-avanzada',       'Curación Avanzada',                    'Curación de herida con mayor profundidad o riesgo',                             40, 600, 1, 1, NOW(), NOW()),
 
-(0x91bbb379b2a649d28e7e7471e408ba32, 'valoracion-ortesis',      'Valoración para Órtesis',              'Evaluación para colocación de correctores ungueales',                           30, 400, 0, 0, NOW(), NOW()),
-(0xbb173cf1d8714f5f8252a4dbd6a40969, 'colocacion-ortesis',      'Colocación de Órtesis Ungueal',        'Instalación de corrector para uña encarnada',                                   45, 900, 1, 1, NOW(), NOW()),
+-- (0x91bbb379b2a649d28e7e7471e408ba32, 'valoracion-ortesis',      'Valoración para Órtesis',              'Evaluación para colocación de correctores ungueales',                           30, 400, 0, 0, NOW(), NOW()),
+-- (0xbb173cf1d8714f5f8252a4dbd6a40969, 'colocacion-ortesis',      'Colocación de Órtesis Ungueal',        'Instalación de corrector para uña encarnada',                                   45, 900, 1, 1, NOW(), NOW()),
 
-(0x73c0104d7e6c451c86f6fe79ed2b0926, 'terapia-laser-hongos',    'Terapia Láser para Hongos',            'Sesión de tratamiento láser para onicomicosis',                                 30, 1000, 1, 1, NOW(), NOW()),
-(0xd6c80b43c5ac4ce3a711cb22b34bdb7d, 'deslaminacion-ungueal',   'Deslaminación Ungueal',                'Reducción mecánica de grosor en uñas',                                          30, 500, 1, 0, NOW(), NOW()),
+-- (0x73c0104d7e6c451c86f6fe79ed2b0926, 'terapia-laser-hongos',    'Terapia Láser para Hongos',            'Sesión de tratamiento láser para onicomicosis',                                 30, 1000, 1, 1, NOW(), NOW()),
+-- (0xd6c80b43c5ac4ce3a711cb22b34bdb7d, 'deslaminacion-ungueal',   'Deslaminación Ungueal',                'Reducción mecánica de grosor en uñas',                                          30, 500, 1, 0, NOW(), NOW()),
 
-(0xa210e1b448be4d02b137dbdded3bb028, 'pedicure-clinico',        'Pedicure Clínico',                     'Servicio estético con enfoque en salud del pie',                                60, 800, 1, 0, NOW(), NOW());
+-- (0xa210e1b448be4d02b137dbdded3bb028, 'pedicure-clinico',        'Pedicure Clínico',                     'Servicio estético con enfoque en salud del pie',                                60, 800, 1, 0, NOW(), NOW());
 
 CREATE TABLE personal_servicios (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     personal                        INT NOT NULL,
-    servicio                        SMALLINT NOT NULL,
+    servicio                        INT NOT NULL,
     costo                           NUMERIC(18,2) NOT NULL,
     f_registro                      DATETIME NOT NULL,
     f_baja                          DATETIME DEFAULT NULL,
@@ -877,23 +1262,19 @@ CREATE TABLE personal_servicios (
     CONSTRAINT FK_personalservicios_servicio FOREIGN KEY (servicio) REFERENCES servicios(id)
 );
 
+-- INSERT INTO personal_servicios(personal, servicio, costo, f_registro) VALUES(1, 1, 500, NOW());
+-- INSERT INTO personal_servicios(personal, servicio, costo, f_registro) VALUES(1, 4, 600, NOW());
+-- INSERT INTO personal_servicios(personal, servicio, costo, f_registro) VALUES(1, 6, 840, NOW());
+-- INSERT INTO personal_servicios(personal, servicio, costo, f_registro) VALUES(1, 7, 920, NOW());
+-- INSERT INTO personal_servicios(personal, servicio, costo, f_registro) VALUES(1, 11, 300, NOW());
+-- INSERT INTO personal_servicios(personal, servicio, costo, f_registro) VALUES(1, 15, 1400, NOW());
 
 
-INSERT INTO personal_servicios(personal, servicio, costo, f_registro) VALUES(1, 1, 500, NOW());
-INSERT INTO personal_servicios(personal, servicio, costo, f_registro) VALUES(1, 4, 600, NOW());
-INSERT INTO personal_servicios(personal, servicio, costo, f_registro) VALUES(1, 6, 840, NOW());
-INSERT INTO personal_servicios(personal, servicio, costo, f_registro) VALUES(1, 7, 920, NOW());
-INSERT INTO personal_servicios(personal, servicio, costo, f_registro) VALUES(1, 11, 300, NOW());
-INSERT INTO personal_servicios(personal, servicio, costo, f_registro) VALUES(1, 15, 1400, NOW());
-
-
-INSERT INTO personal_servicios(personal, servicio, costo, f_registro) VALUES(2, 1, 450, NOW());
-INSERT INTO personal_servicios(personal, servicio, costo, f_registro) VALUES(2, 4, 660, NOW());
-INSERT INTO personal_servicios(personal, servicio, costo, f_registro) VALUES(2, 6, 790, NOW());
-INSERT INTO personal_servicios(personal, servicio, costo, f_registro) VALUES(2, 11, 400, NOW());
-INSERT INTO personal_servicios(personal, servicio, costo, f_registro) VALUES(2, 15, 1100, NOW());
-
-
+-- INSERT INTO personal_servicios(personal, servicio, costo, f_registro) VALUES(2, 1, 450, NOW());
+-- INSERT INTO personal_servicios(personal, servicio, costo, f_registro) VALUES(2, 4, 660, NOW());
+-- INSERT INTO personal_servicios(personal, servicio, costo, f_registro) VALUES(2, 6, 790, NOW());
+-- INSERT INTO personal_servicios(personal, servicio, costo, f_registro) VALUES(2, 11, 400, NOW());
+-- INSERT INTO personal_servicios(personal, servicio, costo, f_registro) VALUES(2, 15, 1100, NOW());
 
 CREATE TABLE indicaciones_tipo (
     id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
@@ -904,11 +1285,13 @@ CREATE TABLE indicaciones_tipo (
 INSERT INTO indicaciones_tipo(codigo, tipo) VALUES('previa', 'Previa'), ('posterior', 'Posterior');
 
 CREATE TABLE indicaciones (
-    id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
+    id                              INT AUTO_INCREMENT PRIMARY KEY,
     codigo                          VARCHAR(30) NOT NULL UNIQUE,
+    empresa                         INT DEFAULT NULL,
     tipo                            SMALLINT NOT NULL,
     descripcion                     VARCHAR(500) NOT NULL,
     activo                          BOOLEAN NOT NULL DEFAULT 1,
+    CONSTRAINT FK_indicaciones_empresa FOREIGN KEY(empresa) REFERENCES empresas(id),
     CONSTRAINT FK_indicaciones_tipo FOREIGN KEY(tipo) REFERENCES indicaciones_tipo(id)
 );
 
@@ -918,8 +1301,8 @@ INSERT INTO indicaciones(codigo, tipo, descripcion) VALUES('pies-limpios', 1, 'A
                                                                 ('aplicar-medicamento', 1, 'Aplicar medicamento tópico indicado');
 
 CREATE TABLE servicios_indicaciones (
-    servicio                        SMALLINT NOT NULL,
-    indicacion                      SMALLINT NOT NULL,
+    servicio                        INT NOT NULL,
+    indicacion                      INT NOT NULL,
     obligatoria                     BOOLEAN NOT NULL DEFAULT 1,
     CONSTRAINT PK_serviciosindicaciones PRIMARY KEY (servicio, indicacion),
     CONSTRAINT FK_serviciosindicaciones_servicio FOREIGN KEY (servicio) REFERENCES servicios(id),
@@ -927,7 +1310,7 @@ CREATE TABLE servicios_indicaciones (
 );
 
 CREATE TABLE servicios_articulos (
-    servicio                        SMALLINT NOT NULL,
+    servicio                        INT NOT NULL,
     articulo                        INT NOT NULL,
     cantidad_base                   NUMERIC(18,2) NOT NULL,
     CONSTRAINT PK_serviciosarticulos PRIMARY KEY (servicio, articulo),
@@ -978,7 +1361,7 @@ INSERT INTO citas_formas(codigo, forma) VALUES('presencial', 'Presencial'),
 CREATE TABLE citas (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
-    sucursal                        SMALLINT NOT NULL,
+    sucursal                        INT NOT NULL,
     ejercicio                       SMALLINT NOT NULL,
     consecutivo                     INT NOT NULL,
     folio                           VARCHAR(30) NOT NULL,
@@ -1009,6 +1392,7 @@ CREATE TABLE citas (
     f_actualizacion                 DATETIME DEFAULT NULL,
     CONSTRAINT UK_citas_consecutivo UNIQUE(sucursal, ejercicio, consecutivo),
     CONSTRAINT UK_citas_folio UNIQUE(folio),
+    CONSTRAINT FK_citas_sucursal FOREIGN KEY(sucursal) REFERENCES sucursales(id),
     CONSTRAINT FK_citas_paciente FOREIGN KEY(paciente) REFERENCES pacientes(id),
     CONSTRAINT FK_citas_asunto FOREIGN KEY(asunto) REFERENCES citas_asuntos(id),
     CONSTRAINT FK_citas_forma FOREIGN KEY(forma) REFERENCES citas_formas(id),
@@ -1039,7 +1423,7 @@ CREATE TABLE citas_bloques (
     uuid                            BINARY(16) NOT NULL UNIQUE,
     cita                            INT NOT NULL,
     personal                        INT NOT NULL,
-    servicio                        SMALLINT NOT NULL,
+    servicio                        INT NOT NULL,
     descripcion                     TEXT DEFAULT NULL,
     orden                           SMALLINT NOT NULL DEFAULT 1,
     h_inicio                        SMALLINT NOT NULL,
@@ -1070,7 +1454,7 @@ CREATE INDEX IDX_citasbloques_fin ON citas_bloques(personal, h_fin);
 
 CREATE TABLE citas_servicios (
     cita                            INT NOT NULL,
-    servicio                        SMALLINT NOT NULL,
+    servicio                        INT NOT NULL,
     personal                        INT NOT NULL,
     costo                           NUMERIC(18,2) NOT NULL,
     bonificacion                    NUMERIC(18,2) NOT NULL DEFAULT 0,
@@ -1082,7 +1466,7 @@ CREATE TABLE citas_servicios (
 
 CREATE TABLE citas_servicios_articulos (
     cita                            INT NOT NULL,
-    servicio                        SMALLINT NOT NULL,
+    servicio                        INT NOT NULL,
     articulo                        INT NOT NULL,
     cantidad_utilizada              NUMERIC(18,2) NOT NULL,
     CONSTRAINT PK_citasserviciosarticulos PRIMARY KEY (cita, servicio, articulo),
@@ -1096,6 +1480,7 @@ CREATE TABLE consultas (
     uuid                            BINARY(16) NOT NULL UNIQUE,
 
     cita                            INT NOT NULL,
+    sucursal                        INT NOT NULL,
     paciente                        INT NOT NULL,
     personal                        INT NOT NULL,
 
@@ -1117,6 +1502,7 @@ CREATE TABLE consultas (
     f_registro                      DATETIME NOT NULL,
     f_actualizacion                 DATETIME DEFAULT NULL,
     CONSTRAINT FK_consultas_cita FOREIGN KEY (cita) REFERENCES citas(id),
+    CONSTRAINT FK_consultas_sucursal FOREIGN KEY(sucursal) REFERENCES sucursales(id),
     CONSTRAINT FK_consultas_paciente FOREIGN KEY (paciente) REFERENCES pacientes(id),
     CONSTRAINT FK_consultas_personal FOREIGN KEY (personal) REFERENCES personal(id),
     CONSTRAINT FK_consultas_registro FOREIGN KEY (registro) REFERENCES usuarios(id),
@@ -1135,12 +1521,14 @@ INSERT INTO diagnosticos_tipos(codigo, tipo) VALUES('principal', 'Principal'),
                                                     ('seguimiento', 'Seguimiento');
 
 CREATE TABLE diagnosticos_categorias (
-    id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
+    id                              INT AUTO_INCREMENT PRIMARY KEY,
     codigo                          VARCHAR(40) NOT NULL UNIQUE,
+    empresa                         INT DEFAULT NULL,
     categoria                       VARCHAR(80) NOT NULL,
     especialidad                    SMALLINT DEFAULT NULL,
     activo                          TINYINT NOT NULL DEFAULT 1,
 
+    CONSTRAINT FK_diagnosticoscategorias_empresa FOREIGN KEY(empresa) REFERENCES empresas(id),
     CONSTRAINT FK_diagnosticoscategorias_especialidad FOREIGN KEY(especialidad) REFERENCES especialidades(id)
 );
 
@@ -1164,9 +1552,11 @@ CREATE TABLE diagnosticos (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
 
+    empresa                         INT DEFAULT NULL,
+
     codigo                          VARCHAR(60) NOT NULL UNIQUE,
     diagnostico                     VARCHAR(150) NOT NULL,
-    categoria                       SMALLINT DEFAULT NULL,
+    categoria                       INT DEFAULT NULL,
     especialidad                    SMALLINT DEFAULT NULL,
 
     descripcion                     VARCHAR(500) DEFAULT NULL,
@@ -1175,6 +1565,7 @@ CREATE TABLE diagnosticos (
     f_registro                      DATETIME NOT NULL,
     f_actualizacion                 DATETIME DEFAULT NULL,
 
+    CONSTRAINT FK_diagnosticos_empresa FOREIGN KEY(empresa) REFERENCES empresas(id),
     CONSTRAINT FK_diagnosticos_categoria FOREIGN KEY(categoria) REFERENCES diagnosticos_categorias(id),
     CONSTRAINT FK_diagnosticos_especialidad FOREIGN KEY(especialidad) REFERENCES especialidades(id)
 );
@@ -1239,8 +1630,8 @@ CREATE TABLE consultas_diagnosticos (
     registro                        INT NOT NULL,
     f_registro                      DATETIME NOT NULL,
     CONSTRAINT FK_consultasdiagnosticos_consulta FOREIGN KEY (consulta) REFERENCES consultas(id),
-    CONSTRAINT FK_consultasdiagnosticos_catalogo FOREIGN KEY(diagnostico_catalogo) REFERENCES diagnosticos(id)
-    CONSTRAINT FK_consultasdiagnosticos_tipo FOREIGN KEY (tipo) REFERENCES diagnosticos_tipos(id),
+    CONSTRAINT FK_consultasdiagnosticos_catalogo FOREIGN KEY(diagnostico_catalogo) REFERENCES diagnosticos(id),
+    CONSTRAINT FK_consultasdiagnosticos_tipo FOREIGN KEY (tipo_diagnostico) REFERENCES diagnosticos_tipos(id),
     CONSTRAINT FK_consultasdiagnosticos_registro FOREIGN KEY (registro) REFERENCES usuarios(id)
 );
 
@@ -1253,7 +1644,10 @@ CREATE TABLE consultas_notas (
     nota                            TEXT NOT NULL,
 
     registro                        INT NOT NULL,
-    f_registro                      DATETIME NOT NULL
+    f_registro                      DATETIME NOT NULL,
+    
+    CONSTRAINT FK_consultasnotas_consulta FOREIGN KEY(consulta) REFERENCES consultas(id),
+    CONSTRAINT FK_consultasnotas_registro FOREIGN KEY(registro) REFERENCES usuarios(id)
 );
 
 CREATE TABLE consultas_indicaciones (
@@ -1261,11 +1655,14 @@ CREATE TABLE consultas_indicaciones (
     uuid                            BINARY(16) NOT NULL UNIQUE,
 
     consulta                        INT NOT NULL,
-    indicacion                      SMALLINT DEFAULT NULL,
+    indicacion                      INT DEFAULT NULL,
     descripcion                     TEXT NOT NULL,
 
     registro                        INT NOT NULL,
-    f_registro                      DATETIME NOT NULL
+    f_registro                      DATETIME NOT NULL,
+    CONSTRAINT FK_consultasindicaciones_consulta FOREIGN KEY(consulta) REFERENCES consultas(id),
+    CONSTRAINT FK_consultasindicaciones_indicacion FOREIGN KEY(indicacion) REFERENCES indicaciones(id),
+    CONSTRAINT FK_consultasindicaciones_registro FOREIGN KEY(registro) REFERENCES usuarios(id)
 );
 
 CREATE TABLE consultas_archivos (
@@ -1280,33 +1677,11 @@ CREATE TABLE consultas_archivos (
     descripcion                     VARCHAR(500) DEFAULT NULL,
 
     registro                        INT NOT NULL,
-    f_registro                      DATETIME NOT NULL
+    f_registro                      DATETIME NOT NULL,
+
+    CONSTRAINT FK_consultasarchivos_consulta FOREIGN KEY(consulta) REFERENCES consultas(id),
+    CONSTRAINT FK_consultasarchivos_registro FOREIGN KEY(registro) REFERENCES usuarios(id)
 );
-
-ALTER TABLE consultas
-    ADD CONSTRAINT UK_consultas UNIQUE(cita, personal),
-    ADD CONSTRAINT FK_consultas_cita FOREIGN KEY(cita) REFERENCES citas(id),
-    ADD CONSTRAINT FK_consultas_paciente FOREIGN KEY(paciente) REFERENCES pacientes(id),
-    ADD CONSTRAINT FK_consultas_personal FOREIGN KEY(personal) REFERENCES personal(id),
-    ADD CONSTRAINT FK_consultas_empresa FOREIGN KEY(empresa) REFERENCES empresas(id),
-    ADD CONSTRAINT FK_consultas_registro FOREIGN KEY(registro) REFERENCES usuarios(id);
-
-ALTER TABLE consultas_diagnosticos
-    ADD CONSTRAINT FK_consultasdiagnosticos_consulta FOREIGN KEY(consulta) REFERENCES consultas(id),
-    ADD CONSTRAINT FK_consultasdiagnosticos_registro FOREIGN KEY(registro) REFERENCES usuarios(id);
-
-ALTER TABLE consultas_notas
-    ADD CONSTRAINT FK_consultasnotas_consulta FOREIGN KEY(consulta) REFERENCES consultas(id),
-    ADD CONSTRAINT FK_consultasnotas_registro FOREIGN KEY(registro) REFERENCES usuarios(id);
-
-ALTER TABLE consultas_indicaciones
-    ADD CONSTRAINT FK_consultasindicaciones_consulta FOREIGN KEY(consulta) REFERENCES consultas(id),
-    ADD CONSTRAINT FK_consultasindicaciones_indicacion FOREIGN KEY(indicacion) REFERENCES indicaciones(id),
-    ADD CONSTRAINT FK_consultasindicaciones_registro FOREIGN KEY(registro) REFERENCES usuarios(id);
-
-ALTER TABLE consultas_archivos
-    ADD CONSTRAINT FK_consultasarchivos_consulta FOREIGN KEY(consulta) REFERENCES consultas(id),
-    ADD CONSTRAINT FK_consultasarchivos_registro FOREIGN KEY(registro) REFERENCES usuarios(id);
 
 CREATE TABLE consultas_modulos (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
@@ -1410,7 +1785,7 @@ INSERT INTO consultas_modulos (
 CREATE TABLE servicios_consulta_modulos (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
 
-    servicio                        SMALLINT NOT NULL,
+    servicio                        INT NOT NULL,
     modulo                          INT NOT NULL,
 
     obligatorio                     TINYINT NOT NULL DEFAULT 0,
@@ -1431,7 +1806,7 @@ CREATE TABLE consultas_procedimientos (
     uuid                            BINARY(16) NOT NULL UNIQUE,
 
     consulta                        INT NOT NULL,
-    servicio                        SMALLINT NOT NULL,
+    servicio                        INT NOT NULL,
 
     cantidad                        NUMERIC(18,2) NOT NULL DEFAULT 1,
     precio_unitario                 NUMERIC(18,2) NOT NULL DEFAULT 0,
@@ -1485,7 +1860,7 @@ INSERT INTO plantillas_estatus(codigo, estatus) VALUES('borrador', 'Borrador'),
                                                             ('inactivo', 'Inactivo');
 
 CREATE TABLE consentimientos_plantillas_variables (
-    id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
+    id                              INT AUTO_INCREMENT PRIMARY KEY,
     codigo                          VARCHAR(50) NOT NULL UNIQUE,
     descripcion                     VARCHAR(255) DEFAULT NULL,
     origen                          VARCHAR(50) NOT NULL,
@@ -1495,8 +1870,9 @@ CREATE TABLE consentimientos_plantillas_variables (
 );
 
 CREATE TABLE consentimientos_plantillas (
-    id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
+    id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
+    empresa                         INT DEFAULT NULL,
     codigo                          VARCHAR(50) NOT NULL UNIQUE,
     nombre                          VARCHAR(150) NOT NULL,
     version                         SMALLINT NOT NULL,
@@ -1514,14 +1890,15 @@ CREATE TABLE consentimientos_plantillas (
     registro                        INT NOT NULL,
     f_registro                      DATETIME NOT NULL,
     f_actualizacion                 DATETIME NOT NULL,
+    CONSTRAINT FK_consentimientosplantillas_empresa FOREIGN KEY(empresa) REFERENCES empresas(id),
     CONSTRAINT FK_consentimientosplantillas_estatus FOREIGN KEY(estatus) REFERENCES plantillas_estatus(id),
     CONSTRAINT FK_consentimientosplantillas_registro FOREIGN KEY(registro) REFERENCES usuarios(id)
 );
 
 CREATE TABLE servicios_consentimientos (
     id                  INT AUTO_INCREMENT PRIMARY KEY,
-    servicio            SMALLINT NOT NULL,
-    plantilla           SMALLINT NOT NULL,
+    servicio            INT NOT NULL,
+    plantilla           INT NOT NULL,
     obligatorio         BOOLEAN NOT NULL DEFAULT 1,
     vigencia_dias       INT DEFAULT NULL,
     activo              BOOLEAN NOT NULL DEFAULT 1,
@@ -1543,7 +1920,7 @@ INSERT INTO consentimiento_items_tipo(codigo, tipo) VALUES ('riesgo', 'Riesgo'),
 
 CREATE TABLE servicios_consentimiento_items (
     id                  INT AUTO_INCREMENT PRIMARY KEY,
-    servicio            SMALLINT NOT NULL,
+    servicio            INT NOT NULL,
     tipo                SMALLINT NOT NULL,
     descripcion         VARCHAR(700) NOT NULL,
     orden               SMALLINT NOT NULL DEFAULT 1,
@@ -1557,8 +1934,8 @@ CREATE TABLE pacientes_consentimientos (
     uuid                BINARY(16) NOT NULL UNIQUE,
     paciente            INT NOT NULL,
     cita                INT DEFAULT NULL,
-    servicio            SMALLINT DEFAULT NULL,
-    plantilla           SMALLINT NOT NULL,
+    servicio            INT DEFAULT NULL,
+    plantilla           INT NOT NULL,
 
     version             VARCHAR(20) NOT NULL,
     archivo_pdf         VARCHAR(500) NOT NULL,
@@ -1707,8 +2084,9 @@ CREATE TABLE exploracion_podologica (
 
 
 CREATE TABLE parametros_medicos (
-    id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
+    id                              INT AUTO_INCREMENT PRIMARY KEY,
     codigo                          VARCHAR(30) NOT NULL UNIQUE,
+    empresa                         INT DEFAULT NULL,
     parametro                       VARCHAR(80) NOT NULL,
     descripcion                     VARCHAR(1024) DEFAULT NULL,
     unidad                          VARCHAR(8) NOT NULL,
@@ -1716,6 +2094,7 @@ CREATE TABLE parametros_medicos (
     recomendado                     NUMERIC(12, 8) NOT NULL DEFAULT 0,
     maximo                          NUMERIC(12, 8) NOT NULL DEFAULT 0,
     digitos                         SMALLINT NOT NULL DEFAULT 0,
+    CONSTRAINT FK_parametrosmedicos_empresa FOREIGN KEY(empresa) REFERENCES empresas(id),
     CONSTRAINT FK_parametrosmedicos_unidad FOREIGN KEY(unidad) REFERENCES unidades(id)
 );
 
@@ -1725,7 +2104,7 @@ CREATE TABLE seguimiento_parametros (
     consulta                        INT DEFAULT NULL,
     paciente                        INT NOT NULL,
     personal                        INT NOT NULL,
-    parametro                       SMALLINT NOT NULL,
+    parametro                       INT NOT NULL,
     valor                           NUMERIC(12, 8) NOT NULL DEFAULT 0,
     observaciones                   VARCHAR(1024) DEFAULT NULL,
     f_medicion                      DATETIME NOT NULL,
@@ -1747,7 +2126,7 @@ CREATE TABLE pacientes_tratamientos_podologicos (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
     paciente                        INT NOT NULL,
-    consulta                            INT NOT NULL,
+    consulta                        INT NOT NULL,
     personal                        INT NOT NULL,
     tipo_tratamiento                SMALLINT NOT NULL,
     descripcion                     VARCHAR(1024) DEFAULT NULL,
@@ -1953,7 +2332,7 @@ CREATE TABLE registro_ulceras (
     paciente                        INT NOT NULL,
     personal                        INT NOT NULL,
     ubicacion_anatomica             VARCHAR(255) NOT NULL,
-    pie_afectado                    SMALLINT NOT NULL,
+    pie_afectado                    TINYINT NOT NULL,
     largo_cm                        NUMERIC(6, 4) NOT NULL DEFAULT 0,
     ancho_cm                        NUMERIC(6, 4) NOT NULL DEFAULT 0,
     profundidad_cm                  NUMERIC(6, 4) NOT NULL DEFAULT 0,
@@ -1974,7 +2353,7 @@ CREATE TABLE registro_ulceras (
     CONSTRAINT FK_registroulceras_consulta FOREIGN KEY(consulta) REFERENCES consultas(id),
     CONSTRAINT FK_registroulceras_paciente FOREIGN KEY(paciente) REFERENCES pacientes(id),
     CONSTRAINT FK_registroulceras_personal FOREIGN KEY(personal) REFERENCES personal(id),
-    CONSTRAINT FK_registroulceras_pieafectado FOREIGN KEY(pie_afectado) REFERENCES pie_lado(id),
+    CONSTRAINT FK_registroulceras_pieafectado FOREIGN KEY(pie_afectado) REFERENCES lateralidades(id),
     CONSTRAINT FK_registroulceras_tejido FOREIGN KEY(tejido) REFERENCES tipos_tejido(id),
     CONSTRAINT FK_registroulceras_exudado FOREIGN KEY(exudado) REFERENCES tipos_exudado(id),
     CONSTRAINT FK_registroulceras_colorexudado FOREIGN KEY(color_exudado) REFERENCES color_exudado(id),
@@ -2038,13 +2417,14 @@ INSERT INTO tipo_contribuyente(id, codigo, tipo) VALUES('F', 'fisica', 'Persona 
 CREATE TABLE proveedores (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
+    empresa                         INT NOT NULL,
     rfc                             VARCHAR(15) DEFAULT NULL,
     razon_social                    VARCHAR(255) NOT NULL,
     representante                   VARCHAR(255) NOT NULL,
     tipo_contribuyente              CHAR(1) NOT NULL,
     telefono_1                      VARCHAR(15) DEFAULT NULL,
     telefono_2                      VARCHAR(15) DEFAULT NULL,
-    movil                         VARCHAR(15) DEFAULT NULL,
+    movil                           VARCHAR(15) DEFAULT NULL,
     email                           VARCHAR(255) DEFAULT NULL,
     calle                           VARCHAR(120) DEFAULT NULL,
     num_ext                         VARCHAR(12) DEFAULT NULL,
@@ -2054,6 +2434,7 @@ CREATE TABLE proveedores (
     registro                        INT NOT NULL,
     f_registro                      DATETIME NOT NULL,
     f_actualizacion                 DATETIME NOT NULL,
+    CONSTRAINT FK_proveedores_empresa FOREIGN KEY(empresa) REFERENCES empresas(id),
     CONSTRAINT FK_proveedores_tipocontribuyente FOREIGN KEY(tipo_contribuyente) REFERENCES tipo_contribuyente(id),
     CONSTRAINT FK_proveedores_colonia FOREIGN KEY(colonia) REFERENCES colonias(id),
     CONSTRAINT FK_proveedores_registro FOREIGN KEY(registro) REFERENCES usuarios(id)
@@ -2074,6 +2455,7 @@ INSERT INTO requisiciones_estatus(codigo, estatus) VALUES('capturada', 'Orden Ca
 CREATE TABLE requisiciones (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
+    sucursal                        INT NOT NULL,
     solicito                        INT NOT NULL,
     autorizo                        INT NOT NULL,
     f_solicitud                     DATETIME NOT NULL,
@@ -2084,6 +2466,7 @@ CREATE TABLE requisiciones (
     registro                        INT NOT NULL,
     f_registrada                    DATETIME NOT NULL,
     f_actualizacion                 DATETIME NOT NULL,
+    CONSTRAINT FK_requisiciones_sucursal FOREIGN KEY(sucursal) REFERENCES sucursales(id),
     CONSTRAINT FK_requisiciones_solicito FOREIGN KEY(solicito) REFERENCES usuarios(id),
     CONSTRAINT FK_requisiciones_autorizo FOREIGN KEY(autorizo) REFERENCES usuarios(id),
     CONSTRAINT FK_requisiciones_estatus FOREIGN KEY(estatus) REFERENCES requisiciones_estatus(id),
@@ -2124,6 +2507,7 @@ INSERT INTO ordenes_compra_estatus (codigo, estatus) VALUES('capturada', 'Captur
 CREATE TABLE ordenes_compra (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
+    sucursal                        INT NOT NULL,
     proveedor                       INT NOT NULL,
     requisicion                     INT DEFAULT NULL,
     f_orden                         DATETIME NOT NULL,
@@ -2143,6 +2527,7 @@ CREATE TABLE ordenes_compra (
     autorizo                        INT NOT NULL,
     f_registro                      DATETIME NOT NULL,
     f_actualizacion                 DATETIME NOT NULL,
+    CONSTRAINT FK_ordenescompra_sucursal FOREIGN KEY(sucursal) REFERENCES sucursales(id),
     CONSTRAINT FK_ordenescompra_proveedor FOREIGN KEY(proveedor) REFERENCES proveedores(id),
     CONSTRAINT FK_ordenescompra_requisicion FOREIGN KEY(requisicion) REFERENCES requisiciones(id),
     CONSTRAINT FK_ordenescompra_estatus FOREIGN KEY(estatus) REFERENCES ordenes_compra_estatus(id),
@@ -2171,7 +2556,7 @@ INSERT INTO perfil_impuestos(codigo, perfil) VALUES('general', 'General'),
                                                     ('exento', 'Exento');
 
 CREATE TABLE perfil_impuestos_detalle (
-    id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
+    id                              INT AUTO_INCREMENT PRIMARY KEY,
     perfil                          SMALLINT NOT NULL,
     impuesto                        SMALLINT NOT NULL,
     tasa                            NUMERIC(8, 6) NOT NULL,
@@ -2207,7 +2592,7 @@ CREATE TABLE ordenes_compra_articulos (
 );
 
 CREATE TABLE productos_categoria (
-    id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
+    id                              INT AUTO_INCREMENT PRIMARY KEY,
     empresa                         INT DEFAULT NULL,
     categoria                       VARCHAR(60) NOT NULL,
     sistema                         TINYINT NOT NULL DEFAULT 0,
@@ -2226,11 +2611,12 @@ INSERT INTO productos_categoria (categoria, sistema, activo) VALUES ('Medicament
 CREATE TABLE productos (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
+    empresa                         INT NOT NULL,
     clave                           VARCHAR(12) DEFAULT NULL UNIQUE,
     codigo_barras                   VARCHAR(32) DEFAULT NULL UNIQUE,
     nombre                          VARCHAR(100) NOT NULL,
     nombre_ticket                   VARCHAR(32) NOT NULL,
-    categoria                       SMALLINT NOT NULL,
+    categoria                       INT NOT NULL,
     descripcion                     VARCHAR(255) DEFAULT NULL,
     unidad                          VARCHAR(8) NOT NULL DEFAULT 1,
     precio_base                     NUMERIC(18, 2) NOT NULL DEFAULT 0,
@@ -2241,6 +2627,7 @@ CREATE TABLE productos (
     registro                        INT NOT NULL,
     f_registro                      DATETIME NOT NULL,
     f_actualizacion                 DATETIME DEFAULT NULL,
+    CONSTRAINT FK_productos_empresa FOREIGN KEY(empresa) REFERENCES empresas(id),
     CONSTRAINT FK_productos_categoria FOREIGN KEY(categoria) REFERENCES productos_categoria(id),
     CONSTRAINT FK_productos_unidad FOREIGN KEY(unidad) REFERENCES unidades(id),
     CONSTRAINT FK_productos_registro FOREIGN KEY(registro) REFERENCES usuarios(id)
@@ -2289,6 +2676,7 @@ INSERT INTO ventas_estatus(codigo, estatus) VALUES('pendiente', 'Pendiente'),
 CREATE TABLE ventas (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
+    sucursal                        INT NOT NULL,
     folio                           VARCHAR(30) NOT NULL UNIQUE,
     consecutivo                     SMALLINT NOT NULL,
     consulta                        INT DEFAULT NULL,
@@ -2307,6 +2695,7 @@ CREATE TABLE ventas (
     f_venta                         DATETIME NOT NULL,
     f_registro                      DATETIME NOT NULL,
     f_actualizacion                 DATETIME DEFAULT NULL,
+    CONSTRAINT FK_ventas_sucursal FOREIGN KEY(sucursal) REFERENCES sucursales(id),
     CONSTRAINT FK_ventas_consulta FOREIGN KEY(consulta) REFERENCES consultas(id),
     CONSTRAINT FK_ventas_cita FOREIGN KEY(cita) REFERENCES citas(id),
     CONSTRAINT FK_ventas_cliente FOREIGN KEY(cliente) REFERENCES clientes(id),
@@ -2317,11 +2706,13 @@ CREATE TABLE ventas (
 
 CREATE TABLE folios_consecutivos (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
+    sucursal                        INT NOT NULL,
     tipo                            VARCHAR(30) NOT NULL,
     ejercicio                       SMALLINT NOT NULL,
     consecutivo                     INT NOT NULL DEFAULT 0,
 
-    CONSTRAINT UK_foliosconsecutivos UNIQUE(tipo, ejercicio)
+    CONSTRAINT UK_foliosconsecutivos UNIQUE(sucursal, tipo, ejercicio),
+    CONSTRAINT FK_foliosconsecutivos_sucursal FOREIGN KEY(sucursal) REFERENCES sucursales(id)
 );
 
 CREATE TABLE tipos_descuentos (
@@ -2334,7 +2725,7 @@ CREATE TABLE ventas_detalles (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
     venta                           INT NOT NULL,
-    servicio                        SMALLINT DEFAULT NULL,
+    servicio                        INT DEFAULT NULL,
     producto                        INT DEFAULT NULL,
     descripcion                     VARCHAR(255) NOT NULL,
     cantidad                        NUMERIC(12,4) NOT NULL DEFAULT 1,
@@ -2385,17 +2776,20 @@ INSERT INTO impresoras_conexion(codigo, conexion) VALUES('usb', 'Cable USB'),
 
 CREATE TABLE impresoras (
     id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
+    sucursal                        INT NOT NULL,
     tipo_conexion                   SMALLINT NOT NULL,
     direccion                       VARCHAR(30) NOT NULL,
     puerto                          VARCHAR(10) DEFAULT NULL,
     mac_address                     VARCHAR(20) DEFAULT NULL,
     ubicacion                       VARCHAR(60) DEFAULT NULL,
+    CONSTRAINT FK_impresoras_sucursal FOREIGN KEY(sucursal) REFERENCES sucursales(id),
     CONSTRAINT FK_impresoras_tipoconexion FOREIGN KEY(tipo_conexion) REFERENCES impresoras_conexion(id)
 );
 
 CREATE TABLE cajas (
     id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
+    sucursal                        INT NOT NULL,
     codigo                          VARCHAR(30) NOT NULL UNIQUE,
     caja                            VARCHAR(30) NOT NULL,
     ubicacion                       VARCHAR(60) DEFAULT NULL,
@@ -2403,9 +2797,10 @@ CREATE TABLE cajas (
     activa                          SMALLINT NOT NULL DEFAULT 1,
     f_registro                      DATETIME NOT NULL,
     f_actualizacion                 DATETIME DEFAULT NULL,
+    CONSTRAINT FK_cajas_sucursal FOREIGN KEY(sucursal) REFERENCES sucursales(id)
 );
 
-INSERT INTO cajas(uuid, codigo, caja, ubicacion, f_registro) VALUES(X'382B5216EF014D39A07D1E96D19CC5B6', 'principal', 'Caja Principal', '', NOW());
+-- INSERT INTO cajas(uuid, codigo, caja, ubicacion, f_registro) VALUES(X'382B5216EF014D39A07D1E96D19CC5B6', 'principal', 'Caja Principal', '', NOW());
 
 CREATE TABLE cajas_impresoras (
     caja                            SMALLINT NOT NULL,
@@ -2428,6 +2823,7 @@ INSERT INTO cortes_estatus(codigo, estatus) VALUES('open', 'Abierta'),
 CREATE TABLE cortes (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
+    sucursal                        INT NOT NULL,
     ejercicio                       SMALLINT NOT NULL,
     consecutivo                     INT NOT NULL,
     folio                           VARCHAR(30) NOT NULL,
@@ -2452,6 +2848,7 @@ CREATE TABLE cortes (
     f_actualizacion                 DATETIME DEFAULT NULL,
     CONSTRAINT UK_cortes_folio UNIQUE(folio),
     CONSTRAINT UK_cortes_consecutivo UNIQUE(consecutivo, ejercicio),
+    CONSTRAINT FK_cortes_sucursal FOREIGN KEY(sucursal) REFERENCES sucursales(id),
     CONSTRAINT FK_cortes_caja FOREIGN KEY(caja) REFERENCES cajas(id),
     CONSTRAINT FK_cortes_abiertapor FOREIGN KEY(abierta_por) REFERENCES usuarios(id),
     CONSTRAINT FK_cortes_cerradapor FOREIGN KEY(cerrada_por) REFERENCES usuarios(id),
@@ -2493,6 +2890,7 @@ CREATE TABLE cortes_retiros (
 CREATE TABLE pagos (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
+    sucursal                        INT NOT NULL,
     folio                           VARCHAR(30) NOT NULL UNIQUE,
     consecutivo                     SMALLINT NOT NULL DEFAULT 0,
     cliente                         INT DEFAULT NULL,
@@ -2511,6 +2909,7 @@ CREATE TABLE pagos (
     f_pago                          DATETIME NOT NULL,
     f_registro                      DATETIME NOT NULL,
     f_actualizacion                 DATETIME DEFAULT NULL,
+    CONSTRAINT FK_pagos_sucursal FOREIGN KEY(sucursal) REFERENCES sucursales(id),
     CONSTRAINT FK_pagos_cliente FOREIGN KEY(cliente) REFERENCES clientes(id),
     CONSTRAINT FK_pagos_registro FOREIGN KEY(registro) REFERENCES usuarios(id),
     CONSTRAINT FK_pagos_corte FOREIGN KEY(corte) REFERENCES cortes(id),
@@ -2757,6 +3156,6 @@ DELIMITER ;
 
 /*
 
-INSERT INTO pacientes(id, uuid, clave, nombre, paterno, materno, calle, num_ext, colonia, cp, genero, email, f_nacimiento, telefono, movil, registro, f_registro, f_actualizacion) VALUES(1, 1, 'PE-000001', 'Paciente', 'Numero', '1', 'Domicilio Conocido', '123', 1275, '66004', 'H', 'paciente_1@helix.com', '2001-01-12', '555 555 5555', '565 456 1245', 1, NOW(), NOW()),
-                                                                                                                                                                                            (2, 2, 'PE-000002', 'Paciente', 'Numero', '2', 'Domicilio Conocido', '456', 1180, '66036', 'H', 'paciente_2@helix.com', '1994-03-28', '123 456 7890', '265 456 1245', 1, NOW(), NOW());
+INSERT INTO pacientes(id, uuid, clave, nombre, paterno, materno, calle, num_ext, colonia, cp, genero, email, f_nacimiento, telefono, movil, registro, f_registro, f_actualizacion) VALUES(1, 1, 'PE-000001', 'Paciente', 'Numero', '1', 'Domicilio Conocido', '123', 1275, '66004', 'H', 'paciente_1@adariel.com', '2001-01-12', '555 555 5555', '565 456 1245', 1, NOW(), NOW()),
+                                                                                                                                                                                            (2, 2, 'PE-000002', 'Paciente', 'Numero', '2', 'Domicilio Conocido', '456', 1180, '66036', 'H', 'paciente_2@adariel.com', '1994-03-28', '123 456 7890', '265 456 1245', 1, NOW(), NOW());
 */

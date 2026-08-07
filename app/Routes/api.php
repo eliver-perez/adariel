@@ -7,6 +7,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 use App\Controllers\AuthController;
+use App\Controllers\OrganizationsController;
 use App\Controllers\StaffController;
 use App\Controllers\UsersController;
 use App\Controllers\BillingController;
@@ -35,11 +36,21 @@ use App\Controllers\PaymentsController;
 use App\Controllers\POSController;
 use App\Controllers\UnitsMeasureController;
 use App\Controllers\ProductsController;
+use App\Controllers\WhatsAppIntegrationController;
+use App\Controllers\WhatsAppMessageController;
 use App\Core\Response;
 
 $router->post('/api/auth/login', [AuthController::class, 'login']);
 $router->post('/api/auth/logout', [AuthController::class, 'logout']);
 $router->get('/api/auth/me', [AuthController::class, 'me']);
+
+/**
+ * ORGANIZATION ROUTES
+ */
+
+$router->get('/api/organizations', [OrganizationsController::class, 'index']);
+$router->get('/api/organizations/{id}', [OrganizationsController::class, 'show']);
+$router->post('/api/organizations', [OrganizationsController::class, 'store']);
 
 /**
  * STAFF ROUTES
@@ -122,6 +133,7 @@ $router->get('/api/booking-channels', [BookingChannelsController::class, 'index'
  * PROCEDURES ROUTES
  */
 $router->get('/api/procedures', [ProceduresController::class, 'index']);
+$router->post('/api/procedures', [ProceduresController::class, 'store']);
 $router->get('/api/procedures/{id}', [ProceduresController::class, 'show']);
 $router->get('/api/procedures/{id}/staff', [ProceduresController::class, 'staff']);
 $router->get('/api/procedures/{procedureId}/staff/{staffId}', [ProceduresController::class, 'procedureStaffData']);
@@ -244,3 +256,15 @@ $router->post('/api/products', [ProductsController::class, 'store']);
  */
 $router->get('/api/payments', [PaymentsController::class, 'index']);
 $router->get('/api/payments/{id}', [PaymentsController::class, 'show']);
+
+/**
+ * WHATSAPP INTEGRATIONS ROUTES
+ */
+$router->get('/api/whatsapp-integration', [WhatsAppIntegrationController::class, 'show']);
+$router->post('/api/whatsapp-integration', [WhatsAppIntegrationController::class, 'save']);
+$router->post('/api/whatsapp-integration/test-connection', [WhatsAppIntegrationController::class, 'testConnection']);
+
+/**
+ * WHATSAPP MESSAGES ROUTES
+ */
+$router->post('/api/whatsapp-messages/test', [WhatsAppMessageController::class, 'sendTestTemplate']);

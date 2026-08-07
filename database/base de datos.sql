@@ -593,8 +593,8 @@ CREATE TABLE pacientes (
     CONSTRAINT FK_pacientes_registro FOREIGN KEY(registro) REFERENCES usuarios(id)
 );
 
-INSERT INTO pacientes(id, uuid, clave, nombre, paterno, materno, calle, num_ext, colonia, cp, genero, email, f_nacimiento, telefono, movil, registro, f_registro, f_actualizacion) VALUES(1, 1, 'PE-000001', 'Paciente', 'Numero', '1', 'Domicilio Conocido', '123', 1275, '66004', 'H', 'paciente_1@helix.com', '2001-01-12', '555 555 5555', '565 456 1245', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-                                                                                                                                                                                            (2, 2, 'PE-000002', 'Paciente', 'Numero', '2', 'Domicilio Conocido', '456', 1180, '66036', 'H', 'paciente_2@helix.com', '1994-03-28', '123 456 7890', '265 456 1245', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT INTO pacientes(id, uuid, clave, nombre, paterno, materno, calle, num_ext, colonia, cp, genero, email, f_nacimiento, telefono, movil, registro, f_registro, f_actualizacion) VALUES(1, 1, 'PE-000001', 'Paciente', 'Numero', '1', 'Domicilio Conocido', '123', 1275, '66004', 'H', 'paciente_1@adariel.com', '2001-01-12', '555 555 5555', '565 456 1245', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+                                                                                                                                                                                            (2, 2, 'PE-000002', 'Paciente', 'Numero', '2', 'Domicilio Conocido', '456', 1180, '66036', 'H', 'paciente_2@adariel.com', '1994-03-28', '123 456 7890', '265 456 1245', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 CREATE TABLE clientes_pacientes (
     id                              INTEGER PRIMARY KEY,
