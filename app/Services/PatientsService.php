@@ -214,6 +214,7 @@ class PatientsService extends Service
                 'uid'                           => $uid,
             ]);
 
+            die($add_billing);
             if($add_billing != 'off') {
                 $this->patientsRepository->insertClientBilling($clientId, [
                     'uuid'                          => $clientPatientUuid,
