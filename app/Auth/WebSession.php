@@ -129,7 +129,7 @@ class WebSession
         $tokenHash = hash_hmac('sha256', $tokenBin, $salt, true);
 
         $stmt = $conn->prepare("
-            SELECT id, expira_en
+            SELECT id, expira_en, destruida_en
             FROM usuarios_sesiones
             WHERE usuario = :usuario
               AND token_hash = :token
@@ -141,7 +141,7 @@ class WebSession
 
         $data = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!$data) {
+        if (!$data || $data['destruida_en'] != null) {
             return false;
         }
 

@@ -205,6 +205,15 @@ class AuthController extends Controller
             $_SESSION['ADARIEL_ERP_AVAILABLE_ROLES'] = count($tipos_usuario) > 1 ? $tipos_usuario : null;
 
             $stmt = $conn->prepare("
+                UPDATE usuarios_sesiones
+                SET destruida_en = NOW()
+                WHERE usuario = :uid
+                    AND destruida_en IS NULL
+            ");
+            $stmt->bindValue(':uid', (int)$user['id'], PDO::PARAM_INT);
+            $stmt->execute();
+
+            $stmt = $conn->prepare("
                 INSERT INTO usuarios_sesiones
                 (
                     id,
@@ -325,8 +334,9 @@ class AuthController extends Controller
 
         try {
             $conn->beginTransaction();
+            $id = $session->getId();
             $authentication_token_bin = hex2bin($session->getToken());
-            $authentication_token_hash = hash('sha256', $authentication_token_bin . $salt, true);
+            $authentication_token_hash = hash_hmac('sha256', $authentication_token_bin, $salt, true);
             
             $stmt = $conn->prepare('SELECT id, destruida_en FROM usuarios_sesiones WHERE usuario = :usuario AND token_hash = :token AND destruida_en IS NULL');
             $stmt->bindParam(':usuario', $id);
@@ -341,6 +351,8 @@ class AuthController extends Controller
             }
 
             $conn->commit();
+
+            die('');
             
             session_unset();     // unset $_SESSION variable for the run-time 
             session_destroy();   // destroy session data in storage
