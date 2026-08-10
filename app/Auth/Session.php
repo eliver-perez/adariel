@@ -86,7 +86,7 @@ class Session
             session_destroy();
         }
 
-        header('Location: /adariel/public/autenticacion/');
+        header('Location: /autenticacion/');
         exit;
     }
 

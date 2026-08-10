@@ -17,4 +17,4 @@ RewriteRule ^([^\.]+)$ $1.php [NC,L]
 # 5. Quitar slash final
 RewriteRule ^(.+)/$ /$1 [R=301,L]
 
-ErrorDocument 404 /adariel/public/404.html
+ErrorDocument 404 /404.html

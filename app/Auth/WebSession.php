@@ -47,7 +47,7 @@ class WebSession
 
         // die(var_dump($_SESSION));
         if($this->tipo_codigo != 'superadmin' && !isset($_SESSION['ADARIEL_ERP_USER_ROLE'])) {
-            header('Location: '.$config['url'].'/select-role/' ?? '/adariel/public/select-role/');
+            header('Location: '.$config['url'].'/select-role/' ?? '/select-role/');
         }
 
         if (!$this->validateToken($conn)) {
@@ -102,7 +102,7 @@ class WebSession
             session_destroy();
         }
 
-        header('Location: /adariel/public/autenticacion/');
+        header('Location: /autenticacion/');
         exit;
     }
 
