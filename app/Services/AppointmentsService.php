@@ -261,10 +261,6 @@ class AppointmentsService extends Service
             $staffId = $this->uuidStringToBinary($procedure['staffId']);
             $procedureId = $this->uuidStringToBinary($procedure['procedureId']);
 
-            if ($staffId <= 0 || $procedureId <= 0) {
-                throw new InvalidArgumentException('Procedimiento inválido');
-            }
-
             if (isset($staffAvailability[$staffId])) {
                 continue;
             }
