@@ -144,6 +144,7 @@ function GetAppointmentsType() {
 				}));
 			});
         	refreshSelectOption('select-tipo-cita');
+        	$('#select-tipo-cita').trigger('change');
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
 			console.log('STATUS:', textStatus);
@@ -174,6 +175,7 @@ function GetBookingChannels() {
 				}));
 			});
         	refreshSelectOption('select-como-agendo');
+        	$('#select-como-agendo').trigger('change');
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
 			console.log('STATUS:', textStatus);
@@ -200,6 +202,7 @@ function GetProcedures() {
 				}));
 			});
         	refreshSelectOption('select-servicio');
+        	$('#select-servicio').trigger('change');
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
 			console.log('STATUS:', textStatus);

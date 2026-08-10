@@ -55,6 +55,7 @@ function GetCountries() {
                 loadingCountries = false;
                 $('#select-country').val(defaultCountry);
                 refreshSelectOption('select-country');
+                $('#select-country').trigger('change');
             },
             error: function(XMLHttpRequest, textStatus, errorThrown) { 
 				console.log(XMLHttpRequest.responseText);
@@ -88,6 +89,7 @@ function GetStates(object) {
                     loadingStates = false;
                     $(`#select-state`).val(defaultState);
                 	refreshSelectOption('select-state');
+                    $(`#select-state`).trigger('change');
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) { 
 					console.log(XMLHttpRequest.responseText);
@@ -121,6 +123,7 @@ function GetMunicipalities(object) {
                     });
                     loadingMunicipalities = false;
                 	refreshSelectOption('select-municipality');
+                    $(`#select-municipality`).trigger('change');
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) { 
 					console.log(XMLHttpRequest.responseText);
@@ -153,8 +156,9 @@ function GetLocalities(object) {
 							'data-zip-code': v.cp
                         }));
                     });
-                	refreshSelectOption('select-locality');
                     loadingLocalities = false;
+                	refreshSelectOption('select-locality');
+                    $(`#select-locality`).trigger('change');
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) { 
 					console.log(XMLHttpRequest.responseText);

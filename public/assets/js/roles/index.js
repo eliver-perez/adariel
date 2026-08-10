@@ -66,6 +66,7 @@ function GetUsers() {
 				}));
 			});
         	refreshSelectOption('select-users');
+			$('#select-users').trigger('change');
 			
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
@@ -95,6 +96,7 @@ function GetUsersTypes() {
 				}));
 			});
         	refreshSelectOption('select-users-types');
+			$('#select-users-types').trigger('change');
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
 			try {

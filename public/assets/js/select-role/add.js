@@ -105,8 +105,10 @@ function GetCountries() {
                 loadingCountries = false;
                 $('#select-pais').val(defaultCountry);
         	    refreshSelectOption('select-pais');
+                $('#select-pais').trigger('change');
                 $('#select-facturacion-pais').val(defaultCountry);
         	    refreshSelectOption('select-facturacion-pais');
+                $('#select-facturacion-pais').trigger('change');
             },
             error: function(XMLHttpRequest, textStatus, errorThrown) { 
                 console.log('STATUS:', textStatus);
@@ -148,6 +150,7 @@ function GetStates(object) {
                     loadingStates = false;
                     $(`#${state_select}`).val(defaultState);
         	        refreshSelectOption(state_select);
+                    $(`#${state_select}`).trigger('change');
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) { 
                     console.log('STATUS:', textStatus);
@@ -189,6 +192,7 @@ function GetMunicipalities(object) {
                     });
                     loadingMunicipalities = false;
         	        refreshSelectOption(municipality_select);
+                    $(`#${municipality_select}`).trigger('change');
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) { 
                     console.log('STATUS:', textStatus);
@@ -228,8 +232,9 @@ function GetLocalities(object) {
                             text: v.colonia
                         }));
                     });
-        	        refreshSelectOption(locality_select);
                     loadingLocalities = false;
+        	        refreshSelectOption(locality_select);
+                    $(`#${locality_select}`).trigger('change');
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) { 
                     console.log('STATUS:', textStatus);

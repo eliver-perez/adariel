@@ -45,6 +45,7 @@ function GetSalesStatus() {
 			$('#select-filter-sales-status').val(0);
 			loading_status = false;
         	refreshSelectOption('select-filter-sales-status');
+			$('#select-filter-sales-status').trigger('change');
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
 			try {
