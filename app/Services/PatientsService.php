@@ -100,7 +100,6 @@ class PatientsService extends Service
         $supplements = $this->normalizeOptionalText($data['supplements'] ?? null);
         $family_medical_history = $this->normalizeOptionalText($data['family_medical_history'] ?? null);
 
-        die(var_dump($data));
         $add_billing = $this->normalizeOptionalInt($data['add_billing'] ?? null);
         $billing_rfc = $this->normalizeOptionalText($data['billing_rfc'] ?? null);
         $billing_name = $this->normalizeOptionalText($data['billing_name'] ?? null);
@@ -121,11 +120,11 @@ class PatientsService extends Service
             throw new InvalidArgumentException('La colonia seleccionada no existe.');
         }
 
-        if(!$add_billing && !$this->billingRepository->existsRegimenById($billing_regimen)) {
+        if($add_billing != 'off' && !$this->billingRepository->existsRegimenById($billing_regimen)) {
             throw new InvalidArgumentException('El puesto no existe.');
         }
 
-        if(!$add_billing && !$this->locationRepository->localityExists($billing_locality)) {
+        if($add_billing != 'off' && !$this->locationRepository->localityExists($billing_locality)) {
             throw new InvalidArgumentException('El tipo de usuario no existe.');
         }
 
@@ -215,7 +214,7 @@ class PatientsService extends Service
                 'uid'                           => $uid,
             ]);
 
-            if(!$add_billing) {
+            if($add_billing != 'off') {
                 $this->patientsRepository->insertClientBilling($clientId, [
                     'uuid'                          => $clientPatientUuid,
                     'client'                        => $clientId,
