@@ -104,6 +104,7 @@ function InitializeValues(home) {
 			// GetAvailableSlots(formattedDate);
 		});
 	}
+	$('#tabs-observacion_inicial').trigger('click');
 	$('#btn-consultation-end').on('click', endConsultation);
 }
 

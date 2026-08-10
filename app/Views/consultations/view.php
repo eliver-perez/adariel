@@ -51,7 +51,7 @@
 </script>
 
 <div class="sm:grid sm:grid-cols-12 max-sm:flex max-sm:flex-col gap-[25px]">
-    <div class="col-span-12 2xl:col-span-4">
+    <div class="col-span-12 lg:col-span-4">
         <div class="bg-white dark:bg-box-dark rounded-10 pt-[25px] px-[25px] pb-[10px] shadow-[0_5px_20px_rgba(173,181,217,0.05)] dark:shadow-none">
             <h4 class="text-[20px] text-dark dark:text-subtitle-dark font-medium mb-[25px]">Datos de Paciente</h4>
             <div class="grid grid-cols-12 mb-[20px]">
@@ -84,43 +84,43 @@
                         <?= $consultation->data->status; ?>
                     </div>
                 </div>
-                <div class="col-span-12 2xl:col-span-3">
+                <div class="col-span-12 2xl:col-span-3 lg:col-span-4">
                     <h4 class="text-[14px] text-light dark:text-subtitle-dark mb-[8px] font-normal">Folio:</h4>
                     <div class="flex items-center mb-[15px] gap-[15px]">
                         <span class="text-[14px] font-medium text-theme-gray dark:text-subtitle-dark capitalize" id="field-consultation-folio"><?= $consultation->data->folio; ?></span>
                     </div>
                 </div>
-                <div class="col-span-12 2xl:col-span-6">
+                <div class="col-span-12 2xl:col-span-6 lg:col-span-8">
                     <h4 class="text-[14px] text-light dark:text-subtitle-dark mb-[8px] font-normal">Fecha de Cita:</h4>
                     <div class="flex items-center mb-[15px] gap-[15px]">
                         <span class="text-[14px] font-medium text-theme-gray dark:text-subtitle-dark capitalize" id="field-consultation-date"><?= $consultation->data->date.' '.$consultation->data->time_start; ?></span>
                     </div>
                 </div>
-                <div class="col-span-12 2xl:col-span-3">
+                <div class="col-span-12 2xl:col-span-3 lg:col-span-4">
                     <h4 class="text-[14px] text-light dark:text-subtitle-dark mb-[8px] font-normal">Duración:</h4>
                     <div class="flex items-center mb-[15px] gap-[15px]">
                         <span class="text-[14px] font-medium text-theme-gray dark:text-subtitle-dark capitalize" id="field-consultation-duration"><?= $consultation->data->duration; ?> min.</span>
                     </div>
                 </div>
-                <div class="col-span-12 2xl:col-span-4">
+                <div class="col-span-12 2xl:col-span-4 lg:col-span-4">
                     <h4 class="text-[14px] text-light dark:text-subtitle-dark mb-[8px] font-normal">Sexo:</h4>
                     <div class="flex items-center mb-[15px] gap-[15px]">
                         <span class="text-[14px] font-medium text-theme-gray dark:text-subtitle-dark capitalize" id="field-consultation-gender"><?= $consultation->data->gender; ?></span>
                     </div>
                 </div>
-                <div class="col-span-12 2xl:col-span-4">
+                <div class="col-span-12 2xl:col-span-4 lg:col-span-4">
                     <h4 class="text-[14px] text-light dark:text-subtitle-dark mb-[8px] font-normal">Teléfono:</h4>
                     <div class="flex items-center mb-[15px] gap-[15px]">
                         <span class="text-[14px] font-medium text-theme-gray dark:text-subtitle-dark capitalize" id="field-consultation-phone"><?= $consultation->data->phone; ?></span>
                     </div>
                 </div>
-                <div class="col-span-12 2xl:col-span-4">
+                <div class="col-span-12 2xl:col-span-4 lg:col-span-4">
                     <h4 class="text-[14px] text-light dark:text-subtitle-dark mb-[8px] font-normal">Movil:</h4>
                     <div class="flex items-center mb-[15px] gap-[15px]">
                         <span class="text-[14px] font-medium text-theme-gray dark:text-subtitle-dark capitalize" id="field-consultation-phone"><?= $consultation->data->mobile; ?></span>
                     </div>
                 </div>
-                <div class="col-span-12 2xl:col-span-4">
+                <div class="col-span-12 2xl:col-span-4 lg:col-span-8">
                     <h4 class="text-[14px] text-light dark:text-subtitle-dark mb-[8px] font-normal">E-Mail:</h4>
                     <div class="flex items-center mb-[15px] gap-[15px]">
                         <span class="text-[14px] font-medium text-theme-gray dark:text-subtitle-dark" id="field-consultation-email"><?= $consultation->data->email; ?></span>
@@ -159,7 +159,7 @@
     </div>
 
 
-    <div class="col-span-12 2xl:col-span-8" style="max-height: 82vh; overflow-y: auto;">
+    <div class="col-span-12 lg:col-span-8" style="max-height: 82vh; overflow-y: auto;">
         <div class="sm:grid sm:grid-cols-12 max-sm:flex max-sm:flex-col gap-[25px]">
             <div class="col-span-12">
                 <div class="bg-white dark:bg-box-dark rounded-b-0 rounded-t-10 pt-[25px] px-[25px] pb-[30px] shadow-[0_5px_20px_rgba(173,181,217,0.05)] dark:shadow-none">
