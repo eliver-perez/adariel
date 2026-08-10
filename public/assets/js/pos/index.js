@@ -1199,6 +1199,7 @@ function InitializeCashReconciliation() {
 			success: function(response) {
 				console.log(response);
 				if(response.success) {
+					ShowToastMessage(response.message, 'success');
 					$('#btn-close-shifts-modal').trigger('click');
 					$('#btn-shift-modal').remove();
 					$('#modal-shifts').remove();
