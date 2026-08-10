@@ -25,8 +25,16 @@
    <link rel="icon" type="image/png" href="<?= asset('images/favicon/android-chrome-384x384.png'); ?>" sizes="384x384" type="image/png">
    <link rel="icon" type="image/png" href="<?= asset('images/favicon/android-chrome-512x512.png'); ?>" sizes="512x512" type="image/png">
 
+   <link rel="manifest" href="/manifest.webmanifest">
 
+   <!-- <meta name="theme-color" content="#ffffff"> -->
    <meta name="theme-color" content="#0099cc" />
+
+   <meta name="apple-mobile-web-app-capable" content="yes">
+   <meta name="apple-mobile-web-app-status-bar-style" content="default">
+   <meta name="apple-mobile-web-app-title" content="<?= config('name'); ?>">
+
+   <link rel="apple-touch-icon" href="/assets/pwa/icon-180.png">
    
    <meta name="msapplication-TileColor" content="#0099cc" />
    <meta name="msapplication-TileImage" content="<?= asset('images/favicon/windows-tile.png'); ?>">
@@ -34,7 +42,7 @@
    <meta name="msapplication-square150x150logo" content="<?= asset('images/favicon/windows-medium-tile.png'); ?>" />
    <meta name="msapplication-wide310x150logo" content="<?= asset('images/favicon/windows-wide-tile.png'); ?>" />
    <meta name="msapplication-square310x310logo" content="<?= asset('images/favicon/windows-large-tile.png'); ?>" />
-   <title><?php echo config('name'); ?></title>
+   <title><?= config('name'); ?></title>
 
    <!-- inject:css-->
    <link rel="stylesheet" href="<?= base_url('template/assets/vendor_assets/css/apexcharts.min.css'); ?>">
