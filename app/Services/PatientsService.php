@@ -100,7 +100,7 @@ class PatientsService extends Service
         $supplements = $this->normalizeOptionalText($data['supplements'] ?? null);
         $family_medical_history = $this->normalizeOptionalText($data['family_medical_history'] ?? null);
 
-        $add_billing = $this->normalizeOptionalInt($data['add_billing'] ?? null);
+        $add_billing = $this->normalizeOptionalText($data['add_billing'] ?? null);
         $billing_rfc = $this->normalizeOptionalText($data['billing_rfc'] ?? null);
         $billing_name = $this->normalizeOptionalText($data['billing_name'] ?? null);
         $billing_regimen = $this->normalizeOptionalInt($data['billing_regimen'] ?? 0);
@@ -214,7 +214,6 @@ class PatientsService extends Service
                 'uid'                           => $uid,
             ]);
 
-            die($add_billing);
             if($add_billing != 'off') {
                 $this->patientsRepository->insertClientBilling($clientId, [
                     'uuid'                          => $clientPatientUuid,
