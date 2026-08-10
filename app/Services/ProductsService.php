@@ -48,6 +48,45 @@ class ProductsService extends Service
         }
     }
 
+    function getProduct($data): ?array {
+        try {
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+            $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+
+            $uuid = $this->normalizeRequiredText(
+                $data['uuid'] ?? null,
+                'Error al recibir identificador del producto.'
+            );
+
+            $product_data = $this->productsRepository->getProductData([
+                'uuid'                          => $this->uuidStringtoBinary($uuid),
+                'organization'                  => $organizationId
+            ]);
+
+            if(!$product_data)
+                throw new RuntimeException("Ocurrio un error al intentar obtener la información.");
+            
+            return [
+                'id'                                => $this->uuidBinarytoString($product_data['uuid']),
+                'code'                              => $product_data['clave'],
+                'bar_code'                          => $product_data['codigo_barras'],
+                'unit'                              => $product_data['unidadId'],
+                'category'                          => $product_data['categoriaId'],
+                'name'                              => $product_data['nombre'],
+                'description'                       => $product_data['unidad'],
+                'base_cost'                         => $product_data['precio_base'],
+                'tax_rate'                          => $product_data['porc_impuestos'],
+                'taxes'                             => $product_data['impuestos'],
+                'total_cost'                        => $product_data['precio_total'],
+                'sale_enabled'                      => $product_data['habilitado_venta'],
+                'registered_by'                     => $product_data['registro'],
+                'registered_date'                   => $product_data['f_registro']
+            ];
+        } catch (\Throwable $e) {
+            throw $e;
+        }
+    }
+
     public function getCategories(array $data): array {
         try {
             $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');

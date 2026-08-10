@@ -172,6 +172,7 @@ function GetProcedures() {
 
 function SelectProcedure(id) {
 	if(id != null && !new_procedure && !modify_procedure && !registering_procedure && !modifying_procedure) {
+		ClearProcedure();
 		selected_procedure_id = id;
 		selected_procedure = '';
 		selected_cost = 0;
@@ -236,6 +237,11 @@ function ClearProcedure() {
 	$('#chk-requires-material').prop('checked', false);
 	$('#chk-is-procedure').prop('checked', false);
 	$('#chk-is-active').prop('checked', false);
+	$('#table-procedure-staff tbody').empty();
+	$('#table-procedure-instructions tbody').empty();
+	$('#table-procedure-inventory tbody').empty();
+	$('#table-procedure-consent tbody').empty();
+	$('#table-procedure-consent-items tbody').empty();
 }
 
 function RegisterProcedure() {

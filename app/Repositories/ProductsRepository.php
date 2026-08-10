@@ -26,7 +26,8 @@ class ProductsRepository
                 pc.categoria,
                 u.unidad,
                 p.precio_total,
-                p.habilitado_venta
+                p.habilitado_venta,
+                COALESCE(DATE_FORMAT(p.f_registro, '%d/%m/%Y %r'), '') f_registro
             FROM productos p
                 LEFT JOIN productos_categoria pc
                     ON p.categoria = pc.id
@@ -217,19 +218,28 @@ class ProductsRepository
                 p.id,
                 p.uuid,
                 p.clave,
+                p.codigo_barras,
                 p.nombre,
+                p.nombre_ticket,
+                p.descripcion,
+                p.categoria categoriaId,
                 pc.categoria,
+                p.unidad unidadId,
                 u.unidad,
                 p.precio_base,
                 p.porc_impuestos,
                 p.impuestos,
                 p.precio_total,
-                p.habilitado_venta
+                p.habilitado_venta,
+                r.nombre registro,
+                COALESCE(DATE_FORMAT(p.f_registro, '%d/%m/%Y %r'), '') f_registro
             FROM productos p
                 LEFT JOIN productos_categoria pc
                     ON p.categoria = pc.id
                 LEFT JOIN unidades u
                     ON p.unidad = u.id
+                LEFT JOIN usuarios r
+                    ON p.registro = r.id
             WHERE p.uuid = :uuid
                 AND p.empresa = :empresa
         ";

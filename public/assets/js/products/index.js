@@ -202,6 +202,39 @@ function GetProducts() {
 	});
 }
 
+function SelectProduct(id) {
+	ClearProduct();
+	$.ajax({
+        url: `${homeURL}/api/products/${id}`,
+		type: 'get',
+		dataType: "json",
+		success: function(response) {
+			console.log(response);
+			if(response.success) {
+				$('#field-producto-clave').val(response.data.code);
+				$('#field-producto-codigo-barras').val(response.data.bar_code);
+				$('#select-producto-categoria').val(response.data.category);
+				refreshSelectOption('select-producto-categoria');
+				$('#field-producto').val(response.data.name);
+				$('#field-producto-descripcion').val(response.data.description);
+				$('#select-producto-unidad').val(response.data.unit);
+				refreshSelectOption('select-producto-unidad');
+				$('#field-producto-precio-base').val(accounting.formatMoney(response.data.base_cost, ''));
+				$('#field-producto-porcentaje-impuesto').val(response.data.tax_rate);
+				$('#field-producto-precio').val(accounting.formatMoney(response.data.total_cost, ''));
+				$('#chk-producto-habilitado-venta').prop('checked', response.data.sale_enabled == 1 ? true : false);
+			} else {
+				ShowToastMessage(response.message, 'error');
+			}
+		},
+		error: function(XMLHttpRequest, textStatus, errorThrown) { 
+			console.log(XMLHttpRequest.responseText);
+			let response = JSON.parse(XMLHttpRequest.responseText);
+			ShowToastMessage(response.message, 'error')
+		}  
+	});
+}
+
 function RegisterProduct() {
 	$.ajax({
         url: `${homeURL}/api/products`,

@@ -256,6 +256,7 @@ $router->get('/api/units-measure', [UnitsMeasureController::class, 'index']);   
  */
 $router->get('/api/products/categories', [ProductsController::class, 'categories']);                                                                        // ✅
 $router->get('/api/products', [ProductsController::class, 'index']);                                                                                        // ✅
+$router->get('/api/products/{id}', [ProductsController::class, 'show']);                                                                                        // ✅
 $router->post('/api/products', [ProductsController::class, 'store']);                                                                                       // ✅
 
 /**

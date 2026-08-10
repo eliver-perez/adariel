@@ -280,8 +280,14 @@ class ProceduresService extends Service
         if(!$procedure_data)
             throw new RuntimeException("No se encontro información del procedimiento.");
 
-        $staffId = $this->staffRepository->getStaffId($this->uuidStringToBinary($staff));
-        $procedureId = $this->proceduresRepository->getProcedureId($this->uuidStringToBinary($procedure));
+        $staffId = $this->staffRepository->getStaffId([
+            'uuid'                                  => $this->uuidStringToBinary($staff),
+            'organization'                          => $organizationId
+        ]);
+        $procedureId = $this->proceduresRepository->getProcedureId([
+            'uuid'                                  => $this->uuidStringToBinary($procedure),
+            'organization'                          => $organizationId
+        ]);
 
         try {
             $procedureStaffUuid = $this->generateUuidBinary();

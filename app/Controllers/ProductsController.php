@@ -89,6 +89,44 @@ class ProductsController extends Controller
         }
     }
 
+    public function show(Request $request, Response $response, string $id) {
+        try {
+            $currentUserId = Auth::id();
+
+            if($currentUserId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
+            $organizationId = Auth::organizationId();
+
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron registros de su empresa.");
+            }
+            $service = $this->getService();
+
+            $product = $service->getProduct([
+                'uuid'                          => $id,
+                'organizationId'                => $organizationId,
+                'uid'                           => $currentUserId,
+            ]);
+
+            return $response->json([
+                'success' => true,
+                'message' => 'Datos de Producto.',
+                'data' => $product
+            ], 200);
+        } catch (InvalidArgumentException | RuntimeException $e) {
+            return $response->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        } catch (Throwable $e) {
+            return $response->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function categories(Request $request, Response $response) {
         try {
             $currentUserId = Auth::id();
