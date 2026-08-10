@@ -85,7 +85,7 @@
     </div>
 
     <div class="grid grid-cols-12 sm:gap-[25px] gap-y-[25px]">
-        <div class="col-span-12 2xl:col-span-8">
+        <div class="col-span-12 lg:col-span-8">
             <div class="maxh-65 pb-[15px] scrollbar overflow-y-auto">
                 <table id="table-cart" class="min-w-full text-sm font-light text-start whitespace-nowrap product-container">
                     <thead>
@@ -111,7 +111,7 @@
                 </table>
             </div>
         </div>
-        <div class="col-span-12 2xl:col-span-4">
+        <div class="col-span-12 lg:col-span-4">
             <div class="bg-regularBG dark:bg-box-dark-up sm:p-[25px] p-[15px] rounded-10">
                 <h1 class="mb-6 text-xl font-semibold text-dark dark:text-title-dark">Detalles de Venta</h1>
                 <div class="bg-white dark:bg-box-dark p-[25px] shadow-[0_10px_30px_rgba(10,10,10,0.06)] rounded-10">
@@ -121,9 +121,16 @@
                         <li class="flex items-center justify-between mb-[18px]"><span class="font-medium text-body dark:text-subtitle-dark">Descuento :</span><span id="field-cart-discount" class="font-medium text-dark dark:text-title-dark">$0.00</span></li>
                     </ul>
                     <label for="field-coupon" class="text-body dark:text-subtitle-dark text-[15px] w-full relative mt-[20px] block">Código de Promoción</label>
-                    <div class="flex items-center gap-[15px] mt-[15px] mb-[35px]">
-                        <input type="text" id="field-coupon" class="w-[180px] bg-regularBG rounded-6 border-regular border-1 text-[15px] dark:bg-box-dark-up dark:border-box-dark-up px-[20px] py-[12px] h-[44px] outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark focus:ring-primary focus:border-primary" placeholder="Código" autocomplete="off">
-                        <button type="button" class="group text-[14px] border-danger border-1 font-semibold text-danger btn-outlined h-[44px] sm:px-[20px] px-[15px] rounded-6 flex items-center gap-[5px] leading-[22px] hover:text-white hover:bg-danger transition duration-300" data-te-ripple-init="" data-te-ripple-color="light">
+                    <div class="flex sm:flex-col flex-row items-center gap-[15px] mt-[15px] mb-[35px] w-full">
+                        <input type="text"
+                            id="field-coupon"
+                            class="w-full sm:flex-1 sm:min-w-0 bg-regularBG rounded-6 border-regular border-1 text-[15px] dark:bg-box-dark-up dark:border-box-dark-up px-[20px] py-[12px] h-[44px] outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark focus:ring-primary focus:border-primary"
+                            placeholder="Código"
+                            autocomplete="off">
+                        <button type="button"
+                            class="w-full sm:w-auto sm:flex-none group text-[14px] border-danger border-1 font-semibold text-danger btn-outlined h-[44px] sm:px-[20px] px-[15px] rounded-6 flex items-center gap-[5px] leading-[22px] hover:text-white hover:bg-danger transition duration-300"
+                            data-te-ripple-init=""
+                            data-te-ripple-color="light">
                             Aplicar
                         </button>
                     </div>
@@ -133,24 +140,42 @@
                         <legend class="text-[16px] font-semibold text-gray-700 px-2">
                             Método de Pago
                         </legend>
-                        <div class="flex flex-row gap-[15px]">
-                            <button type="button" data-metodo="efectivo" id="btn-payment-method-efectivo" class="payment-method flex items-center text-[22px] text-primary dark:text-subtitle-dark min-h-[40px]">
-                                <i class="uil uil-money-bill text-[22px]"></i>
-                            </button>
-                            <button type="button" data-metodo="t-debito" id="btn-payment-method-t-debito" class="payment-method flex items-center text-[22px] text-[#a0a0a0] dark:text-subtitle-dark min-h-[40px]">
-                                <i class="uil uil-credit-card text-[22px]"></i>
-                            </button>
-                            <button type="button" data-metodo="t-credito" id="btn-payment-method-t-credito" class="payment-method flex items-center text-[22px] text-[#a0a0a0] dark:text-subtitle-dark min-h-[40px]">
-                                <i class="uil uil-credit-card text-[22px]"></i>
-                            </button>
-                            <button type="button" data-metodo="transferencia" id="btn-payment-method-transferencia" class="payment-method flex items-center text-[22px] text-[#a0a0a0] dark:text-subtitle-dark min-h-[40px]">
-                                <i class="uil uil-globe text-[22px]"></i>
-                            </button>
-                            <label id="label-payment-method" class="w-full font-semibold text-right mt-[8px] capitalize">Efectivo</label>
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-[2px] w-full">
+                            <div class="w-full sm:flex-1 sm:min-w-0 flex flex-row items-center gap-[15px]">
+                                <button type="button"
+                                    data-metodo="efectivo"
+                                    id="btn-payment-method-efectivo"
+                                    class="payment-method flex items-center text-[22px] text-primary dark:text-subtitle-dark min-h-[40px]">
+                                    <i class="uil uil-money-bill text-[22px]"></i>
+                                </button>
+                                <button type="button"
+                                    data-metodo="t-debito"
+                                    id="btn-payment-method-t-debito"
+                                    class="payment-method flex items-center text-[22px] text-[#a0a0a0] dark:text-subtitle-dark min-h-[40px]">
+                                    <i class="uil uil-credit-card text-[22px]"></i>
+                                </button>
+                                <button type="button"
+                                    data-metodo="t-credito"
+                                    id="btn-payment-method-t-credito"
+                                    class="payment-method flex items-center text-[22px] text-[#a0a0a0] dark:text-subtitle-dark min-h-[40px]">
+                                    <i class="uil uil-credit-card text-[22px]"></i>
+                                </button>
+                                <button type="button"
+                                    data-metodo="transferencia"
+                                    id="btn-payment-method-transferencia"
+                                    class="payment-method flex items-center text-[22px] text-[#a0a0a0] dark:text-subtitle-dark min-h-[40px]">
+                                    <i class="uil uil-globe text-[22px]"></i>
+                                </button>
+                            </div>
+                            <label id="label-payment-method" class="w-full sm:w-auto sm:flex-none font-semibold sm:text-right sm:mt-[8px] capitalize">Efectivo</label>
                         </div>
-                        <div class="sector-payment-reference flex flex-row gap-[25px] hidden">
-                            <label class="text-body text-dark dark:text-subtitle-dark text-[15px] mt-[14px] relative">Referencia: </label>
-                            <input type="text" id="field-payment-reference" class="w-full bg-regularBG rounded-6 border-regular border-1 text-[15px] dark:bg-box-dark-up dark:border-box-dark-up px-[20px] py-[12px] h-[44px] outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark focus:ring-primary focus:border-primary" placeholder="Referencia" autocomplete="off">
+                        <div class="sector-payment-reference flex flex-col sm:flex-row gap-[25px] sm:gap-[5px] hidden">
+                            <label class="w-full sm:w-auto sm:flex-none text-body text-dark dark:text-subtitle-dark text-[15px] mt-[14px] relative">Referencia: </label>
+                            <input type="text"
+                                id="field-payment-reference"
+                                class="w-full sm:flex-1 sm:min-w-0 bg-regularBG rounded-6 border-regular border-1 text-[15px] dark:bg-box-dark-up dark:border-box-dark-up px-[20px] py-[12px] h-[44px] outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark focus:ring-primary focus:border-primary"
+                                placeholder="Referencia"
+                                autocomplete="off">
                         </div>
                     </fieldset>
                     <h5 class="inline-flex items-center justify-between w-full mb-[15px]"><span class="text-base font-semibold text-dark dark:text-title-dark">Monto a Pagar : </span><span class="text-xl font-semibold text-primary">$<span id="field-cart-pay-amount" contenteditable="true">0.00</span></span></h5>

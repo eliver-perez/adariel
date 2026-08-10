@@ -16140,6 +16140,14 @@ body {
     justify-content: space-between;
   }
 
+  .sm\:gap-\[2px\] {
+    gap: 2px;
+  }
+
+  .sm\:gap-\[5px\] {
+    gap: 5px;
+  }
+
   .sm\:gap-\[10px\] {
     gap: 10px;
   }

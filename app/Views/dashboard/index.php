@@ -5,7 +5,7 @@
 ?>
 
 <div class="grid grid-cols-12 gap-[25px]">
-    <div class="col-span-12 2xl:col-span-3 sm:col-span-6">
+    <div class="col-span-12 sm:col-span-3">
 
         <div bordered="false" class="bg-white dark:bg-box-dark py-[25px] px-[25px] pb-[12px] overflow-hidden rounded-10 relative text-[15px] text-body dak:text-subtitle-dark">
             <div class="flex justify-between">
@@ -40,7 +40,7 @@
             </div>
         </div>
     </div>
-    <div class="col-span-12 2xl:col-span-3 sm:col-span-6">
+    <div class="col-span-12 sm:col-span-3">
 
         <div bordered="false" class="bg-white dark:bg-box-dark py-[25px] px-[25px] pb-[12px] overflow-hidden rounded-10 relative text-[15px] text-body dak:text-subtitle-dark">
             <div class="flex justify-between">
@@ -75,7 +75,7 @@
             </div>
         </div>
     </div>
-    <div class="col-span-12 2xl:col-span-3 sm:col-span-6">
+    <div class="col-span-12 sm:col-span-3">
 
         <div bordered="false" class="bg-white dark:bg-box-dark py-[25px] px-[25px] pb-[12px] overflow-hidden rounded-10 relative text-[15px] text-body dak:text-subtitle-dark">
             <div class="flex justify-between">
@@ -107,7 +107,7 @@
             </div>
         </div>
     </div>
-    <div class="col-span-12 2xl:col-span-3 sm:col-span-6">
+    <div class="col-span-12 sm:col-span-3">
 
         <div bordered="false" class="bg-white dark:bg-box-dark py-[25px] px-[25px] pb-[12px] overflow-hidden rounded-10 relative text-[15px] text-body dak:text-subtitle-dark">
             <div class="flex justify-between">
