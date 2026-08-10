@@ -129,7 +129,6 @@ class PatientsController extends Controller
 
             $service = $this->getService();
 
-            die(var_dump($_POST));
             $patient = $service->create([
                 'organizationId'            => $organizationId,
                 'first_name'                => $request->input('nombre'),
@@ -153,7 +152,7 @@ class PatientsController extends Controller
                 'supplements'               => $request->input('suplementos'),
                 'family_medical_history'    => $request->input('antecedentes_familiares'),
                 
-                'add_billing'               => $request->input('agregar_facturacion'),
+                'add_billing'               => $request->input('agregar_facturacion') ?? 'off',
                 'billing_rfc'               => $request->input('facturacion_rfc'),
                 'billing_name'              => $request->input('facturacion_razon_social'),
                 'billing_regimen'           => $request->input('facturacion_regimen'),
