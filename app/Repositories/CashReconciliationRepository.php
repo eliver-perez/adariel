@@ -221,11 +221,12 @@ class CashReconciliationRepository
 
     public function updateCashReconciliationOther(array $data) {
         $stmt = $this->db->prepare("
-            UPDATE cortes SET otros_medios = otros_medios + :amount WHERE uuid = :uuid
+            UPDATE cortes SET otros_medios = otros_medios + :amount, total_venta = total_venta + :amount_2 WHERE uuid = :uuid
         ");
 
         $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
         $stmt->bindValue(':amount', $data['amount'], PDO::PARAM_STR);
+        $stmt->bindValue(':amount_2', $data['amount'], PDO::PARAM_STR);
         $stmt->execute();
     }
 

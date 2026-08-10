@@ -186,7 +186,7 @@ function SelectSale(id) {
 					$('#field-sale-taxes').html(accounting.formatMoney(response.data.taxes ?? 0));
 					$('#field-sale-total').html(accounting.formatMoney(response.data.total ?? 0));
 					$('#field-sale-discount').html(accounting.formatMoney(response.data.discount ?? 0));
-					$('#field-sale-paid').html(accounting.formatMoney(response.data.paid ?? 0));
+					$('#field-sale-paid').html(accounting.formatMoney(response.data.amount_paid ?? 0));
 					$('#field-sale-balance-due').html(accounting.formatMoney(response.data.balance_due ?? 0));
 					$('#field-sale-observations').html(response.data.observations ?? '');
 					
@@ -211,7 +211,7 @@ function SelectSale(id) {
 															${accounting.formatMoney(v.balance_before_payment)}
 														</td>
 														<td class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-															${accounting.formatMoney(v.payment_amount)}
+															${accounting.formatMoney(v.amount_paid)}
 														</td>
 													</tr>`);
 					});

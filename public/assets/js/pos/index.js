@@ -1202,6 +1202,14 @@ function InitializeCashReconciliation() {
 					$('#btn-close-shifts-modal').trigger('click');
 					$('#btn-shift-modal').remove();
 					$('#modal-shifts').remove();
+					$('#sector-top-buttons').append(`<button type="button"
+															id="btn-end-shift-modal"
+															class="group text-[13px] border-primary border-1 font-semibold text-primary btn-outlined h-[34px] sm:px-[20px] px-[15px] rounded-6 flex items-center gap-[5px] leading-[22px] hover:text-white hover:bg-primary transition duration-300"
+															data-te-ripple-init=""
+															data-te-ripple-color="light">
+														Cerrar Corte
+													</button>`);
+					$('#btn-end-shift-modal').on('click', ShowEndShiftModal);
 				}
 			},
 			error: function(XMLHttpRequest, textStatus, errorThrown) {
