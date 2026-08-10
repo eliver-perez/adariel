@@ -390,7 +390,7 @@
 
             <div class="flex items-center ms-auto py-[15px] sm:gap-x-[25px] max-sm:gap-x-[15px] gap-y-[15px] relative">
 
-               <button type="button" class="flex xl:hidden items-center text-[22px] text-[#a0a0a0] dark:text-subtitle-dark min-h-[40px]">
+               <button type="button" class="flex xl:hidden items-center text-[22px] text-[#a0a0a0] dark:text-subtitle-dark min-h-[40px]" id="right-menu-dropdown">
                   <i class="uil uil-ellipsis-v text-[18px]"></i>
                </button>
                <ul id="right-ellipsis-trigger" class="xl:flex hidden items-center justify-end flex-auto mb-0 list-none ps-0 sm:gap-x-[25px] max-sm:gap-x-[15px] gap-y-[15px] max-xl:absolute max-xl:z-[1000] max-xl:m-0 max-xl:rounded-lg max-xl:border-none max-xl:bg-white max-xl:bg-clip-padding max-xl:text-left max-xl:shadow-lg max-xl:dark:bg-neutral-700 max-xl:[&.active]:flex max-xl:end-0 max-xl:px-[20px] max-sm:px-[15px] max-xl:py-[10px] max-xl:top-[70px]">
@@ -416,7 +416,7 @@
                   <li>
 
                      <div class="relative" data-te-dropdown-ref>
-                        <button type="button" id="author-dropdown" data-te-dropdown-toggle-ref aria-expanded="false" class="flex items-center me-1.5 text-body dark:text-subtitle-dark text-sm font-medium rounded-full md:me-0 group whitespace-nowrap">
+                        <button type="button" id="right-menu-dropdown" data-te-dropdown-toggle-ref aria-expanded="false" class="flex items-center me-1.5 text-body dark:text-subtitle-dark text-sm font-medium rounded-full md:me-0 group whitespace-nowrap">
                            <span class="sr-only">Men&uacute; de Usuario</span>
                            <img class="min-w-[32px] w-8 h-8 rounded-full xl:me-2" src="<?= base_url('template/images/avatars/thumbs.png'); ?>" alt="user photo">
                            <span class="hidden xl:block"><?php echo $_SESSION['ADARIEL_ERP_EMAIL']; ?></span>
@@ -424,7 +424,7 @@
                         </button>
 
                         <!-- Dropdown menu -->
-                        <div class="absolute z-[1000] ltr:float-left rtl:float-right m-0 hidden min-w-max list-none overflow-hidden rounded-lg border-none bg-white bg-clip-padding text-left text-base shadow-lg dark:shadow-boxLargeDark dark:bg-box-dark-down  [&[data-te-dropdown-show]]:block" aria-labelledby="author-dropdown" data-te-dropdown-menu-ref>
+                        <div class="absolute z-[1000] ltr:float-left rtl:float-right m-0 hidden min-w-max list-none overflow-hidden rounded-lg border-none bg-white bg-clip-padding text-left text-base shadow-lg dark:shadow-boxLargeDark dark:bg-box-dark-down  [&[data-te-dropdown-show]]:block" aria-labelledby="right-menu-dropdown" data-te-dropdown-menu-ref>
                            <div class="min-w-[310px] max-sm:min-w-full pt-4 px-[15px] py-[12px] bg-white dark:bg-box-dark shadow-[0_2px_8px_rgba(0,0,0,.15)] dark:shadow-[0_5px_30px_rgba(1,4,19,.60)] rounded-4">
                               <figure class="flex items-center text-sm rounded-[8px] bg-section dark:bg-box-dark-up py-[20px] px-[25px] mb-[12px] gap-[15px]">
                                  <img class="w-8 h-8 rounded-full bg-regular" src="<?= base_url('template/images/avatars/thumbs.png'); ?>" alt="user">

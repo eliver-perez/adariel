@@ -1641,7 +1641,7 @@ function content_ready_scripts() {
   manageIconsLine('.lineIcon-list-box', 'data/icons.json');
   updateRandomNumber('badge-number', 'badge-number-increase', 'badge-number-decrease');
   toggleSwitch('switch-selector', 'switch-on', 'active');
-  toggleClassOutsideClick('author-dropdown', 'right-ellipsis-trigger', 'active');
+  toggleClassOutsideClick('right-menu-dropdown', 'right-ellipsis-trigger', 'active');
   toggleClassOutsideClick('inbox-sidebar-selector', 'inbox-sidebar-target', 'nav-open');
   toggleClassOutsideClick('chat-sidebar-selector', 'chat-sidebar-target', 'nav-open');
   toggleClassOutsideClick('faq-sidebar-selector', 'faq-sidebar-target', 'nav-open');
