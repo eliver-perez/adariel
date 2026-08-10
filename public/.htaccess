@@ -7,10 +7,8 @@ RewriteRule ^ - [L]
 
 # API
 RewriteRule ^api(/.*)?$ api.php [QSA,L]
-
-# /staff, /staff/add, /staff/123, /staff/123/edit
-RewriteRule ^([^/]+)(/.*)?$ $1/index.php [QSA,L]
 RewriteRule ^media/([^/]+)$ media/index.php?uuid=$1 [L,QSA]
+RewriteRule ^([^/]+)(/.*)?$ $1/index.php [QSA,L]
 
 # Quitar slash final
 RewriteCond %{REQUEST_URI} .+/$

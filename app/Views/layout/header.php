@@ -365,8 +365,8 @@
                   <div class="flex md:w-[190px] xs:w-[170px] max-xs:w-[100px] max-md:pe-[30px] max-xs:pe-[15px] border-e border-[#edf2f9] dark:border-box-dark-up logo-wrapper items-center h-[71px] dark:bg-box-dark-up">
                      <a href="<?= base_url(''); ?>" class="block text-center">
                         <div class="logo-full">
-                           <img class="md:ps-[15px] dark:hidden" src="<?= base_url('template/images/logos/logo-dark.png'); ?>" alt="Logo">
-                           <img class="md:ps-[15px] hidden dark:block" src="<?= base_url('template/images/logos/logo-white.png'); ?>" alt="Logo">
+                           <img class="md:ps-[15px] dark:hidden" src="<?= asset('images/logos/logo_h.png'); ?>" alt="Logo">
+                           <img class="md:ps-[15px] hidden dark:block" src="<?= asset('images/logos/logo_h.png'); ?>" alt="Logo">
                         </div>
                      </a>
                   </div>

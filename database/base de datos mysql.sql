@@ -2975,7 +2975,7 @@ CREATE TABLE pagos (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
     sucursal                        INT NOT NULL,
-    ejercicio                       SMALLINT NOT NULL
+    ejercicio                       SMALLINT NOT NULL,
     folio                           VARCHAR(30) NOT NULL UNIQUE,
     consecutivo                     INT NOT NULL DEFAULT 0,
     cliente                         INT DEFAULT NULL,
