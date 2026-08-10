@@ -129,6 +129,7 @@ class PatientsController extends Controller
 
             $service = $this->getService();
 
+            die(var_dump($_POST));
             $patient = $service->create([
                 'organizationId'            => $organizationId,
                 'first_name'                => $request->input('nombre'),
