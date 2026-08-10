@@ -24,7 +24,7 @@
                                     <span class="inline-flex items-center text-sm text-light dark:text-subtitle-dark me-[8px]">
                                     <i class="uil uil-user text-[16px]"></i>
                                     </span>
-                                    <input type="text" id="field-nombre" name="nombre" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="Nombres" required maxlength="60" value="Eliver">
+                                    <input type="text" id="field-nombre" name="nombre" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="Nombres" required maxlength="60" value="">
                                 </div>
                             </div>
                         </div>
@@ -37,7 +37,7 @@
                                     <span class="inline-flex items-center text-sm text-light dark:text-subtitle-dark me-[8px]">
                                     <i class="uil uil-user text-[16px]"></i>
                                     </span>
-                                    <input type="text" id="field-apellido-paterno" name="paterno" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="Apellido Paterno" required maxlength="40" value="Perez">
+                                    <input type="text" id="field-apellido-paterno" name="paterno" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="Apellido Paterno" required maxlength="40" value="">
                                 </div>
                             </div>
                         </div>
@@ -50,7 +50,7 @@
                                     <span class="inline-flex items-center text-sm text-light dark:text-subtitle-dark me-[8px]">
                                     <i class="uil uil-user text-[16px]"></i>
                                     </span>
-                                    <input type="text" id="field-apellido-materno" name="materno" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="Apellido Materno" maxlength="40" value="Villegas">
+                                    <input type="text" id="field-apellido-materno" name="materno" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="Apellido Materno" maxlength="40" value="">
                                 </div>
                             </div>
                         </div>
@@ -89,7 +89,7 @@
                                     <span class="inline-flex items-center text-sm text-light dark:text-subtitle-dark me-[8px]">
                                     <i class="uil uil-user text-[16px]"></i>
                                     </span>
-                                    <input type="text" id="field-curp" name="curp" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="CURP" maxlength="20" value="PEVE900411HTSRLL06">
+                                    <input type="text" id="field-curp" name="curp" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="CURP" maxlength="20" value="">
                                 </div>
                             </div>
                         </div>
@@ -113,7 +113,7 @@
                                     <span class="inline-flex items-center text-sm text-light dark:text-subtitle-dark me-[8px]">
                                     <i class="uil uil-house-user text-[16px]"></i>
                                     </span>
-                                    <input type="text" id="field-calle" name="calle" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="Calle" maxlength="120" value="Alteza">
+                                    <input type="text" id="field-calle" name="calle" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="Calle" maxlength="120" value="">
                                 </div>
                             </div>
                         </div>
@@ -126,7 +126,7 @@
                                     <span class="inline-flex items-center text-sm text-light dark:text-subtitle-dark me-[8px]">
                                     <i class="uil uil-house-user text-[16px]"></i>
                                     </span>
-                                    <input type="text" id="field-no-exterior" name="no_exterior" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="No. Exterior" maxlength="12" value="105">
+                                    <input type="text" id="field-no-exterior" name="no_exterior" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="No. Exterior" maxlength="12" value="">
                                 </div>
                             </div>
                         </div>
@@ -139,7 +139,7 @@
                                     <span class="inline-flex items-center text-sm text-light dark:text-subtitle-dark me-[8px]">
                                     <i class="uil uil-house-user text-[16px]"></i>
                                     </span>
-                                    <input type="text" id="field-no-interior" name="no_interior" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="No. Interior" maxlength="12" value="A">
+                                    <input type="text" id="field-no-interior" name="no_interior" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="No. Interior" maxlength="12" value="">
                                 </div>
                             </div>
                         </div>
@@ -207,7 +207,7 @@
                                     <span class="inline-flex items-center text-sm text-light dark:text-subtitle-dark me-[8px]">
                                     <i class="uil uil-envelope text-[16px]"></i>
                                     </span>
-                                    <input type="email" id="field-email" name="email" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="example@gmail.com" required maxlength="255" value="eliverperez90@gmail.com">
+                                    <input type="email" id="field-email" name="email" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="example@gmail.com" required maxlength="255" value="">
                                 </div>
                             </div>
                         </div>
@@ -220,7 +220,7 @@
                                     <span class="inline-flex items-center text-sm text-light dark:text-subtitle-dark me-[8px]">
                                     <i class="uil uil-phone text-[16px]"></i>
                                     </span>
-                                    <input type="text" id="field-telefono" name="telefono" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="5555555555" maxlength="40" value="8111688177">
+                                    <input type="text" id="field-telefono" name="telefono" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="5555555555" maxlength="40" value="">
                                 </div>
                             </div>
                         </div>
@@ -233,7 +233,7 @@
                                     <span class="inline-flex items-center text-sm text-light dark:text-subtitle-dark me-[8px]">
                                     <i class="uil uil-mobile-android text-[16px]"></i>
                                     </span>
-                                    <input type="text" id="field-telefono-movil" name="telefono_movil" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="5555555555" maxlength="40" value="5581977280">
+                                    <input type="text" id="field-telefono-movil" name="telefono_movil" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="5555555555" maxlength="40" value="">
                                 </div>
                             </div>
                         </div>
@@ -320,7 +320,7 @@
                                     <span class="inline-flex items-center text-sm text-light dark:text-subtitle-dark me-[8px]">
                                     <i class="uil uil-building text-[16px]"></i>
                                     </span>
-                                    <input type="text" id="field-facturacion-rfc" name="facturacion_rfc" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="ERPXXXXX1H8" required maxlength="18" value="PEVE9004111V9">
+                                    <input type="text" id="field-facturacion-rfc" name="facturacion_rfc" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="ERPXXXXX1H8" required maxlength="18" value="">
                                 </div>
                             </div>
                         </div>
@@ -333,7 +333,7 @@
                                     <span class="inline-flex items-center text-sm text-light dark:text-subtitle-dark me-[8px]">
                                     <i class="uil uil-user-square text-[16px]"></i>
                                     </span>
-                                    <input type="text" id="field-facturacion-razon-social" name="facturacion_razon_social" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="5555555555" maxlength="255" value="Razon Social">
+                                    <input type="text" id="field-facturacion-razon-social" name="facturacion_razon_social" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="5555555555" maxlength="255" value="">
                                 </div>
                             </div>
                         </div>
@@ -357,7 +357,7 @@
                                     <span class="inline-flex items-center text-sm text-light dark:text-subtitle-dark me-[8px]">
                                     <i class="uil uil-estate text-[16px]"></i>
                                     </span>
-                                    <input type="text" id="field-facturacion-codigo-postal" name="facturacion_codigo_postal" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="Código Postal" maxlength="5" value="64102">
+                                    <input type="text" id="field-facturacion-codigo-postal" name="facturacion_codigo_postal" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="Código Postal" maxlength="5" value="">
                                 </div>
                             </div>
                         </div>
@@ -370,7 +370,7 @@
                                     <span class="inline-flex items-center text-sm text-light dark:text-subtitle-dark me-[8px]">
                                     <i class="uil uil-house-user text-[16px]"></i>
                                     </span>
-                                    <input type="text" id="field-facturacion-calle" name="facturacion_calle" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="Calle" maxlength="120" value="Alteza">
+                                    <input type="text" id="field-facturacion-calle" name="facturacion_calle" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="Calle" maxlength="120" value="">
                                 </div>
                             </div>
                         </div>
@@ -383,7 +383,7 @@
                                     <span class="inline-flex items-center text-sm text-light dark:text-subtitle-dark me-[8px]">
                                     <i class="uil uil-house-user text-[16px]"></i>
                                     </span>
-                                    <input type="text" id="field-facturacion-no-exterior" name="facturacion_no_exterior" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="No. Exterior" maxlength="12" value="105">
+                                    <input type="text" id="field-facturacion-no-exterior" name="facturacion_no_exterior" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="No. Exterior" maxlength="12" value="">
                                 </div>
                             </div>
                         </div>
@@ -396,7 +396,7 @@
                                     <span class="inline-flex items-center text-sm text-light dark:text-subtitle-dark me-[8px]">
                                     <i class="uil uil-house-user text-[16px]"></i>
                                     </span>
-                                    <input type="text" id="field-facturacion-no-interior" name="facturacion_no_interior" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="No. Interior" maxlength="12" value="A">
+                                    <input type="text" id="field-facturacion-no-interior" name="facturacion_no_interior" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="No. Interior" maxlength="12" value="">
                                 </div>
                             </div>
                         </div>
@@ -453,7 +453,7 @@
                                     <span class="inline-flex items-center text-sm text-light dark:text-subtitle-dark me-[8px]">
                                     <i class="uil uil-envelope text-[16px]"></i>
                                     </span>
-                                    <input type="email" id="field-facturacion-email" name="facturacion_email" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="example@gmail.com" required maxlength="255" value="eliverperez90@gmail.com">
+                                    <input type="email" id="field-facturacion-email" name="facturacion_email" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="example@gmail.com" required maxlength="255" value="">
                                 </div>
                             </div>
                         </div>
@@ -466,7 +466,7 @@
                                     <span class="inline-flex items-center text-sm text-light dark:text-subtitle-dark me-[8px]">
                                     <i class="uil uil-phone text-[16px]"></i>
                                     </span>
-                                    <input type="text" id="field-facturacion-telefono" name="facturacion_telefono" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="5555555555" maxlength="40" value="8111688177">
+                                    <input type="text" id="field-facturacion-telefono" name="facturacion_telefono" class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent" placeholder="5555555555" maxlength="40" value="">
                                 </div>
                             </div>
                         </div>
