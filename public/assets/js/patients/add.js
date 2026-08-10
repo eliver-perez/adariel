@@ -104,9 +104,9 @@ function GetCountries() {
                 });
                 loadingCountries = false;
                 $('#select-pais').val(defaultCountry);
-                $('#select-pais').trigger('change');
+                refreshSelectOption('select-pais');
                 $('#select-facturacion-pais').val(defaultCountry);
-                $('#select-facturacion-pais').trigger('change');
+                refreshSelectOption('select-facturacion-pais');
             },
             error: function(XMLHttpRequest, textStatus, errorThrown) { 
                 console.log('STATUS:', textStatus);
@@ -147,7 +147,7 @@ function GetStates(object) {
                     });
                     loadingStates = false;
                     $(`#${state_select}`).val(defaultState);
-                    $(`#${state_select}`).trigger('change');
+                    refreshSelectOption(state_select);
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) { 
                     console.log('STATUS:', textStatus);
@@ -188,7 +188,7 @@ function GetMunicipalities(object) {
                         }));
                     });
                     loadingMunicipalities = false;
-                    $(`#${municipality_select}`).trigger('change');
+                    refreshSelectOption(municipality_select);
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) { 
                     console.log('STATUS:', textStatus);
@@ -228,7 +228,7 @@ function GetLocalities(object) {
                             text: v.colonia
                         }));
                     });
-                    $(`#${locality_select}`).trigger('change');
+                    refreshSelectOption(locality_select);
                     loadingLocalities = false;
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) { 

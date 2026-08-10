@@ -29,7 +29,7 @@ function GetAppointmentsStatus() {
 			});
 			$('#select-filtro-consulta-estatus').val('en_espera');
 			loading_status = false;
-			$('#select-filtro-consulta-estatus').trigger('change');
+        	refreshSelectOption('select-filtro-consulta-estatus');
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
 			console.log('STATUS:', textStatus);

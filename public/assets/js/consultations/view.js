@@ -920,7 +920,7 @@ function GetPodiatricSoresCatalog() {
 						'data-code': v.codigo
 					}));
 				});
-				$('#select-tipo-lesion').trigger('change');
+        		refreshSelectOption('select-tipo-lesion');
 				
 				$.each(response.data.lateralities, function(k, v) {
 					$('#select-lesion-pie').append($('<option>', {
@@ -929,7 +929,7 @@ function GetPodiatricSoresCatalog() {
 						'data-code': v.codigo
 					}));
 				});
-				$('#select-lesion-pie').trigger('change');
+        		refreshSelectOption('select-lesion-pie');
 				
 				$('#select-lesion-grado-wagner').append($('<option>', { value: 0, text: 'N/A', 'data-code': 'n/a' }));
 				$.each(response.data.wagner_scale, function(k, v) {
@@ -939,7 +939,7 @@ function GetPodiatricSoresCatalog() {
 						'data-code': v.codigo
 					}));
 				});
-				$('#select-lesion-grado-wagner').trigger('change');
+        		refreshSelectOption('select-lesion-grado-wagner');
 				
 				$('#select-lesion-tipo-tejido').append($('<option>', { value: 0, text: 'N/A', 'data-code': 'n/a' }));
 				$.each(response.data.tissue_types, function(k, v) {
@@ -949,7 +949,7 @@ function GetPodiatricSoresCatalog() {
 						'data-code': v.codigo
 					}));
 				});
-				$('#select-lesion-tipo-tejido').trigger('change');
+        		refreshSelectOption('select-lesion-tipo-tejido');
 				
 				$('#select-lesion-evolucion').append($('<option>', { value: 0, text: 'N/A', 'data-code': 'n/a' }));
 				$.each(response.data.evolution_types, function(k, v) {
@@ -959,7 +959,7 @@ function GetPodiatricSoresCatalog() {
 						'data-code': v.codigo
 					}));
 				});
-				$('#select-lesion-evolucion').trigger('change');
+        		refreshSelectOption('select-lesion-evolucion');
 				
 				$('#select-lesion-exudado').append($('<option>', { value: 0, text: 'N/A', 'data-code': 'n/a' }));
 				$.each(response.data.exudate_types, function(k, v) {
@@ -969,7 +969,7 @@ function GetPodiatricSoresCatalog() {
 						'data-code': v.codigo
 					}));
 				});
-				$('#select-lesion-exudado').trigger('change');
+        		refreshSelectOption('select-lesion-exudado');
 				
 				$('#select-lesion-color-exudado').append($('<option>', { value: 0, text: 'N/A', 'data-code': 'n/a' }));
 				$.each(response.data.exudate_colors, function(k, v) {
@@ -979,7 +979,7 @@ function GetPodiatricSoresCatalog() {
 						'data-code': v.codigo
 					}));
 				});
-				$('#select-lesion-color-exudado').trigger('change');
+        		refreshSelectOption('select-lesion-color-exudado');
 			}
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
@@ -1008,7 +1008,7 @@ function GetPodiatricExplorationCatalog() {
 						text: v.tipo
 					}));
 				});
-				$('#select-tipo-pie').trigger('change');
+        		refreshSelectOption('select-tipo-pie');
 				
 				$('#select-pulso-pedio-izquierdo').append($('<option>', { value: 0, text: 'N/A' }));
 				$('#select-pulso-pedio-derecho').append($('<option>', { value: 0, text: 'N/A' }));
@@ -1022,8 +1022,8 @@ function GetPodiatricExplorationCatalog() {
 						text: v.tipo
 					}));
 				});
-				$('#select-pulso-pedio-izquierdo').trigger('change');
-				$('#select-pulso-pedio-derecho').trigger('change');
+        		refreshSelectOption('select-pulso-pedio-izquierdo');
+        		refreshSelectOption('select-pulso-pedio-derecho');
 
 				
 				$('#select-sensibilidad-izquierdo').append($('<option>', { value: 0, text: 'N/A' }));
@@ -1038,8 +1038,8 @@ function GetPodiatricExplorationCatalog() {
 						text: v.tipo
 					}));
 				});
-				$('#select-sensibilidad-izquierdo').trigger('change');
-				$('#select-sensibilidad-derecho').trigger('change');
+        		refreshSelectOption('select-sensibilidad-izquierdo');
+        		refreshSelectOption('select-sensibilidad-derecho');
 				
 				$('#select-temperatura-pies').append($('<option>', { value: 0, text: 'N/A' }));
 				$.each(response.data.temperature_types, function(k, v) {
@@ -1048,7 +1048,7 @@ function GetPodiatricExplorationCatalog() {
 						text: v.tipo
 					}));
 				});
-				$('#select-temperatura-pies').trigger('change');
+        		refreshSelectOption('select-temperatura-pies');
 				
 				$('#select-coloracion-pies').append($('<option>', { value: 0, text: 'N/A' }));
 				$.each(response.data.foot_color_types, function(k, v) {
@@ -1057,7 +1057,7 @@ function GetPodiatricExplorationCatalog() {
 						text: v.tipo
 					}));
 				});
-				$('#select-coloracion-pies').trigger('change');
+        		refreshSelectOption('select-coloracion-pies');
 				
 				$('#select-formula-metatarsal').append($('<option>', { value: 0, text: 'N/A' }));
 				$.each(response.data.metatarsal_formulas, function(k, v) {
@@ -1066,7 +1066,7 @@ function GetPodiatricExplorationCatalog() {
 						text: v.formula
 					}));
 				});
-				$('#select-formula-metatarsal').trigger('change');
+        		refreshSelectOption('select-formula-metatarsal');
 
 				clearTimeout(podiatricExplorationTimer);
 				podiatricExplorationTimer = null;
@@ -1145,7 +1145,7 @@ function GetProcedures() {
 					text: v.procedure
 				}));
 			});
-			$('#select-search-procedure').trigger('change');
+        	refreshSelectOption('select-search-procedure');
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
 			try {
@@ -1174,7 +1174,7 @@ function GetDiagnostics() {
 						'data-code': v.code
 					}));
 				});
-				$('#select-diagnostico').trigger('change');
+        		refreshSelectOption('select-diagnostico');
 			}
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
@@ -1204,7 +1204,7 @@ function GetDiagnosticTypes() {
 						'data-code': v.code
 					}));
 				});
-				$('#select-diagnostico-tipo').trigger('change');
+        		refreshSelectOption('select-diagnostico-tipo');
 			}
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
@@ -1232,7 +1232,7 @@ function GetPodiatryFootTypes() {
 						text: v.tipo
 					}));
 				});
-				$('#select-tipo-pie').trigger('change');
+        		refreshSelectOption('select-tipo-pie');
 			}
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
@@ -1264,8 +1264,8 @@ function GetPodiatryPulseTypes() {
 						text: v.tipo
 					}));
 				});
-				$('#select-pulso-pedio-izquierdo').trigger('change');
-				$('#select-pulso-pedio-derecho').trigger('change');
+        		refreshSelectOption('select-pulso-pedio-izquierdo');
+        		refreshSelectOption('select-pulso-pedio-derecho');
 			}
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
@@ -1297,8 +1297,8 @@ function GetPodiatrySensitivityTypes() {
 						text: v.tipo
 					}));
 				});
-				$('#select-sensibilidad-izquierdo').trigger('change');
-				$('#select-sensibilidad-derecho').trigger('change');
+        		refreshSelectOption('select-sensibilidad-izquierdo');
+        		refreshSelectOption('select-sensibilidad-derecho');
 			}
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
@@ -1326,7 +1326,7 @@ function GetPodiatryFootTemperatureTypes() {
 						text: v.tipo
 					}));
 				});
-				$('#select-temperatura-pies').trigger('change');
+        		refreshSelectOption('select-temperatura-pies');
 			}
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
@@ -1354,7 +1354,7 @@ function GetPodiatryFootColorTypes() {
 						text: v.tipo
 					}));
 				});
-				$('#select-coloracion-pies').trigger('change');
+        		refreshSelectOption('select-coloracion-pies');
 			}
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
@@ -1382,7 +1382,7 @@ function GetPodiatryMetatarsalFormulas() {
 						text: v.formula
 					}));
 				});
-				$('#select-formula-metatarsal').trigger('change');
+        		refreshSelectOption('select-formula-metatarsal');
 			}
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 

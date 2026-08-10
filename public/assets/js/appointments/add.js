@@ -143,7 +143,7 @@ function GetAppointmentsType() {
 					text: v.asunto
 				}));
 			});
-			$('#select-tipo-cita').trigger('change');
+        	refreshSelectOption('select-tipo-cita');
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
 			console.log('STATUS:', textStatus);
@@ -173,7 +173,7 @@ function GetBookingChannels() {
 					text: v.forma
 				}));
 			});
-			$('#select-como-agendo').trigger('change');
+        	refreshSelectOption('select-como-agendo');
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
 			console.log('STATUS:', textStatus);
@@ -199,7 +199,7 @@ function GetProcedures() {
 					text: v.procedure
 				}));
 			});
-			$('#select-servicio').trigger('change');
+        	refreshSelectOption('select-servicio');
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
 			console.log('STATUS:', textStatus);

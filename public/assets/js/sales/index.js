@@ -44,7 +44,7 @@ function GetSalesStatus() {
 			});
 			$('#select-filter-sales-status').val(0);
 			loading_status = false;
-			$('#select-filter-sales-status').trigger('change');
+        	refreshSelectOption('select-filter-sales-status');
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
 			try {

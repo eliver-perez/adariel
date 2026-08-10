@@ -65,7 +65,8 @@ function GetUsers() {
 					text: `${v.name} (${v.type})`
 				}));
 			});
-			$('#select-users').trigger('change');
+        	refreshSelectOption('select-users');
+			
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
 			try {
@@ -93,7 +94,7 @@ function GetUsersTypes() {
 					text: `${v.type}`
 				}));
 			});
-			$('#select-users-types').trigger('change');
+        	refreshSelectOption('select-users-types');
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
 			try {
