@@ -7,7 +7,7 @@
 ?>
 
 <div class="sm:grid sm:grid-cols-12 max-sm:flex max-sm:flex-col gap-[25px]">
-    <div class="col-span-12 2xl:col-span-8">
+    <div class="col-span-12 lg:col-span-8">
         <div class="bg-white dark:bg-box-dark m-0 p-0 text-body dark:text-subtitle-dark text-[15px] rounded-10 relative h-full">
             <div class="px-[25px] text-dark dark:text-title-dark font-medium text-[17px] flex flex-wrap items-center justify-between max-sm:flex-col max-sm:h-auto max-sm:mb-[15px]">
                 <h2 class="mb-0 inline-flex items-center py-[16px] max-sm:pb-[5px] overflow-hidden whitespace-nowrap text-ellipsis text-[18px] font-semibold text-dark dark:text-title-dark  capitalize">
@@ -50,7 +50,7 @@
         </div>
     </div>
 
-    <div class="col-span-12 2xl:col-span-4">
+    <div class="col-span-12 lg:col-span-4">
         <div class="bg-white dark:bg-box-dark rounded-10 pt-[25px] px-[25px] pb-[30px] shadow-[0_5px_20px_rgba(173,181,217,0.05)] dark:shadow-none">
             <h4 class="text-[20px] text-dark dark:text-subtitle-dark font-medium mb-[25px]">Detalles</h4>
             <div class="grid grid-cols-12 mb-[20px]">
@@ -62,7 +62,7 @@
                         ...
                     </div>
                 </div>
-                <div class="col-span-12 2xl:col-span-3">
+                <div class="col-span-12 2xl:col-span-3 lg:col-span-4">
                     <h4 class="text-[14px] text-light dark:text-subtitle-dark mb-[8px] font-normal">Folio:</h4>
                     <div class="flex items-center mb-[15px] gap-[15px]">
                         <span class="text-[14px] font-medium text-theme-gray dark:text-subtitle-dark capitalize" id="field-payment-folio">...</span>
