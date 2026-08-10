@@ -121,6 +121,7 @@ function CancelProcedure() {
 }
 
 function GetProcedures() {
+	$('#table-procedures tbody').empty();
 	$.ajax({
         url: `${homeURL}/api/procedures`,
 		type: 'get',
