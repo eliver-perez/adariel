@@ -16,11 +16,12 @@ class StaffRepository
         return $this->db;
     }
 
-    public function getAll(?string $search = null): array
+    public function getAll(array $data): array
     {
         $sql = "
             SELECT
                 p.id,
+                p.uuid,
                 TRIM(
                     CONCAT(
                         p.nombre, ' ',
@@ -39,14 +40,18 @@ class StaffRepository
                     )
                 ) domicilio,
                 COALESCE(DATE_FORMAT(p.f_nacimiento, '%d/%m/%Y'), '') f_nacimiento,
-                p.email,
                 COALESCE(p.telefono, '') telefono,
-                COALESCE(u.usuario, '') usuario,
-                p.estatus,
+                COALESCE(p.movil, '') movil,
+                COALESCE(p.email, '') email,
+                COALESCE(u.nombre, '') usuario,
+                COALESCE(r.nombre, '') registro,
+                pe.estatus,
                 pu.puesto,
                 p.f_registro,
                 p.f_actualizacion
             FROM personal p
+                LEFT JOIN personal_estatus pe
+                    ON p.estatus = pe.id
                 LEFT JOIN colonias c
                     ON p.colonia = c.id
                 LEFT JOIN municipios m
@@ -69,19 +74,50 @@ class StaffRepository
                 ) puu ON puu.personal = p.id
                 LEFT JOIN usuarios u
                     ON puu.usuario = u.id
+                LEFT JOIN usuarios r
+                    ON p.registro = r.id
+            WHERE p.empresa = :empresa
         ";
 
         $params = [];
 
-        if ($search !== null && $search !== '') {
-            $sql .= " AND nombre LIKE :search";
-            $params['search'] = '%' . $search . '%';
+        $fields = ["TRIM(
+                    CONCAT(
+                        p.nombre, ' ',
+                        COALESCE(p.paterno, ''), ' ',
+                        COALESCE(p.materno, '')
+                    )
+                )",
+                "p.email",
+                "COALESCE(p.telefono, '')",
+                "COALESCE(u.nombre, '')"];
+
+        $conditions = [];
+        $params = [];
+
+        foreach ($fields as $i => $field) {
+            $param = "search_$i";
+            $conditions[] = "$field LIKE :$param";
+            $params[$param] = '%' . $data['search'] . '%';
         }
 
-        $sql .= " ORDER BY nombre ASC";
+        $sql .= " AND (" . implode(' OR ', $conditions) . ")";
+
+        $sql .= "
+            ORDER BY nombre ASC
+            LIMIT :limit OFFSET :offset
+        ";
 
         $stmt = $this->db->prepare($sql);
-        $stmt->execute($params);
+
+        foreach ($params as $key => $value) {
+            $stmt->bindValue(':' . $key, $value, PDO::PARAM_STR);
+        }
+
+        $stmt->bindValue(':limit', $data['limit'], PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $data['offset'], PDO::PARAM_INT);
+        $stmt->bindValue(':empresa', $data['organizationId'], PDO::PARAM_INT);
+        $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -140,13 +176,15 @@ class StaffRepository
         return $row ?: null;
     }
 
-    public function getStaffId(string $uuid): ?int {
+    public function getStaffId(array $data): ?int {
         $stmt = $this->db->prepare("
             SELECT id
             FROM personal
             WHERE uuid = :uuid
+                AND empresa = :empresa
             LIMIT 1");
-        $stmt->bindValue(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_INT);
         $stmt->execute();
         $id = $stmt->fetchColumn();
 
@@ -157,6 +195,7 @@ class StaffRepository
         $stmt = $this->db->prepare("
             INSERT INTO personal (
                 uuid,
+                empresa,
                 rfc,
                 nombre,
                 paterno,
@@ -173,9 +212,11 @@ class StaffRepository
                 genero,
                 puesto,
                 estatus,
+                registro,
                 f_registro
             ) VALUES (
                 :uuid,
+                :empresa,
                 :rfc,
                 :nombre,
                 :paterno,
@@ -192,12 +233,14 @@ class StaffRepository
                 :genero,
                 :puesto,
                 1,
+                :registro,
                 NOW()
             )
         ");
 
         $stmt->execute([
             'uuid'          => $data['uuid'],
+            'empresa'       => $data['organizationId'],
             'rfc'           => $data['rfc'],
             'nombre'        => $data['first_name'],
             'paterno'       => $data['last_name'],
@@ -210,9 +253,10 @@ class StaffRepository
             'email'         => $data['email'],
             'curp'          => $data['curp'],
             'telefono'      => $data['phone'],
-            'movil'       => $data['mobile'],
+            'movil'         => $data['mobile'],
             'genero'        => $data['gender'],
             'puesto'        => $data['role'],
+            'registro'      => $data['uid'],
         ]);
 
         return (int) $this->db->lastInsertId();
@@ -235,6 +279,34 @@ class StaffRepository
             'personal'                  => $staffId,
             'f_alta'                    => $data['f_alta'],
         ]);
+    }
+
+    public function insertStaffOrganizationBranch(array $data) {
+        $stmt = $this->db->prepare("
+            INSERT INTO personal_sucursales (
+                uuid,
+                personal,
+                sucursal,
+                principal,
+                activo,
+                f_registro
+            ) VALUES (
+                :uuid,
+                :personal,
+                :sucursal,
+                1,
+                1,
+                NOW()
+            )
+        ");
+
+        $stmt->execute([
+            'uuid'          => $data['uuid'],
+            'personal'      => $data['staffId'],
+            'sucursal'      => $data['branchId'],
+        ]);
+
+        return (int) $this->db->lastInsertId();
     }
 
     public function insertStaffProfessional(int $staffId, array $data): void {

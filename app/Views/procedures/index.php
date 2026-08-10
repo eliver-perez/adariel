@@ -3,6 +3,7 @@
     $section = "Servicios & Procedimientos";
 
     require_once __DIR__.'/../layout/title.php';
+    require_once __DIR__.'/modal_procedures_staff.php';
 ?>
 
 <div class="sm:grid sm:grid-cols-12 max-sm:flex max-sm:flex-col gap-[25px]">
@@ -164,10 +165,37 @@
                         </div>
                     </div>
                     <div class="col-span-12 flex flex-row-reverse items-center gap-[5px]">
-                        <button type="button" id="btn-nuevo-servicio" class="px-[30px] h-[34px] mb-[14px] text-white bg-primary border-regular hover:bg-primary-hbr disabled:text-neutral-600 disabled:bg-lightgray disabled:cursor-not-allowed font-medium rounded-4 text-sm w-full sm:w-auto text-center inline-flex items-center justify-center capitalize transition-all duration-300 ease-linear" data-te-ripple-init="" data-te-ripple-color="light">Nuevo</button>
-                        <button type="submit" id="btn-registrar-servicio" class="!visible hidden px-[30px] h-[34px] mb-[14px] text-white bg-primary border-regular hover:bg-primary-hbr disabled:text-neutral-600 disabled:bg-lightgray disabled:cursor-not-allowed font-medium rounded-4 text-sm w-full sm:w-auto text-center inline-flex items-center justify-center capitalize transition-all duration-300 ease-linear" data-te-ripple-init="" data-te-ripple-color="light" disabled>Registrar</button>
-                        <button type="button" id="btn-modificar-servicio" class="!visible hidden px-[30px] h-[34px] mb-[14px] text-white bg-warning border-regular hover:bg-warning-hbr disabled:text-neutral-600 disabled:bg-lightgray disabled:cursor-not-allowed font-medium rounded-4 text-sm w-full sm:w-auto text-center inline-flex items-center justify-center capitalize transition-all duration-300 ease-linear" data-te-ripple-init="" data-te-ripple-color="light" disabled>Modificar</button>
-                        <button type="button" id="btn-cancelar-servicio" class="!visible hidden px-[30px] h-[34px] mb-[14px] text-white bg-danger border-regular hover:bg-danger-hbr disabled:text-neutral-600 disabled:bg-lightgray disabled:cursor-not-allowed font-medium rounded-4 text-sm w-full sm:w-auto text-center inline-flex items-center justify-center capitalize transition-all duration-300 ease-linear" data-te-ripple-init="" data-te-ripple-color="light" disabled>Cancelar</button>
+                        <button type="button"
+                            id="btn-new-procedure"
+                            class="px-[30px] h-[34px] mb-[14px] text-white bg-primary border-regular hover:bg-primary-hbr disabled:text-neutral-600 disabled:bg-lightgray disabled:cursor-not-allowed font-medium rounded-4 text-sm w-full sm:w-auto text-center inline-flex items-center justify-center capitalize transition-all duration-300 ease-linear"
+                            data-te-ripple-init=""
+                            data-te-ripple-color="light">
+                            Nuevo
+                        </button>
+                        <button type="submit"
+                            id="btn-register-procedure"
+                            class="!visible hidden px-[30px] h-[34px] mb-[14px] text-white bg-primary border-regular hover:bg-primary-hbr disabled:text-neutral-600 disabled:bg-lightgray disabled:cursor-not-allowed font-medium rounded-4 text-sm w-full sm:w-auto text-center inline-flex items-center justify-center capitalize transition-all duration-300 ease-linear"
+                            data-te-ripple-init=""
+                            data-te-ripple-color="light"
+                            disabled>
+                            Registrar
+                        </button>
+                        <button type="button"
+                            id="btn-modify-procedure"
+                            class="!visible hidden px-[30px] h-[34px] mb-[14px] text-white bg-warning border-regular hover:bg-warning-hbr disabled:text-neutral-600 disabled:bg-lightgray disabled:cursor-not-allowed font-medium rounded-4 text-sm w-full sm:w-auto text-center inline-flex items-center justify-center capitalize transition-all duration-300 ease-linear"
+                            data-te-ripple-init=""
+                            data-te-ripple-color="light"
+                            disabled>
+                            Modificar
+                        </button>
+                        <button type="button"
+                            id="btn-cancel-procedure"
+                            class="!visible hidden px-[30px] h-[34px] mb-[14px] text-white bg-danger border-regular hover:bg-danger-hbr disabled:text-neutral-600 disabled:bg-lightgray disabled:cursor-not-allowed font-medium rounded-4 text-sm w-full sm:w-auto text-center inline-flex items-center justify-center capitalize transition-all duration-300 ease-linear"
+                            data-te-ripple-init=""
+                            data-te-ripple-color="light"
+                            disabled>
+                            Cancelar
+                        </button>
                     </div>
                 </div>
             </form>
@@ -181,7 +209,7 @@
                 <h2 class="mb-0 inline-flex items-center py-[16px] max-sm:pb-[5px] overflow-hidden whitespace-nowrap text-ellipsis text-[18px] font-semibold text-dark dark:text-title-dark  capitalize">
                     Profesionales
                 </h2>
-                <button id="btn-nuevo-servicio" type="button" class="flex items-center px-[20px] text-sm text-white rounded-md font-semibold bg-primary border-primary h-10 gap-[6px] transition-[0.3s]">
+                <button id="btn-procedure-staff" type="button" class="flex items-center px-[20px] text-sm text-white rounded-md font-semibold bg-primary border-primary h-10 gap-[6px] transition-[0.3s]">
                     <i class="uil uil-plus"></i>
                     <span class="m-0">Agregar</span>
                 </button>
@@ -198,7 +226,7 @@
                                     <th class="bg-regularBG dark:bg-box-dark-up px-4 py-2.5 text-light dark:text-title-dark text-[12px] font-medium border-none before:hidden">
                                         COSTO</th>
                                     <th class="bg-regularBG dark:bg-box-dark-up px-4 py-2.5 text-light dark:text-title-dark text-[12px] font-medium border-none before:hidden">
-                                        ACTIVO</th>
+                                        </th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white dark:bg-box-dark">

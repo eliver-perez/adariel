@@ -2,9 +2,9 @@
     use App\Controllers\ConsultationsController;
     
     $consultationsController = new ConsultationsController();
-    $consultation = json_decode($consultationsController->view($id));
+    $consultation = json_decode($consultationsController->view($id, 1));
 
-    // die(var_dump($consultation));
+    // die(json_encode($consultation));
 
     $title = "Consulta";
     $section = "Consulta";
@@ -22,8 +22,8 @@
         'evidencia-fotografica' => 'module_evidence.php',
         'indicaciones' => 'module_indications.php',
         'proxima_cita' => 'module_schedule_appointment.php',
-        'archivos_adjuntos' => 'module_attached_files.php',
-        'evolucion' => 'module_evolution.php',
+        // 'archivos_adjuntos' => 'module_attached_files.php',
+        // 'evolucion' => 'module_evolution.php',
     ];
 ?>
 
@@ -181,10 +181,16 @@
     <div class="tabs">
         <nav class="sm:px-[25px] px-[15px] bg-white dark:bg-box-dark rounded-t-0 rounded-b-10 mb-[25px] overflow-x-auto">
             <ul class="m-0 flex items-center sm:gap-x-[22px] gap-x-[10px] max-sm:gap-[5px]" role="tablist" aria-label="Social form">
+                <li>
+                    <button type="button" role="tab" aria-selected="true" id="tabs-observacion_inicial" onclick="javascript:selectTab('observacion_inicial')" class="relative block py-[20px] px-[5px] text-light dark:text-subtitle-dark [&.active]:text-primary after:[&.active]:bg-primary after:absolute after:bottom-0 after:end-0 after:w-full after:h-[2px] after:bg-transparent after:transition-all after:duration-300 after:ease-in-out after:invisible [&.active]:after:visible font-medium active">Observación inicial</button>
+                </li>
+                <li>
+                    <button type="button" role="tab" aria-selected="true" id="tabs-procedimientos" onclick="javascript:selectTab('procedimientos')" class="relative block py-[20px] px-[5px] text-light dark:text-subtitle-dark [&.active]:text-primary after:[&.active]:bg-primary after:absolute after:bottom-0 after:end-0 after:w-full after:h-[2px] after:bg-transparent after:transition-all after:duration-300 after:ease-in-out after:invisible [&.active]:after:visible font-medium">Procedimientos realizados</button>
+                </li>
                 <?php
                     foreach ($consultation->data->modules as $m) {?>
                         <li>
-                            <button type="button" role="tab" aria-selected="true" id="tabs-<?= $m->code; ?>" onclick="javascript:selectTab('<?= $m->code; ?>')" class="relative block py-[20px] px-[5px] text-light dark:text-subtitle-dark [&.active]:text-primary after:[&.active]:bg-primary after:absolute after:bottom-0 after:end-0 after:w-full after:h-[2px] after:bg-transparent after:transition-all after:duration-300 after:ease-in-out after:invisible [&.active]:after:visible font-medium active"><?= $m->name; ?></button>
+                            <button type="button" role="tab" aria-selected="true" id="tabs-<?= $m->code; ?>" onclick="javascript:selectTab('<?= $m->code; ?>')" class="relative block py-[20px] px-[5px] text-light dark:text-subtitle-dark [&.active]:text-primary after:[&.active]:bg-primary after:absolute after:bottom-0 after:end-0 after:w-full after:h-[2px] after:bg-transparent after:transition-all after:duration-300 after:ease-in-out after:invisible [&.active]:after:visible font-medium"><?= $m->name; ?></button>
                         </li>
                         <?php
                     }
@@ -192,6 +198,32 @@
             </ul>
         </nav>
         
+                <div class="transition-opacity duration-150 ease-linear opacity-100" role="tabpanel" aria-labelledby="tabs-observacion_inicial">
+                    <div class="grid grid-cols-12 sm:gap-[25px] gap-y-[25px]">
+                        <div class="col-span-12">
+                            <div class="bg-white dark:bg-box-dark rounded-10 pt-[25px] px-[25px] pb-[30px] shadow-[0_5px_20px_rgba(173,181,217,0.05)] dark:shadow-none">
+                                <div class="mb-[25px]">
+                                    <h4 class="text-[20px] text-dark dark:text-subtitle-dark font-medium">Observaciones</h4>
+                                    <span class="text-[14px] font-medium text-theme-gray dark:text-subtitle-dark">Motivo de consulta y observaciones iniciales del paciente</span>
+                                </div>
+                                <?php require __DIR__ . '/module_initial_observations.php'; ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="transition-opacity duration-150 ease-linear opacity-100" role="tabpanel" aria-labelledby="tabs-procedimientos">
+                    <div class="grid grid-cols-12 sm:gap-[25px] gap-y-[25px]">
+                        <div class="col-span-12">
+                            <div class="bg-white dark:bg-box-dark rounded-10 pt-[25px] px-[25px] pb-[30px] shadow-[0_5px_20px_rgba(173,181,217,0.05)] dark:shadow-none">
+                                <div class="mb-[25px]">
+                                    <h4 class="text-[20px] text-dark dark:text-subtitle-dark font-medium">Procedimientos realizados</h4>
+                                    <span class="text-[14px] font-medium text-theme-gray dark:text-subtitle-dark">Procedimientos y tratamientos aplicados durante la consulta</span>
+                                </div>
+                                <?php require __DIR__ . '/module_procedures.php'; ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
         <?php
             foreach ($consultation->data->modules as $m) {
                 if (!isset($moduleViews[$m->code])) {

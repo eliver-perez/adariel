@@ -10,6 +10,9 @@ use App\Core\Request;
 use App\Core\Response;
 use App\Core\Database;
 use App\Repositories\StaffRepository;
+use App\Repositories\ScheduleRepository;
+use App\Repositories\ScheduleTemplatesRepository;
+use App\Repositories\UsersRepository;
 use App\Repositories\GenderRepository;
 use App\Repositories\LocationRepository;
 use App\Repositories\UserRoleRepository;
@@ -30,13 +33,24 @@ class StaffController extends Controller
         $conn = $database->getConnection();
 
         $staffRepository = new StaffRepository($conn);
+        $scheduleRepository = new ScheduleRepository($conn);
+        $scheduleTemplatesRepository = new ScheduleTemplatesRepository($conn);
+        $usersRepository = new UsersRepository($conn);
         $genderRepository = new GenderRepository($conn);
         $locationRepository = new LocationRepository($conn);
         $userRoleRepository = new UserRoleRepository($conn);
         $roleRepository = new RoleRepository($conn);
         $specialtyRepository = new SpecialtyRepository($conn);
 
-        return new StaffService($staffRepository, $genderRepository, $locationRepository, $userRoleRepository, $roleRepository, $specialtyRepository);
+        return new StaffService($staffRepository,
+                                $scheduleRepository,
+                                $scheduleTemplatesRepository,
+                                $usersRepository,
+                                $genderRepository,
+                                $locationRepository,
+                                $userRoleRepository,
+                                $roleRepository,
+                                $specialtyRepository);
     }
 
     private function getRepository(): StaffRepository {
@@ -50,45 +64,51 @@ class StaffController extends Controller
         return $this->repository;
     }
 
-    // public function index(Request $request, Response $response): void
-    // {
-    //     $auth = new AuthMiddleware();
-    //     $result = $auth->handle($request, $response);
-    //     if ($result !== true) {
-    //         return;
-    //     }
-    //     $search = trim((string)$this->request->query('search', ''));
-
-    //     $rows = $this->staffModel->getAll($search !== '' ? $search : null);
-
-    //     $response->json([
-    //         'status' => 'OK',
-    //         'data' => []
-    //     ], 200);
-    // }
-
     public function index(Request $request, Response $response) {
         try {
-            $repository = $this->getRepository();
+            $currentUserId = Auth::id();
+
+            if($currentUserId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
+            $organizationId = Auth::organizationId();
+
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron registros de su empresa.");
+            }
+
+            $service = $this->getService();
 
             $search = trim((string)$this->request->query('search', ''));
+            
+            $limit = (int)$this->request->query('limit', 50);
+            $offset = (int)$this->request->query('offset', 0);
 
-            $data = $repository->getAll($search !== '' ? $search : null);
+            $limit = max(1, min($limit, 50));
+            $offset = max(0, $offset);
+
+            $data = $service->getAll([
+                'organizationId'                => $organizationId,
+                'search'                        => $search !== '' ? $search : null,
+                'limit'                         => $limit,
+                'offset'                        => $offset,
+                'uid'                           => $currentUserId
+            ]);
 
             return $response->json([
-                    'status' => 'OK',
-                    'data' => [
-                        'staff' => $data
-                    ]
-                ], 200);
+                'success' => true,
+                'data' => [
+                    'staff' => $data
+                ]
+            ], 200);
         } catch (InvalidArgumentException | RuntimeException $e) {
             return $response->json([
-                'status' => 'ERROR',
+                'success' => false,
                 'message' => $e->getMessage()
             ], 400);
         } catch (Throwable $e) {
             return $response->json([
-                'status' => 'ERROR',
+                'success' => false,
                 // 'message' => 'No fue posible registrar el personal.'
                 'message' => $e->getMessage()
             ], 500);
@@ -128,10 +148,22 @@ class StaffController extends Controller
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
+            $organizationId = Auth::organizationId();
+
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron registros de su empresa.");
+            }
+            $organizationBranchId = Auth::organizationBranchId();
+
+            if($organizationBranchId === null) {
+                throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
 
             $service = $this->getService();
 
             $staffId = $service->create([
+                'organizationId'            => $organizationId,
+                'branchId'                  => $organizationBranchId,
                 'first_name'                => $request->input('nombre'),
                 'last_name'                 => $request->input('paterno'),
                 'last_name_2'               => $request->input('materno'),
@@ -148,9 +180,7 @@ class StaffController extends Controller
                 'phone'                     => $request->input('telefono'),
                 'mobile'                    => $request->input('telefono_movil'),
 
-                'username'                  => $request->input('usuario'),
-                'user_role'                 => $request->input('usuario_tipo'),
-                'password'                  => $request->input('password'),
+                'user_uuid'                 => $request->input('usuario'),
 
                 'role'                      => $request->input('puesto'),
 
@@ -167,7 +197,7 @@ class StaffController extends Controller
             ]);
 
             return $response->json([
-                'status' => 'OK',
+                'success' => true,
                 'message' => 'Personal registrado correctamente.',
                 'data' => [
                     'staff_id' => $staffId
@@ -175,12 +205,12 @@ class StaffController extends Controller
             ], 201);
         } catch (InvalidArgumentException | RuntimeException $e) {
             return $response->json([
-                'status' => 'ERROR',
+                'success' => false,
                 'message' => $e->getMessage()
             ], 400);
         } catch (Throwable $e) {
             return $response->json([
-                'status' => 'ERROR',
+                'success' => false,
                 // 'message' => 'No fue posible registrar el personal.'
                 'message' => $e->getMessage()
             ], 500);

@@ -32,27 +32,27 @@
    <!-- End: Preloader -->
 
    <!-- inject:js-->
-   <script src="<?= base_url('../template/assets/vendor_assets/js/apexcharts.min.js'); ?>"></script>
-   <script src="<?= base_url('../template/assets/vendor_assets/js/datepicker-full.js'); ?>"></script>
-   <script src="<?= base_url('../template/assets/vendor_assets/js/fslightbox.js'); ?>"></script>
-   <script src="<?= base_url('../template/assets/vendor_assets/js/index.global.min.js'); ?>"></script>
-   <script src="<?= base_url('../template/assets/vendor_assets/js/fullcalendar-locales-es-min.js'); ?>"></script>
-   <script src="<?= base_url('../template/assets/vendor_assets/js/mixitup.min.js'); ?>"></script>
-   <script src="<?= base_url('../template/assets/vendor_assets/js/moment.min.js'); ?>"></script>
-   <script src="<?= base_url('../template/assets/vendor_assets/js/nouislider.min.js'); ?>"></script>
-   <script src="<?= base_url('../template/assets/vendor_assets/js/svg-pan-zoom.min.js'); ?>"></script>
-   <script src="<?= base_url('../template/assets/vendor_assets/js/svgMap.min.js'); ?>"></script>
-   <script src="<?= base_url('../template/assets/vendor_assets/js/tw-elements.umd.min.js'); ?>"></script>
-   <script src="<?= base_url('../template/assets/vendor_assets/js/yscountdown.min.js'); ?>"></script>
-   <script src="<?= base_url('../template/assets/theme_assets/js/apex-custom.js'); ?>"></script>
-   <script src="<?= base_url('../template/assets/theme_assets/js/full-calendar.js'); ?>"></script>
-   <script src="<?= base_url('../template/assets/theme_assets/js/googlemap-init.js'); ?>"></script>
-   <script src="<?= base_url('../template/assets/theme_assets/js/main.js'); ?>"></script>
-   <script src="<?= base_url('../template/assets/theme_assets/js/svgMapData.js'); ?>"></script>
+   <script src="<?= base_url('template/assets/vendor_assets/js/apexcharts.min.js'); ?>"></script>
+   <script src="<?= base_url('template/assets/vendor_assets/js/datepicker-full.js'); ?>"></script>
+   <script src="<?= base_url('template/assets/vendor_assets/js/fslightbox.js'); ?>"></script>
+   <script src="<?= base_url('template/assets/vendor_assets/js/index.global.min.js'); ?>"></script>
+   <script src="<?= base_url('template/assets/vendor_assets/js/fullcalendar-locales-es-min.js'); ?>"></script>
+   <script src="<?= base_url('template/assets/vendor_assets/js/mixitup.min.js'); ?>"></script>
+   <script src="<?= base_url('template/assets/vendor_assets/js/moment.min.js'); ?>"></script>
+   <script src="<?= base_url('template/assets/vendor_assets/js/nouislider.min.js'); ?>"></script>
+   <script src="<?= base_url('template/assets/vendor_assets/js/svg-pan-zoom.min.js'); ?>"></script>
+   <script src="<?= base_url('template/assets/vendor_assets/js/svgMap.min.js'); ?>"></script>
+   <script src="<?= base_url('template/assets/vendor_assets/js/tw-elements.umd.min.js'); ?>"></script>
+   <script src="<?= base_url('template/assets/vendor_assets/js/yscountdown.min.js'); ?>"></script>
+   <script src="<?= base_url('template/assets/theme_assets/js/apex-custom.js'); ?>"></script>
+   <script src="<?= base_url('template/assets/theme_assets/js/full-calendar.js'); ?>"></script>
+   <script src="<?= base_url('template/assets/theme_assets/js/googlemap-init.js'); ?>"></script>
+   <script src="<?= base_url('template/assets/theme_assets/js/main.js'); ?>"></script>
+   <script src="<?= base_url('template/assets/theme_assets/js/svgMapData.js'); ?>"></script>
    
-    <script src="<?= base_url('../template/assets/theme_assets/js/sweetalert2.all.min.js'); ?>"></script>
-    <script src="<?= base_url('../template/assets/theme_assets/js/sweetalert.init.js'); ?>"></script>
-    <script src="<?= base_url('../template/assets/theme_assets/js/jquery-3.7.1.min.js'); ?>"></script>
+    <script src="<?= base_url('template/assets/theme_assets/js/sweetalert2.all.min.js'); ?>"></script>
+    <script src="<?= base_url('template/assets/theme_assets/js/sweetalert.init.js'); ?>"></script>
+    <script src="<?= base_url('template/assets/theme_assets/js/jquery-3.7.1.min.js'); ?>"></script>
     <script src="<?= asset('js/global.js'); ?>"></script>
     <script src="<?= asset('js/sweetalert.js'); ?>"></script>
     <script src="<?= asset('js/sha512.js'); ?>"></script>

@@ -27,12 +27,19 @@ class PaymentsService extends Service
 
     public function getAll(array $data): array {
         try {
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+            $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+            $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
+
             $payments_data = $this->paymentsRepository->getAll([
-                'search'            => $data['search'] !== '' ? $data['search'] : null,
-                'limit'             => $data['limit'],
-                'offset'            => $data['offset'],
-                'status'            => $data['status'],
-                'uid'               => $data['uid'],
+                'search_by'                         => $data['searchBy'],
+                'organization'                      => $organizationId,
+                'branch'                            => $branchId,
+                'search'                            => $data['search'] !== '' ? $data['search'] : null,
+                'limit'                             => $data['limit'],
+                'offset'                            => $data['offset'],
+                'status'                            => $data['status'],
+                'uid'                               => $data['uid'],
             ]);
 
             $payments = array();
@@ -60,20 +67,26 @@ class PaymentsService extends Service
 
     function getPayment($data): ?array {
         try {
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+            $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+            $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
+
             $uuid = $this->normalizeRequiredText(
                 $data['uuid'] ?? null,
                 'Error al recibir identificador del pago.'
             );
 
             $payment_data = $this->paymentsRepository->getPayment([
-                'uuid'                          => $this->uuidStringtoBinary($uuid)
+                'uuid'                          => $this->uuidStringtoBinary($uuid),
+                'organization'                  => $organizationId
             ]);
 
             if(!$payment_data)
                 throw new RuntimeException("Ocurrio un error al intentar obtener la información.");
 
             $payment_sales_data = $this->paymentsRepository->getSalesByPayment([
-                'uuid'                          => $this->uuidStringtoBinary($uuid)
+                'uuid'                          => $this->uuidStringtoBinary($uuid),
+                'organization'                  => $organizationId
             ]);
             
             $payment_sales = array();
@@ -101,7 +114,8 @@ class PaymentsService extends Service
             }
 
             $payment_details_data = $this->paymentsRepository->getPaymentDetails([
-                'uuid'                          => $this->uuidStringtoBinary($uuid)
+                'uuid'                          => $this->uuidStringtoBinary($uuid),
+                'organization'                  => $organizationId
             ]);
 
             $payment_details = array();
@@ -148,20 +162,26 @@ class PaymentsService extends Service
 
     function getPaymentReceipt($data): ?array {
         try {
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+            $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+            $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
+
             $uuid = $this->normalizeRequiredText(
                 $data['uuid'] ?? null,
                 'Error al recibir identificador del pago.'
             );
 
             $payment_data = $this->paymentsRepository->getPayment([
-                'uuid'                          => $this->uuidStringtoBinary($uuid)
+                'uuid'                          => $this->uuidStringtoBinary($uuid),
+                'organization'                  => $organizationId
             ]);
 
             if(!$payment_data)
                 throw new RuntimeException("Ocurrio un error al intentar obtener la información.");
 
             $payment_details_data = $this->paymentsRepository->getPaymentDetails([
-                'uuid'                          => $this->uuidStringtoBinary($uuid)
+                'uuid'                          => $this->uuidStringtoBinary($uuid),
+                'organization'                  => $organizationId
             ]);
 
             $payment_details = array();

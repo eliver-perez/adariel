@@ -11,7 +11,7 @@ var total_cost = 0;
 function InitializeValues(home) {
 	homeURL = home;
 	$('#btn-nuevo-producto').on('click', NewProduct);
-	$('#btn-cancelar-producto').on('click', CancelProcedure);
+	$('#btn-cancelar-producto').on('click', CancelProduct);
 	GetProducts();
 	GetCategories();
 	GetUnitsMeasure();
@@ -72,7 +72,7 @@ function EnableProduct(v) {
 	total_cost = 0;
 }
 
-function CancelProcedure() {
+function CancelProduct() {
 	if(registering_product || modifying_product)
 		return;
 	if(new_product || modify_product) {
@@ -109,9 +109,6 @@ function GetCategories() {
 	$.ajax({
         url: `${homeURL}/api/products/categories`,
 		type: 'get',
-		data: {
-			search: ''
-		},
 		processData: false,
 		contentType: false,
 		dataType: "json",
@@ -125,8 +122,9 @@ function GetCategories() {
 			});
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
+			console.log(XMLHttpRequest.responseText);
 			let response = JSON.parse(XMLHttpRequest.responseText);
-			ShowToastMessage(response.message, 'error')
+			ShowToastMessage(response.message, 'error');
 		}  
 	});
 }
@@ -225,7 +223,7 @@ function RegisterProduct() {
 		success: function(response) {
 			if(response.success) {
 				ShowToastMessage('Producto registrado con éxito.', 'success');
-				CancelProcedure();
+				CancelProduct();
 			}
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 

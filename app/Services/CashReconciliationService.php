@@ -9,6 +9,7 @@ use App\Repositories\CashReconciliationRepository;
 use App\Repositories\CashReconciliationStatusRepository;
 use App\Repositories\CashRegisterRepository;
 use App\Repositories\PaymentsRepository;
+use App\Repositories\FoliosRepository;
 use App\Repositories\SettingsRepository;
 use App\Services\SettingsService;
 use InvalidArgumentException;
@@ -21,17 +22,25 @@ class CashReconciliationService extends Service
         private CashReconciliationStatusRepository $cashReconciliationStatusRepository,
         private CashRegisterRepository $cashRegisterRepository,
         private PaymentsRepository $paymentsRepository,
+        private FoliosRepository $foliosRepository,
         private SettingsRepository $settingsRepository
     ) {
     }
 
     public function getAll(array $data): array {
         try {
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+            $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+            $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
+
             $data = $this->cashReconciliationRepository->getAll([
-                'search'            => $data['search'] !== '' ? $data['search'] : null,
-                'limit'             => $data['limit'],
-                'offset'            => $data['offset'],
-                'uid'               => $data['uid'],
+                'search_by'                     => 'branch',
+                'organization'                  => $organizationId,
+                'branch'                        => $branchId,
+                'search'                        => $data['search'] !== '' ? $data['search'] : null,
+                'limit'                         => $data['limit'],
+                'offset'                        => $data['offset'],
+                'uid'                           => $data['uid'],
             ]);
             $cash_reconciliation = array();
 
@@ -54,13 +63,18 @@ class CashReconciliationService extends Service
 
     function getCashReconciliation($data): ?array {
         try {
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+            $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+            $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
+
             $uuid = $this->normalizeRequiredText(
                 $data['uuid'] ?? null,
                 'Error al recibir identificador del corte.'
             );
 
             $cash_reconciliation_data = $this->cashReconciliationRepository->getCashReconciliationData([
-                'uuid'                          => $this->uuidStringtoBinary($uuid)
+                'uuid'                          => $this->uuidStringtoBinary($uuid),
+                'organization'                  => $organizationId
             ]);
 
             if(!$cash_reconciliation_data)
@@ -71,6 +85,7 @@ class CashReconciliationService extends Service
                 'search'                        => $data['search'] !== '' ? $data['search'] : null,
                 'limit'                         => $data['limit'],
                 'offset'                        => $data['offset'],
+                'organization'                  => $organizationId
             ]);
 
             $cash_reconciliation_payments = array();
@@ -123,24 +138,61 @@ class CashReconciliationService extends Service
 
     public function create(array $data): ?string {
         $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+        $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+        $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
+
         $cash_register = $this->normalizeRequiredText($data['cash_register'] ?? null, 'Es necesario seleccionar una caja.');
         $initialize_amount = $this->normalizeRequiredFloat($data['initialize_amount'] ?? null, 'Es necesario capturar el monto de inicio.');
 
         $conn = $this->cashReconciliationRepository->getConnection();
         $conn->beginTransaction();
         try {
-            $cashReconciliationUuid = $this->cashReconciliationRepository->verifyIfExistsOpen($uid);
+            $cashReconciliationUuid = $this->cashReconciliationRepository->verifyIfExistsOpen([
+                'uid'                               => $uid,
+                'branch'                            => $branchId
+            ]);
             if($cashReconciliationUuid == null) {
                 $cashReconciliationStatusId = $this->cashReconciliationStatusRepository->getIdByCode('open');
-                $cashRegisterId = $this->cashRegisterRepository->getIdByUuid($this->uuidStringtoBinary($cash_register));
+                $cashRegisterId = $this->cashRegisterRepository->getIdByUuid([
+                    'uuid'                          => $this->uuidStringtoBinary($cash_register),
+                    'branch'                        => $branchId
+                ]);
+                $year = date('Y');
+                $c_aux = $this->foliosRepository->getConsecutive([
+                    'type'                                  => 'corte',
+                    'branch'                                => $branchId,
+                    'year'                                  => $year
+                ]);
+                if(!$c_aux) {
+                    $c_aux = 0;
+                    $this->foliosRepository->insertConsecutive([
+                        'consecutive'                           => $c_aux,
+                        'type'                                  => 'corte',
+                        'branch'                                => $branchId,
+                        'year'                                  => $year
+                    ]);
+                }
+                $cashReconciliationConsecutive = $c_aux + 1;
+                $folio = 'C-' . str_pad((string) $cashReconciliationConsecutive, 5, '0', STR_PAD_LEFT) . '/' . substr($year, -2);
+
                 $cashReconciliationUuid = $this->generateUuidBinary();
                 $cashReconciliationId = $this->cashReconciliationRepository->insert([
-                        'uuid'                          => $cashReconciliationUuid,
-                        'cash_register'                 => $cashRegisterId,
-                        'initialize_amount'             => $initialize_amount,
-                        'status'                        => $cashReconciliationStatusId,
-                        'uid'                           => $uid,
+                        'uuid'                                  => $cashReconciliationUuid,
+                        'consecutive'                           => $cashReconciliationConsecutive,
+                        'year'                                  => $year,
+                        'folio'                                 => $folio,
+                        'cash_register'                         => $cashRegisterId,
+                        'initialize_amount'                     => $initialize_amount,
+                        'status'                                => $cashReconciliationStatusId,
+                        'uid'                                   => $uid,
+                        'branch'                                => $branchId
                     ]);
+                $this->foliosRepository->updateConsecutive([
+                    'consecutive'                           => $cashReconciliationConsecutive,
+                    'type'                                  => 'corte',
+                    'branch'                                => $branchId,
+                    'year'                                  => $year
+                ]);
             }
             
             $conn->commit();
@@ -158,6 +210,9 @@ class CashReconciliationService extends Service
 
     public function close(array $data): ?string {
         $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+        $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+        $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
+        
         $id = $this->normalizeRequiredText($data['id'] ?? null, 'No se tiene informacion de un corte activo.');
         $closing_amount = $this->normalizeRequiredFloat($data['closing_amount'] ?? null, 'Es necesario capturar el monto de cierre.');
         $observations = $this->normalizeOptionalText($data['observations'] ?? '');
@@ -168,7 +223,10 @@ class CashReconciliationService extends Service
         $conn = $this->cashReconciliationRepository->getConnection();
         $conn->beginTransaction();
         try {
-            $cashReconciliationUuid = $this->cashReconciliationRepository->verifyIfExistsOpen($uid);
+            $cashReconciliationUuid = $this->cashReconciliationRepository->verifyIfExistsOpen([
+                'uid'                               => $uid,
+                'branch'                            => $branchId
+            ]);
             if($cashReconciliationUuid != null) {
                 $active_id = $this->uuidBinarytoString($cashReconciliationUuid);
                 if($id != $active_id)
@@ -193,15 +251,23 @@ class CashReconciliationService extends Service
         }
     }
 
-    public function checkForActiveCashReconciliation($uid) {
+    public function checkForActiveCashReconciliation(array $data) {
         try {
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+            $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+            $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
+
             if(!isset($_SESSION['cash_reconciliation']['id']) || $_SESSION['cash_reconciliation']['id'] == null)
-                $cashReconciliationUuid = $this->cashReconciliationRepository->verifyIfExistsOpen($uid);
+                $cashReconciliationUuid = $this->cashReconciliationRepository->verifyIfExistsOpen([
+                    'uid'                               => $uid,
+                    'branch'                            => $branchId
+                ]);
             else
                 $cashReconciliationUuid = $this->uuidStringtoBinary($_SESSION['cash_reconciliation']['id']);
             if($cashReconciliationUuid != null) {
                 $cashReconciliationData = $this->cashReconciliationRepository->getCashReconciliationData([
-                    'uuid'                      => $cashReconciliationUuid
+                    'uuid'                              => $cashReconciliationUuid,
+                    'organization'                      => $organizationId
                 ]);
                 if($cashReconciliationData != null) {
                     if($cashReconciliationData['status_code'] == 'open') {
@@ -230,15 +296,23 @@ class CashReconciliationService extends Service
         }
     }
 
-    public function cashReconciliationClosingData($uid) {
+    public function cashReconciliationClosingData(array $data) {
         try {
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+            $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+            $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
+
             if(!isset($_SESSION['cash_reconciliation']['id']) || $_SESSION['cash_reconciliation']['id'] == null)
-                $cashReconciliationUuid = $this->cashReconciliationRepository->verifyIfExistsOpen($uid);
+                $cashReconciliationUuid = $this->cashReconciliationRepository->verifyIfExistsOpen([
+                    'uid'                               => $uid,
+                    'branch'                            => $branchId
+                ]);
             else
                 $cashReconciliationUuid = $this->uuidStringtoBinary($_SESSION['cash_reconciliation']['id']);
             if($cashReconciliationUuid != null) {
                 $cashReconciliationData = $this->cashReconciliationRepository->getCashReconciliationData([
-                    'uuid'                      => $cashReconciliationUuid
+                    'uuid'                      => $cashReconciliationUuid,
+                    'organization'              => $organizationId
                 ]);
                 if($cashReconciliationData != null) {
                     return [

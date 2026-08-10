@@ -20,14 +20,14 @@
     $qr = (new QRCode($options))->render($data);
 ?>
    <!-- inject:css-->
-   <link rel="stylesheet" href="<?= base_url('../template/assets/vendor_assets/css/apexcharts.min.css'); ?>">
-   <link rel="stylesheet" href="<?= base_url('../template/assets/vendor_assets/css/datepicker.css'); ?>">
-   <link rel="stylesheet" href="<?= base_url('../template/assets/vendor_assets/css/line-awesome.min.css'); ?>">
-   <link rel="stylesheet" href="<?= base_url('../template/assets/vendor_assets/css/nouislider.min.css'); ?>">
-   <link rel="stylesheet" href="<?= base_url('../template/assets/vendor_assets/css/quill.snow.css'); ?>">
-   <link rel="stylesheet" href="<?= base_url('../template/assets/vendor_assets/css/svgMap.min.css'); ?>">
-   <link rel="stylesheet" href="<?= base_url('../template/assets/vendor_assets/css/global.css'); ?>">
-   <link rel="stylesheet" href="<?= base_url('../template/tailwind.css'); ?>">
+   <link rel="stylesheet" href="<?= base_url('template/assets/vendor_assets/css/apexcharts.min.css'); ?>">
+   <link rel="stylesheet" href="<?= base_url('template/assets/vendor_assets/css/datepicker.css'); ?>">
+   <link rel="stylesheet" href="<?= base_url('template/assets/vendor_assets/css/line-awesome.min.css'); ?>">
+   <link rel="stylesheet" href="<?= base_url('template/assets/vendor_assets/css/nouislider.min.css'); ?>">
+   <link rel="stylesheet" href="<?= base_url('template/assets/vendor_assets/css/quill.snow.css'); ?>">
+   <link rel="stylesheet" href="<?= base_url('template/assets/vendor_assets/css/svgMap.min.css'); ?>">
+   <link rel="stylesheet" href="<?= base_url('template/assets/vendor_assets/css/global.css'); ?>">
+   <link rel="stylesheet" href="<?= base_url('template/tailwind.css'); ?>">
    <!-- endinject -->
 
 <?php

@@ -11,6 +11,8 @@ use App\Core\Response;
 use App\Core\Database;
 use App\Repositories\ConsentTemplatesRepository;
 use App\Repositories\TemplatesStatusRepository;
+use App\Repositories\OrganizationsRepository;
+use App\Repositories\MediaRepository;
 use App\Services\ConsentTemplatesService;
 use Throwable;
 
@@ -25,8 +27,13 @@ class ConsentTemplatesController extends Controller
 
         $consentTemplatesRepository = new ConsentTemplatesRepository($conn);
         $templatesStatusRepository = new TemplatesStatusRepository($conn);
+        $organizationsRepository = new OrganizationsRepository($conn);
+        $mediaRepository = new MediaRepository($conn);
 
-        return new ConsentTemplatesService($consentTemplatesRepository, $templatesStatusRepository);
+        return new ConsentTemplatesService($consentTemplatesRepository,
+                                            $templatesStatusRepository,
+                                            $organizationsRepository,
+                                            $mediaRepository);
     }
 
     private function getRepository(): ConsentTemplatesRepository {
@@ -42,19 +49,38 @@ class ConsentTemplatesController extends Controller
 
     public function index(Request $request, Response $response) {
         try {
+            $currentUserId = Auth::id();
+
+            if($currentUserId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
+            $organizationId = Auth::organizationId();
+
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron registros de su empresa.");
+            }
+            $organizationBranchId = Auth::organizationBranchId();
+
+            if($organizationBranchId === null) {
+                throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
             $service = $this->getService();
 
-            $templates = $service->getAllTemplates();
+            $templates = $service->getAllTemplates([
+                'organizationId'                => $organizationId,
+                'branchId'                      => $organizationBranchId,
+                'uid'                           => $currentUserId,
+            ]);
 
             return $response->json([
-                'status' => 'OK',
+                'success' => true,
                 'data' => [
                     'templates' => $templates
                 ]
             ]);
         } catch (Throwable $e) {
             return $response->json([
-                'status' => 'ERROR',
+                'success' => false,
                 'message' => $e->getMessage(),
                 // 'message' => 'No fue posible obtener las plantillas.'
             ], 500);
@@ -68,18 +94,29 @@ class ConsentTemplatesController extends Controller
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
+            $organizationId = Auth::organizationId();
 
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron registros de su empresa.");
+            }
+            $organizationBranchId = Auth::organizationBranchId();
+
+            if($organizationBranchId === null) {
+                throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
             $service = $this->getService();
 
             $templateId = $service->create([
-                'code'                      => $request->input('code'),
-                'template_name'             => $request->input('template_name'),
+                'organizationId'                => $organizationId,
+                'branchId'                      => $organizationBranchId,
+                'code'                          => $request->input('code'),
+                'template_name'                 => $request->input('template_name'),
 
-                'uid'                       => $currentUserId,
+                'uid'                           => $currentUserId,
             ]);
 
             return $response->json([
-                'status' => 'OK',
+                'success' => true,
                 'message' => 'Plantilla registrada correctamente.',
                 'data' => [
                     'template_id' => $templateId
@@ -87,12 +124,12 @@ class ConsentTemplatesController extends Controller
             ], 201);
         } catch (InvalidArgumentException | RuntimeException $e) {
             return $response->json([
-                'status' => 'ERROR',
+                'success' => false,
                 'message' => $e->getMessage()
             ], 400);
         } catch (Throwable $e) {
             return $response->json([
-                'status' => 'ERROR',
+                'success' => false,
                 // 'message' => 'No fue posible registrar el personal.'
                 'message' => $e->getMessage()
             ], 500);
@@ -101,40 +138,43 @@ class ConsentTemplatesController extends Controller
 
     public function show(Request $request, Response $response, string $id) {
         try {
+            $currentUserId = Auth::id();
+
+            if($currentUserId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
+            $organizationId = Auth::organizationId();
+
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron registros de su empresa.");
+            }
+            $organizationBranchId = Auth::organizationBranchId();
+
+            if($organizationBranchId === null) {
+                throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
             $service = $this->getService();
 
             $template = $service->getTemplate([
-                'uuid'                      => $id,
+                'organizationId'                => $organizationId,
+                'branchId'                      => $organizationBranchId,
+                'uuid'                          => $id,
+                'uid'                           => $currentUserId,
             ]);
 
             return $response->json([
-                'status' => 'OK',
+                'success' => true,
                 'message' => 'Datos de Plantilla.',
-                'data' => [
-                    'uuid'                      => $id,
-                    'code'                      => $template['codigo'],
-                    'name'                      => $template['nombre'],
-                    'version'                   => $template['version'],
-                    'status_code'               => $template['estatus_codigo'],
-                    'status'                    => $template['estatus'],
-                    'logo'                      => $template['logo'],
-                    'logo_width'                => $template['logo_width'],
-                    'line_spacing'              => $template['interlineado'],
-                    'font_size'                 => $template['font_size'],
-                    'registered_by'             => $template['registro'],
-                    'delta'                     => $template['delta'],
-                    'registered_date'           => $template['f_registro'],
-                    'updated_date'              => $template['f_actualizacion'],
-                ]
+                'data' => $template
             ], 200);
         } catch (InvalidArgumentException | RuntimeException $e) {
             return $response->json([
-                'status' => 'ERROR',
+                'success' => false,
                 'message' => $e->getMessage()
             ], 400);
         } catch (Throwable $e) {
             return $response->json([
-                'status' => 'ERROR',
+                'success' => false,
                 // 'message' => 'No fue posible registrar el personal.'
                 'message' => $e->getMessage()
             ], 500);
@@ -148,18 +188,29 @@ class ConsentTemplatesController extends Controller
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
+            $organizationId = Auth::organizationId();
 
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron registros de su empresa.");
+            }
+            $organizationBranchId = Auth::organizationBranchId();
+
+            if($organizationBranchId === null) {
+                throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
             $service = $this->getService();
 
             $templateId = $service->update([
-                'uuid'                      => $id,
-                'template_html'             => $request->input('template_html'),
-                'template_delta'            => $request->input('template_delta'),
-                'uid'                       => $currentUserId,
+                'organizationId'                => $organizationId,
+                'branchId'                      => $organizationBranchId,
+                'uuid'                          => $id,
+                'template_html'                 => $request->input('template_html'),
+                'template_delta'                => $request->input('template_delta'),
+                'uid'                           => $currentUserId,
             ]);
 
             return $response->json([
-                'status' => 'OK',
+                'success' => true,
                 'message' => 'Plantilla registrada correctamente.',
                 'data' => [
                     'template_id' => $templateId
@@ -167,12 +218,12 @@ class ConsentTemplatesController extends Controller
             ], 201);
         } catch (InvalidArgumentException | RuntimeException $e) {
             return $response->json([
-                'status' => 'ERROR',
+                'success' => false,
                 'message' => $e->getMessage()
             ], 400);
         } catch (Throwable $e) {
             return $response->json([
-                'status' => 'ERROR',
+                'success' => false,
                 // 'message' => 'No fue posible actualizar la plantilla.'
                 'message' => $e->getMessage()
             ], 500);
@@ -181,15 +232,34 @@ class ConsentTemplatesController extends Controller
 
     public function preview(Request $request, Response $response) {
         try {
+            $currentUserId = Auth::id();
+
+            if($currentUserId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
+            $organizationId = Auth::organizationId();
+
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron registros de su empresa.");
+            }
+            $organizationBranchId = Auth::organizationBranchId();
+
+            if($organizationBranchId === null) {
+                throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
             $service = $this->getService();
 
             $pdfContent = $service->previewPdf([
-                'delta'             => $request->input('delta', ''),
-                'font_size'         => $request->input('font_size', 9),
-                'line_height'       => $request->input('line_height', 1.2),
+                'appName'                       => env('APP_NAME') ?? 'ERP',
+                'organizationId'                => $organizationId,
+                'branchId'                      => $organizationBranchId,
+                'delta'                         => $request->input('delta', ''),
+                'font_size'                     => $request->input('font_size', 9),
+                'line_height'                   => $request->input('line_height', 1.2),
 
-                'logo'              => $_FILES['logo'] ?? null,
-                'logo_width'        => $request->input('logo_width', 35),
+                'logo'                          => $_FILES['logo'] ?? null,
+                'logo_width'                    => $request->input('logo_width', 35),
+                'uid'                           => $currentUserId
             ]);
 
             header('Content-Type: application/pdf');
@@ -201,27 +271,46 @@ class ConsentTemplatesController extends Controller
 
         } catch (InvalidArgumentException | RuntimeException $e) {
             return $response->json([
-                'status' => 'ERROR',
+                'success' => false,
                 'message' => $e->getMessage()
             ], 400);
         } catch (Throwable $e) {
             return $response->json([
-                'status' => 'ERROR',
-                'message' => 'Error al generar la vista previa del consentimiento.'
+                'success' => false,
+                'message' => $e->getMessage()
+                // 'message' => 'Error al generar la vista previa del consentimiento.'
             ], 500);
         }
     }
 
     public function status(Request $request, Response $response, string $id) {
         try {
+            $currentUserId = Auth::id();
+
+            if($currentUserId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
+            $organizationId = Auth::organizationId();
+
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron registros de su empresa.");
+            }
+            $organizationBranchId = Auth::organizationBranchId();
+
+            if($organizationBranchId === null) {
+                throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
             $service = $this->getService();
 
             $data = $service->getTemplateStatus([
-                'uuid'              => $id,
+                'organizationId'                => $organizationId,
+                'branchId'                      => $organizationBranchId,
+                'uuid'                          => $id,
+                'uid'                           => $currentUserId,
             ]);
 
             return $response->json([
-                'status' => 'OK',
+                'success' => true,
                 'message' => 'Estatus de Plantilla.',
                 'data' => [
                     'uuid'                      => $id,
@@ -231,12 +320,12 @@ class ConsentTemplatesController extends Controller
             ], 200);
         } catch (InvalidArgumentException | RuntimeException $e) {
             return $response->json([
-                'status' => 'ERROR',
+                'success' => false,
                 'message' => $e->getMessage()
             ], 400);
         } catch (Throwable $e) {
             return $response->json([
-                'status' => 'ERROR',
+                'success' => false,
                 'message' => 'Error al generar la vista previa del consentimiento.'
             ], 500);
         }
@@ -249,16 +338,27 @@ class ConsentTemplatesController extends Controller
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
+            $organizationId = Auth::organizationId();
 
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron registros de su empresa.");
+            }
+            $organizationBranchId = Auth::organizationBranchId();
+
+            if($organizationBranchId === null) {
+                throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
             $service = $this->getService();
 
             $service->activate([
-                'uuid'                      => $id,
-                'uid'                       => $currentUserId,
+                'organizationId'                => $organizationId,
+                'branchId'                      => $organizationBranchId,
+                'uuid'                          => $id,
+                'uid'                           => $currentUserId,
             ]);
 
             return $response->json([
-                'status' => 'OK',
+                'success' => true,
                 'message' => 'Plantilla activada correctamente.',
                 'data' => [
                     'uuid'                  => $id
@@ -266,12 +366,12 @@ class ConsentTemplatesController extends Controller
             ], 201);
         } catch (InvalidArgumentException | RuntimeException $e) {
             return $response->json([
-                'status' => 'ERROR',
+                'success' => false,
                 'message' => $e->getMessage()
             ], 400);
         } catch (Throwable $e) {
             return $response->json([
-                'status' => 'ERROR',
+                'success' => false,
                 // 'message' => 'No fue posible activar la plantilla.'
                 'message' => $e->getMessage()
             ], 500);

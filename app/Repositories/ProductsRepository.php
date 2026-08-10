@@ -16,7 +16,7 @@ class ProductsRepository
         return $this->db;
     }
 
-    public function getAll(?string $search = null, int $limit = 10, int $offset = 0): array {
+    public function getAll(array $data): array {
         $sql ="
             SELECT 
                 p.id,
@@ -32,7 +32,7 @@ class ProductsRepository
                     ON p.categoria = pc.id
                 LEFT JOIN unidades u
                     ON p.unidad = u.id
-            WHERE 1=1
+            WHERE p.empresa = :empresa
         ";
 
         $params = [];
@@ -45,7 +45,7 @@ class ProductsRepository
         foreach ($fields as $i => $field) {
             $param = "search_$i";
             $conditions[] = "$field LIKE :$param";
-            $params[$param] = '%' . $search . '%';
+            $params[$param] = '%' . $data['search'] . '%';
         }
 
         $sql .= " AND (" . implode(' OR ', $conditions) . ")";
@@ -60,23 +60,38 @@ class ProductsRepository
         foreach ($params as $key => $value) {
             $stmt->bindValue(':' . $key, $value, PDO::PARAM_STR);
         }
-
-        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-
+        $stmt->bindValue(':empresa', $data['organizationId'], PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $data['limit'], PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $data['offset'], PDO::PARAM_INT);
         $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getCategories(): array {
+    public function getProductCategoryId($uuid): ?int {
+        $stmt = $this->db->prepare("
+            SELECT id
+            FROM productos_categoria
+            WHERE uuid = :uuid
+            LIMIT 1");
+        $stmt->bindValue(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->execute();
+        $id = $stmt->fetchColumn();
+
+        return $id !== false ? (int) $id : null;
+    }
+
+    public function getCategories(array $data): array {
         $stmt = $this->db->prepare("
             SELECT 
                 pc.id,
+                pc.uuid,
                 pc.categoria
             FROM productos_categoria pc
+            WHERE empresa = :empresa
+                OR empresa IS NULL
         ");
-
+        $stmt->bindParam(':empresa', $data['organizationId']);
         $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -86,6 +101,7 @@ class ProductsRepository
         $stmt = $this->db->prepare("
             INSERT INTO productos (
                 uuid,
+                empresa,
                 clave,
                 codigo_barras,
                 nombre,
@@ -102,6 +118,7 @@ class ProductsRepository
                 f_registro
             ) VALUES (
                 :uuid,
+                :organization,
                 :code,
                 :bar_code,
                 :product,
@@ -120,6 +137,7 @@ class ProductsRepository
         ");
 
         $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':organization', $data['organizationId'], PDO::PARAM_INT);
         $stmt->bindValue(':code', $data['code'], PDO::PARAM_STR);
         $stmt->bindValue(':bar_code', $data['bar_code'], PDO::PARAM_STR);
         $stmt->bindValue(':product', $data['product'], PDO::PARAM_STR);
@@ -178,13 +196,15 @@ class ProductsRepository
         return (int) $this->db->lastInsertId();
     }
 
-    public function getProductId($uuid): ?int {
+    public function getProductId(array $data): ?int {
         $stmt = $this->db->prepare("
-            SELECT id
-            FROM productos
-            WHERE uuid = :uuid
+            SELECT p.id
+            FROM productos p
+            WHERE p.uuid = :uuid
+                AND p.empresa = :empresa
             LIMIT 1");
-        $stmt->bindValue(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_INT);
         $stmt->execute();
         $id = $stmt->fetchColumn();
 
@@ -211,9 +231,11 @@ class ProductsRepository
                 LEFT JOIN unidades u
                     ON p.unidad = u.id
             WHERE p.uuid = :uuid
+                AND p.empresa = :empresa
         ";
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_INT);
         $stmt->execute();
 
         return $stmt->fetch(PDO::FETCH_ASSOC);

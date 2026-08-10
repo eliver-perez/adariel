@@ -13,7 +13,7 @@ function InitializeValues(home) {
 
 function GetCashReconciliations() {
 	$.ajax({
-        url: `${homeURL}/api/cash-reconciliation`,
+        url: `${homeURL}/api/cash-reconciliation-branch`,
 		type: 'get',
 		data: {
 			

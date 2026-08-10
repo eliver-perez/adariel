@@ -8,15 +8,15 @@
 <div class="grid grid-cols-12 sm:gap-[25px] gap-y-[25px]">
     <div class="col-span-12 2xl:col-span-3">
         <div class="bg-white dark:bg-box-dark rounded-[10px] text-center">
-            <div class="sm:px-[25px] px-[15px] pt-[25px] pb-[18px]">
-                <div class="inline-block">
-                    <img class="relative mb-0 ps-[27px]"
-                        src="<?= asset('images/logos/logo-helix-120.png'); ?>"
+            <div class="px-[50px] pt-[25px] pb-[18px]">
+                <div class="inline-block text-center">
+                    <img class="relative mb-0"
+                        src="<?= asset('images/logos/logo_v.png'); ?>"
                         alt="Logo">
                 </div>
-                <h3 class="mt-[28px] text-[18px] mb-[6px] font-medium text-dark dark:text-title-dark leading-[23px] hover:[&>a]:text-primary">
+                <!-- <h3 class="mt-[28px] text-[18px] mb-[6px] font-medium text-dark dark:text-title-dark leading-[23px] hover:[&>a]:text-primary">
                     <label class="text-dark dark:text-title-dark" ><?= config('name'); ?></label>
-                </h3>
+                </h3> -->
             </div>
             <div class="border-t border-regular dark:border-box-dark-up">
             <nav class="px-[20px] pt-8 pb-5">
@@ -182,7 +182,7 @@
                                                                             name="phone_number_id"
                                                                             class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent"
                                                                             placeholder="Phone Number ID"
-                                                                            required maxlength="256"
+                                                                            maxlength="256"
                                                                             autocomplete="off"
                                                                             value="">
                                                                 </div>
@@ -203,7 +203,7 @@
                                                                             name="business_account_id"
                                                                             class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent"
                                                                             placeholder="Business Account ID"
-                                                                            required maxlength="256"
+                                                                            maxlength="256"
                                                                             autocomplete="off"
                                                                             value="">
                                                                 </div>
@@ -224,7 +224,7 @@
                                                                             name="meta_access_token"
                                                                             class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent"
                                                                             placeholder="Access Token"
-                                                                            required maxlength="1024"
+                                                                            maxlength="1024"
                                                                             autocomplete="off"
                                                                             value="">
                                                                 </div>
@@ -245,7 +245,7 @@
                                                                             name="meta_test_recipient"
                                                                             class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent"
                                                                             placeholder="Recipiente"
-                                                                            required maxlength="16"
+                                                                            maxlength="16"
                                                                             autocomplete="off"
                                                                             value="">
                                                                 </div>

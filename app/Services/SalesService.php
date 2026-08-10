@@ -35,18 +35,27 @@ class SalesService extends Service
     ) {
     }
 
-    public function getAll(?string $search = null, int $limit = 10, int $offset = 0, string $status = ''): array {
+    public function getAll(array $data, ?string $search = null, int $limit = 10, int $offset = 0): array {
         try {
-            if($status != '')
-                $status_id = $this->salesStatusRepository->getIdByCode($status);
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+            $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+            $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
+
+            if($data['status'] != '')
+                $status_id = $this->salesStatusRepository->getIdByCode($data['status']);
             else
                 $status_id = 0;
 
-            $data = $this->salesRepository->getAll($search !== '' ? $search : null,
-                $limit,
-                $offset,
-                $status_id,
-            );
+            $data = $this->salesRepository->getAll([
+                'search_by'                         => $data['searchBy'],
+                'organization'                      => $organizationId,
+                'branch'                            => $branchId,
+                'search'                            => $data['search'] !== '' ? $data['search'] : null,
+                'limit'                             => $data['limit'],
+                'offset'                            => $data['offset'],
+                'status'                            => $status_id,
+                'uid'                               => $uid,
+            ]);
             $sales = array();
 
             foreach($data as $d) {
@@ -77,17 +86,27 @@ class SalesService extends Service
 
     function getSale($data): ?array {
         try {
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+            $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+            $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
+
             $uuid = $this->normalizeRequiredText(
                 $data['uuid'] ?? null,
                 'Error al recibir identificador de la venta.'
             );
 
-            $sale_data = $this->salesRepository->getSaleData($this->uuidStringToBinary($uuid));
+            $sale_data = $this->salesRepository->getSaleData([
+                'uuid'                              => $this->uuidStringToBinary($uuid),
+                'branch'                            => $branchId
+            ]);
 
             if(!$sale_data)
                 throw new RuntimeException("Ocurrio un error al intentar obtener la información.");
             
-            $sale_details_data = $this->salesRepository->getSaleDetails($this->uuidStringtoBinary($uuid));
+            $sale_details_data = $this->salesRepository->getSaleDetails([
+                'uuid'                              => $this->uuidStringtoBinary($uuid),
+                'branch'                            => $branchId
+            ]);
             $sale_details = array();
             foreach($sale_details_data as $psd) {
                 array_push($sale_details, array(

@@ -216,7 +216,7 @@ function ChangePaymentReference() {
 function GetCashReconciliationClosingData() {
 	$('#modal-cash-reconciliation-data').html('');
 	$.ajax({
-        url: `${homeURL}/api/cash-reconciliation/closing-data`,
+        url: `${homeURL}/api/cash-reconciliation-closing-data`,
 		type: 'get',
 		dataType: "json",
 		success: function(response) {
@@ -752,6 +752,7 @@ function SearchClients() {
 			}
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
+			console.log(XMLHttpRequest.responseText);
 			let response = JSON.parse(XMLHttpRequest.responseText);
 			ShowToastMessage(response.message, 'error')
 		}  
@@ -762,7 +763,7 @@ function SearchSales() {
 	salesSearch = $('#field-busqueda-ventas').val();
 	$('#table-ventas tbody').empty();
 	$.ajax({
-        url: `${homeURL}/api/sales`,
+        url: `${homeURL}/api/sales-branch`,
 		type: 'get',
 		data: {
 			search: salesSearch,
@@ -1204,7 +1205,7 @@ function InitializeCashReconciliation() {
 				}
 			},
 			error: function(XMLHttpRequest, textStatus, errorThrown) {
-				// console.log(XMLHttpRequest.responseText);
+				console.log(XMLHttpRequest.responseText);
 				let response = JSON.parse(XMLHttpRequest.responseText);
 				ShowToastMessage(response.message, 'error')
 			}  

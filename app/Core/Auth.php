@@ -15,4 +15,9 @@ class Auth
     {
         return $_SESSION['ADARIEL_ERP_ORGANIZATION_ID'] ?? null;
     }
+
+    public static function organizationBranchId(): ?int
+    {
+        return $_SESSION['ADARIEL_ERP_ORGANIZATION_BRANCH_ID'] ?? null;
+    }
 }

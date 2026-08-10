@@ -10,6 +10,8 @@ use App\Core\Request;
 use App\Core\Response;
 use App\Core\Database;
 use App\Repositories\PatientsRepository;
+use App\Repositories\ScheduleRepository;
+use App\Repositories\ScheduleTemplatesRepository;
 use App\Repositories\GenderRepository;
 use App\Repositories\LocationRepository;
 use App\Repositories\BillingRepository;
@@ -29,12 +31,20 @@ class PatientsController extends Controller
         $conn = $database->getConnection();
 
         $patientsRepository = new PatientsRepository($conn);
+        $scheduleRepository = new ScheduleRepository($conn);
+        $scheduleTemplatesRepository = new ScheduleTemplatesRepository($conn);
         $genderRepository = new GenderRepository($conn);
         $locationRepository = new LocationRepository($conn);
         $billingRepository = new BillingRepository($conn);
         $settingsRepository = new SettingsRepository($conn);
 
-        return new PatientsService($patientsRepository, $genderRepository, $locationRepository, $billingRepository, $settingsRepository);
+        return new PatientsService($patientsRepository,
+                                    $scheduleRepository,
+                                    $scheduleTemplatesRepository,
+                                    $genderRepository,
+                                    $locationRepository,
+                                    $billingRepository,
+                                    $settingsRepository);
     }
 
     private function getRepository(): PatientsRepository {
@@ -50,6 +60,21 @@ class PatientsController extends Controller
 
     public function index(Request $request, Response $response) {
         try {
+            $currentUserId = Auth::id();
+
+            if($currentUserId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
+            $organizationId = Auth::organizationId();
+
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron datos para la empresa.");
+            }
+            $organizationBranchId = Auth::organizationBranchId();
+
+            if($organizationBranchId === null) {
+                throw new RuntimeException("No se encontraron datos para la sucursal.");
+            }
             $service = $this->getService();
 
             $search = trim((string)$this->request->query('search', ''));
@@ -60,10 +85,14 @@ class PatientsController extends Controller
             $limit = max(1, min($limit, 50));
             $offset = max(0, $offset);
 
-            $data = $service->getAll($search !== '' ? $search : null,
-                $limit,
-                $offset
-            );
+            $data = $service->getAll([
+                'organizationId'                    => $organizationId,
+                'organizationBranchId'              => $organizationBranchId,
+                'search'                            => $search !== '' ? $search : null,
+                'limit'                             => $limit,
+                'offset'                            => $offset,
+                'uid'                               => $currentUserId,
+            ]);
 
             return $response->json([
                     'status' => 'OK',
@@ -92,10 +121,16 @@ class PatientsController extends Controller
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
+            $organizationId = Auth::organizationId();
+
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron datos para la empresa.");
+            }
 
             $service = $this->getService();
 
             $patient = $service->create([
+                'organizationId'            => $organizationId,
                 'first_name'                => $request->input('nombre'),
                 'last_name'                 => $request->input('paterno'),
                 'last_name_2'               => $request->input('materno'),

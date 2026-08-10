@@ -16,16 +16,16 @@ final class WhatsAppMessageService extends Service
     }
 
     public function sendTestTemplate(
-        int $companyId,
-        int $userId,
+        int $organizationId,
+        int $uid,
         string $recipient,
         string $template = 'hello_world',
         string $languageCode = 'en_US',
         array $components = []
     ): SendMessageResult {
         return $this->sendTemplate(
-            companyId: $companyId,
-            userId: $userId,
+            organizationId: $organizationId,
+            uid: $uid,
             recipient: $recipient,
             template: $template,
             languageCode: $languageCode,
@@ -36,8 +36,8 @@ final class WhatsAppMessageService extends Service
     }
 
     public function sendTemplate(
-        int $companyId,
-        int $userId,
+        int $organizationId,
+        int $uid,
         string $recipient,
         string $template,
         string $languageCode = 'en_US',
@@ -64,7 +64,7 @@ final class WhatsAppMessageService extends Service
         }
 
         $resolved = $this->integrationService
-            ->resolveActiveIntegration($companyId);
+            ->resolveActiveIntegration($organizationId);
 
         $integration = $resolved['integration'];
 
@@ -81,7 +81,7 @@ final class WhatsAppMessageService extends Service
 
         $messageId = $this->messageRepository->createPending(
             uuid: $this->generateUuidBinary(),
-            companyId: $companyId,
+            organizationId: $organizationId,
             integrationId: (int) $integration['id'],
             provider: $integration['proveedor'],
             type: 'template',
@@ -94,7 +94,7 @@ final class WhatsAppMessageService extends Service
             parameters: $components,
             requestPayload: $requestPayload,
             isTest: $isTest,
-            userId: $userId
+            uid: $uid
         );
 
         try {
@@ -143,8 +143,8 @@ final class WhatsAppMessageService extends Service
     }
 
     public function sendText(
-        int $companyId,
-        int $userId,
+        int $organizationId,
+        int $uid,
         string $recipient,
         string $content,
         bool $previewUrl = false,
@@ -169,7 +169,7 @@ final class WhatsAppMessageService extends Service
         }
 
         $resolved = $this->integrationService
-            ->resolveActiveIntegration($companyId);
+            ->resolveActiveIntegration($organizationId);
 
         $integration = $resolved['integration'];
 
@@ -185,7 +185,7 @@ final class WhatsAppMessageService extends Service
 
         $messageId = $this->messageRepository->createPending(
             uuid: $this->generateUuidBinary(),
-            companyId: $companyId,
+            organizationId: $organizationId,
             integrationId: (int) $integration['id'],
             provider: $integration['proveedor'],
             type: 'text',
@@ -196,7 +196,7 @@ final class WhatsAppMessageService extends Service
             content: $content,
             requestPayload: $requestPayload,
             isTest: $isTest,
-            userId: $userId
+            uid: $uid
         );
 
         try {

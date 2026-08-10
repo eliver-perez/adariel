@@ -23,13 +23,13 @@ class ConsentPdfRenderer
 
         $pdf = new ConsentPdf('P', 'mm', 'LETTER', true, 'UTF-8', false);
 
-        $pdf->setCreator('Sistema Clínica');
-        $pdf->setAuthor($data['clinic_name'] ?? 'Clínica');
+        $pdf->setCreator($data['appName']);
+        $pdf->setAuthor($data['clinic_name'] ?? 'Empresa');
         $pdf->setTitle('Vista previa de consentimiento informado');
         $pdf->setSubject('Consentimiento informado');
 
         $pdf->setConsentHeaderData([
-            'clinic_name' => $data['clinic_name'] ?? '',
+            'clinic_name' => $data['clinic_name'] ?? 'Empresa',
             'logo' => $data['logo'] ?? null,
             'logo_width' => $data['logo_width'] ?? 30,
         ]);

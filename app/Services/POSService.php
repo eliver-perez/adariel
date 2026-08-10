@@ -43,13 +43,21 @@ class POSService extends Service
         return $_SESSION['cart'];
     }
 
-    public function updateCart($action, $data) {
+    public function updateCart(array $data) {
+        $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+        $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+        $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
+
         if(!isset($_SESSION['cart']))
             $this->createEmptyCart();
-        switch($action) {
+        switch($data['action']) {
             case 'add_sale':
-                if(!$this->saleExistsInCart($data->sale)) {
-                    $sale_data = $this->addSaleToCart($data->sale);
+                if(!$this->saleExistsInCart($data['data']->sale)) {
+                    $sale_data = $this->addSaleToCart([
+                        'organization'              => $organizationId,
+                        'branch'                    => $branchId,
+                        'sale'                      => $data['data']->sale
+                    ]);
                     if($_SESSION['cart']['client'] == null) {
                         $_SESSION['cart']['client'] = $sale_data['client_id'];
                         $_SESSION['cart']['client_name'] = $sale_data['client'];
@@ -77,8 +85,8 @@ class POSService extends Service
                 }
                 break;
             case 'delete_sale':
-                if($this->saleExistsInCart($data->sale)) {
-                    $this->removeSaleFromCart($data->sale);
+                if($this->saleExistsInCart($data['data']->sale)) {
+                    $this->removeSaleFromCart($data['data']->sale);
                     if($_SESSION['cart']['balance_due'] == 0) {
                         $_SESSION['cart']['id'] = null;
                         $_SESSION['cart']['client'] = null;
@@ -98,17 +106,20 @@ class POSService extends Service
                         'taxes'                     => $_SESSION['cart']['taxes'],
                         'total'                     => $_SESSION['cart']['total'],
                         'balance_due'               => $_SESSION['cart']['balance_due'],
-                        'sale'                      => $data->sale,
+                        'sale'                      => $data['data']->sale,
                     ];
                 } else {
                     throw new RuntimeException("La venta no se encuentra en el carrito.");
                 }
                 break;
             case 'select_client':
-                $client_uuid = $this->uuidStringToBinary($data->client);
-                $client_name = $this->clientsRepository->getClientName($client_uuid);
+                $client_uuid = $this->uuidStringToBinary($data['data']->client);
+                $client_name = $this->clientsRepository->getClientName([
+                    'uuid'                          => $client_uuid,
+                    'organization'                  => $organizationId
+                ]);
                 if($client_name != null) {
-                    $_SESSION['cart']['client'] = $data->client;
+                    $_SESSION['cart']['client'] = $data['data']->client;
                     $_SESSION['cart']['client_name'] = $client_name;
                 }
                 return [
@@ -118,9 +129,10 @@ class POSService extends Service
                 break;
             case 'add_product':
                 $product_data = $this->productsRepository->getProductData([
-                    'uuid'                          => $this->uuidStringtoBinary($data->product)
+                    'uuid'                          => $this->uuidStringtoBinary($data['data']->product),
+                    'organization'                  => $organizationId
                 ]);
-                if(!$this->productExistsInCart($data->product)) {
+                if(!$this->productExistsInCart($data['data']->product)) {
                     $product = [
                         'id'                            => $this->uuidBinaryToString($product_data['uuid']),
                         'sale_id'                       => -1,
@@ -142,7 +154,7 @@ class POSService extends Service
                     array_push($_SESSION['cart']['products'], $product);
                     $add = 1;
                 } else {
-                    $product = $this->addProductQuantity($data->product, $product_data, 1);
+                    $product = $this->addProductQuantity($data['data']->product, $product_data, 1);
                     $add = 0;
                 }
                 $this->calculateTotal();
@@ -164,9 +176,10 @@ class POSService extends Service
                 break;
             case 'change_product_qty':
                 $product_data = $this->productsRepository->getProductData([
-                    'uuid'                          => $this->uuidStringtoBinary($data->product)
+                    'uuid'                          => $this->uuidStringtoBinary($data['data']->product),
+                    'organization'                  => $organizationId
                 ]);
-                if(!$this->productExistsInCart($data->product)) {
+                if(!$this->productExistsInCart($data['data']->product)) {
                     $product = [
                         'id'                            => $this->uuidBinaryToString($product_data['uuid']),
                         'sale_id'                       => -1,
@@ -188,7 +201,7 @@ class POSService extends Service
                     array_push($_SESSION['cart']['products'], $product);
                     $add = 1;
                 } else {
-                    $product = $this->updateProductQuantity($data->product, $product_data, $data->qty);
+                    $product = $this->updateProductQuantity($data['data']->product, $product_data, $data['data']->qty);
                     $add = 0;
                 }
                 $this->calculateTotal();
@@ -209,8 +222,8 @@ class POSService extends Service
                 ];
                 break;
             case 'remove_product':
-                if($this->productExistsInCart($data->product)) {
-                    $this->removeProductFromCart($data->product);
+                if($this->productExistsInCart($data['data']->product)) {
+                    $this->removeProductFromCart($data['data']->product);
                     return [
                         'id'                        => $_SESSION['cart']['id'],
                         'client'                    => $_SESSION['cart']['client'],
@@ -223,7 +236,7 @@ class POSService extends Service
                         'taxes'                     => $_SESSION['cart']['taxes'],
                         'total'                     => $_SESSION['cart']['total'],
                         'balance_due'               => $_SESSION['cart']['balance_due'],
-                        'product'                      => $data->product,
+                        'product'                      => $data['data']->product,
                     ];
                 } else {
                     throw new RuntimeException("El producto no se encuentra en el carrito.");
@@ -237,16 +250,21 @@ class POSService extends Service
             $_SESSION['cart']['sales'] = [];
     }
 
-    public function addSaleToCart($id) {
-        $sale_data = $this->salesRepository->getSaleData($this->uuidStringToBinary($id));
+    public function addSaleToCart(array $data) {
+        $sale_data = $this->salesRepository->getSaleData([
+            'uuid'                              => $this->uuidStringToBinary($data['sale']),
+            'branch'                            => $data['branch']
+        ]);
         if($sale_data['adeudo'] > 0) {
-            $data = $this->salesRepository->getSaleDetails($this->uuidStringToBinary($id));
+            $data = $this->salesRepository->getSaleDetails([
+                'uuid'                          => $this->uuidStringToBinary($data['sale']),
+                'branch'                        => $data['branch']
+            ]);
             $sale_details = array();
             foreach($data as $sd) {
                 array_push($sale_details, array(
                     'id'                                => $this->uuidBinaryToString($sd['uuid']),
                     'service_id'                        => $this->uuidBinaryToString($sd['servicio_uuid']),
-                    'service_code'                      => $sd['servicio_codigo'],
                     'service'                           => $sd['servicio'],
                     'product_id'                        => $sd['producto_uuid'],
                     'product_code'                      => $sd['producto_codigo'],
@@ -397,12 +415,22 @@ class POSService extends Service
     }
 
     public function checkout(array $data) {
-        if($this->validateCart($data['cart'])) {
+        $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+        $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+        $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
+        if($this->validateCart([
+            'organization'          => $organizationId,
+            'branch'                => $branchId,
+            'cart'                  => $data['cart']
+            ])) {
             $conn = $this->posRepository->getConnection();
             $conn->beginTransaction();
 
             try {
-                $cashReconciliationUuid = $this->cashReconciliationRepository->verifyIfExistsOpen($data['uid']);
+                $cashReconciliationUuid = $this->cashReconciliationRepository->verifyIfExistsOpen([
+                    'uid'                           => $data['uid'],
+                    'branch'                        => $branchId
+                ]);
                 if($cashReconciliationUuid == null) {
                     $_SESSION['cash_reconciliation'] = null;
                     throw new RuntimeException("No existe un corte activo");
@@ -410,7 +438,8 @@ class POSService extends Service
                 
                 if($this->uuidBinarytoString($cashReconciliationUuid) != $_SESSION['cash_reconciliation']['id']) {
                     $cashReconciliationData = $this->cashReconciliationRepository->getCashReconciliationData([
-                        'uuid'                      => $cashReconciliationUuid
+                        'uuid'                      => $cashReconciliationUuid,
+                        'organization'              => $organizationId
                     ]);
                     $_SESSION['cash_reconciliation']['id'] = $this->uuidBinarytoString($cashReconciliationData['uuid']);
                     $_SESSION['cash_reconciliation']['opened_by'] = $this->uuidBinarytoString($cashReconciliationData['opened_by_id']);
@@ -419,15 +448,34 @@ class POSService extends Service
                 }
 
                 $year = date('Y');
-                $c_aux = $this->foliosRepository->getConsecutive('pago', $year);
+                $c_aux = $this->foliosRepository->getConsecutive([
+                    'type'                                  => 'pago',
+                    'branch'                                => $branchId,
+                    'year'                                  => $year
+                ]);
+                if(!$c_aux) {
+                    $c_aux = 0;
+                    $this->foliosRepository->insertConsecutive([
+                        'consecutive'                           => $c_aux,
+                        'type'                                  => 'pago',
+                        'branch'                                => $branchId,
+                        'year'                                  => $year
+                    ]);
+                }
                 $payment_consecutive = $c_aux + 1;
                 $folio = 'P-' . str_pad((string) $payment_consecutive, 7, '0', STR_PAD_LEFT) . '/' . substr($year, -2);
 
                 $pending_sale_status_id = $this->salesStatusRepository->getIdByCode('pendiente');
                 $paid_sale_status_id = $this->salesStatusRepository->getIdByCode('pagado');
 
-                $client_id = $this->clientsRepository->getClientId($this->uuidStringtoBinary($_SESSION['cart']['client']));
-                $cash_reconciliation_id = $this->cashReconciliationRepository->getCashReconciliationId($this->uuidStringtoBinary($_SESSION['cash_reconciliation']['id']));
+                $client_id = $this->clientsRepository->getClientId([
+                    'uuid'                                      => $this->uuidStringtoBinary($_SESSION['cart']['client']),
+                    'organization'                              => $organizationId
+                ]);
+                $cash_reconciliation_id = $this->cashReconciliationRepository->getCashReconciliationId([
+                    'uuid'                                      => $this->uuidStringtoBinary($_SESSION['cash_reconciliation']['id']),
+                    'branch'                                    => $branchId
+                ]);
 
                 $payment_method_id = $this->paymentsMethodsRepository->getPaymentMethodIdByCode($data['cart']->payment_method);
 
@@ -435,6 +483,8 @@ class POSService extends Service
                 $payment_amount = $data['cart']->payment_amount;
                 $payment_id = $this->paymentsRepository->registerPayment([
                     'uuid'                                          => $payment_uuid,
+                    'branch'                                        => $branchId,
+                    'year'                                          => $year,
                     'folio'                                         => $folio,
                     'consecutive'                                   => $payment_consecutive,
                     'client'                                        => $client_id,
@@ -449,7 +499,20 @@ class POSService extends Service
                 $remaining_payment = $payment_amount;
                 if(count($_SESSION['cart']['products']) > 0) {
                     $year = date('Y');
-                    $c_aux = $this->foliosRepository->getConsecutive('venta', $year);
+                    $c_aux = $this->foliosRepository->getConsecutive([
+                        'type'                                  => 'venta',
+                        'branch'                                => $branchId,
+                        'year'                                  => $year
+                    ]);
+                    if(!$c_aux) {
+                        $c_aux = 0;
+                        $this->foliosRepository->insertConsecutive([
+                            'consecutive'                           => $c_aux,
+                            'type'                                  => 'venta',
+                            'branch'                                => $branchId,
+                            'year'                                  => $year
+                        ]);
+                    }
                     $sale_consecutive = $c_aux + 1;
                     $folio = 'V-' . str_pad((string) $sale_consecutive, 7, '0', STR_PAD_LEFT) . '/' . substr($year, -2);
 
@@ -460,8 +523,14 @@ class POSService extends Service
                     $product_sale_paid = 0;
                     $product_sale_balance_due = 0;
                     $sale_pending_status = $this->salesStatusRepository->getIdByCode('pendiente');
-                    $client_id = isset($_SESSION['cart']['client']) ? $this->clientsRepository->getClientId($this->uuidStringtoBinary($_SESSION['cart']['client'])) : null;
-                    $patient_id = isset($_SESSION['cart']['patient']) ? $this->patientsRepository->getPatientId($this->uuidStringtoBinary($_SESSION['cart']['patient'])) : null;
+                    $client_id = isset($_SESSION['cart']['client']) ? $this->clientsRepository->getClientId([
+                        'uuid'                                      => $this->uuidStringtoBinary($_SESSION['cart']['client']),
+                        'organization'                              => $organizationId
+                    ]) : null;
+                    $patient_id = isset($_SESSION['cart']['patient']) ? $this->patientsRepository->getPatientId([
+                        'uuid'                                      => $this->uuidStringtoBinary($_SESSION['cart']['patient']),
+                        'organization'                              => $organizationId
+                    ]) : null;
                     foreach($_SESSION['cart']['products'] as $ps) {
                         $product_sale_subtotal = $ps['subtotal'];
                         $product_sale_taxes = $ps['taxes'];
@@ -472,6 +541,8 @@ class POSService extends Service
 
                     $product_sale_id = $this->salesRepository->registerSale([
                         'uuid'                                      => $product_sale_uuid,
+                        'branch'                                    => $branchId,
+                        'year'                                      => $year,
                         'folio'                                     => $folio,
                         'consecutive'                               => $sale_consecutive,
                         'client'                                    => $client_id,
@@ -486,10 +557,19 @@ class POSService extends Service
                         'observations'                              => $data['observations'] ?? '',
                         'uid'                                       => $data['uid'],
                     ]);
+                    $this->foliosRepository->updateConsecutive([
+                        'consecutive'                           => $sale_consecutive,
+                        'type'                                  => 'venta',
+                        'branch'                                => $branchId,
+                        'year'                                  => $year
+                    ]);
 
                     foreach($_SESSION['cart']['products'] as $key => $ps) {
                         $product_sale_details_uuid = $this->generateUuidBinary();
-                        $product_id = $this->productsRepository->getProductId($this->uuidStringtoBinary($ps['id']));
+                        $product_id = $this->productsRepository->getProductId([
+                            'uuid'                              => $this->uuidStringtoBinary($ps['id']),
+                            'organization'                      => $organizationId
+                        ]);
                         $_SESSION['cart']['products'][$key]['sale_uuid'] = $product_sale_details_uuid;
                         $_SESSION['cart']['products'][$key]['sale_id'] = $this->salesRepository->registerSaleProductDetails([
                             'uuid'                                      => $product_sale_details_uuid,
@@ -619,7 +699,12 @@ class POSService extends Service
                         'uuid'                                          => $this->uuidStringtoBinary($_SESSION['cash_reconciliation']['id']),
                         'amount'                                        => $payment_amount,
                     ]);
-                $this->foliosRepository->updateConsecutive('pago', $year, $payment_consecutive);
+                $this->foliosRepository->updateConsecutive([
+                    'consecutive'                           => $payment_consecutive,
+                    'type'                                  => 'pago',
+                    'branch'                                => $branchId,
+                    'year'                                  => $year
+                ]);
                 $this->createEmptyCart();
                 $conn->commit();
             } catch (\Throwable $e) {
@@ -631,26 +716,29 @@ class POSService extends Service
         }
     }
 
-    private function validateCart($cart): bool {
-        if($cart->client != $_SESSION['cart']['client'])
+    private function validateCart(array $data): bool {
+        if($data['cart']->client != $_SESSION['cart']['client'])
             throw new RuntimeException("Los datos del cliente seleccionado no coinciden.");
-        if($cart->patient != $_SESSION['cart']['patient'])
+        if($data['cart']->patient != $_SESSION['cart']['patient'])
             throw new RuntimeException("Los datos del paciente seleccionado no coinciden.");
-        if(floatval($cart->balance_due) != floatval($_SESSION['cart']['balance_due']))
+        if(floatval($data['cart']->balance_due) != floatval($_SESSION['cart']['balance_due']))
             throw new RuntimeException('El adeudo no coincide.');
-        if(floatval($cart->payment_amount) > floatval($_SESSION['cart']['balance_due']))
+        if(floatval($data['cart']->payment_amount) > floatval($_SESSION['cart']['balance_due']))
             throw new RuntimeException("El pago no puede ser mayor al adeudo.");
         if(floatval($_SESSION['cart']['balance_due']) <= 0)
             throw new RuntimeException("El adeudo debe de ser mayor a 0.");
-        if(floatval($cart->payment_amount) <= 0)
+        if(floatval($data['cart']->payment_amount) <= 0)
             throw new RuntimeException("El pago debe de ser mayor a 0.");
-        foreach($cart->sales as $cs) {
+        foreach($data['cart']->sales as $cs) {
             $found = false;
             foreach($_SESSION['cart']['sales'] as $session_cs) {
                 if($session_cs['id'] == $cs->id) {
                     if($session_cs['balance_due'] != $cs->balance_due)
                         throw new RuntimeException("El monto de adeudos de las consultas no coincide.");
-                    $balance = $this->salesRepository->getSaleBalanceDue($this->uuidStringtoBinary($cs->id));
+                    $balance = $this->salesRepository->getSaleBalanceDue([
+                        'uuid'                          => $this->uuidStringtoBinary($cs->id),
+                        'branch'                        => $data['branch']
+                    ]);
                     if($balance != $session_cs['balance_due'])
                         throw new RuntimeException("Hubo cambios en los adeudos, inicia la venta de nuevo.");
                     $found = true;
@@ -660,14 +748,15 @@ class POSService extends Service
                 throw new RuntimeException("Las consultas agregadas no coinciden.");
         }
         $products_balance = 0;
-        foreach($cart->products as $ps) {
+        foreach($data['cart']->products as $ps) {
             $found = false;
             foreach($_SESSION['cart']['products'] as $session_ps) {
                 if($session_ps['id'] == $ps->id) {
                     if($session_ps['total'] != $ps->total)
                         throw new RuntimeException("El monto de los productos no coincide.");
                     $product_data = $this->productsRepository->getProductData([
-                        'uuid'                          => $this->uuidStringtoBinary($ps->id)
+                        'uuid'                          => $this->uuidStringtoBinary($ps->id),
+                        'organization'                  => $data['organization']
                     ]);
                     if($product_data['precio_total'] != $session_ps['unit_price'])
                         throw new RuntimeException("Hubo cambios en los costos del producto ".$session_ps['name'].", inicia la venta de nuevo.");
@@ -680,7 +769,7 @@ class POSService extends Service
             if(!$found)
                 throw new RuntimeException("Los productos agregados no coinciden.");
         }
-        if($cart->payment_amount < $products_balance) 
+        if($data['cart']->payment_amount < $products_balance) 
             throw new RuntimeException("Es necesario que el pago cubra el monto de los productos agregados");
         return true;
     }

@@ -48,8 +48,15 @@ class PaymentsRepository
                     ON p.registro = r.id
                 INNER JOIN cortes
                     ON p.corte = cortes.id
-            WHERE 1=1
+                LEFT JOIN sucursales s
+                    ON p.sucursal = s.id
+            WHERE 
         ";
+
+        if($data['search_by'] == 'branch')
+            $sql .= 'p.sucursal = :sucursal';
+        else 
+            $sql .= 's.empresa = :empresa';
 
         $params = [];
 
@@ -83,6 +90,10 @@ class PaymentsRepository
 
         if($data['status'] != 0)
             $stmt->bindValue(':status', $data['status'], PDO::PARAM_INT);
+        if($data['search_by'] == 'branch')
+            $stmt->bindValue(':sucursal', $data['branch'], PDO::PARAM_INT);
+        else 
+            $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_INT);
         $stmt->bindValue(':limit', $data['limit'], PDO::PARAM_INT);
         $stmt->bindValue(':offset', $data['offset'], PDO::PARAM_INT);
 
@@ -125,11 +136,15 @@ class PaymentsRepository
                     ON p.registro = r.id
                 INNER JOIN cortes
                     ON p.corte = cortes.id
+                LEFT JOIN sucursales s
+                    ON p.sucursal = s.id
             WHERE p.uuid = :uuid
+                AND s.empresa = :empresa
         ";
 
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_INT);
 
         $stmt->execute();
 
@@ -164,12 +179,16 @@ class PaymentsRepository
                             ON pvd.venta = v.id
                         INNER JOIN ventas_detalles vd
                             ON pvd.venta_detalle = vd.id
+                        INNER JOIN sucursales s
+                            ON p.sucursal = s.id
                     WHERE p.uuid = :uuid
+                        AND s.empresa = :empresa
                     ORDER BY v.folio
         ";
 
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_INT);
 
         $stmt->execute();
 
@@ -232,11 +251,15 @@ class PaymentsRepository
                             ON v.consulta = consultas.id
                         LEFT JOIN citas
                             ON v.cita = citas.id
+                        LEFT JOIN sucursales s
+                            ON p.sucursal = s.id
                     WHERE p.uuid = :uuid
+                        AND s.empresa = :empresa
         ";
 
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_INT);
 
         $stmt->execute();
 
@@ -276,7 +299,10 @@ class PaymentsRepository
                     ON p.registro = r.id
                 INNER JOIN cortes
                     ON p.corte = cortes.id
+                INNER JOIN sucursales s
+                    ON p.sucursal = s.id
             WHERE cortes.uuid = :uuid
+                AND s.empresa = :empresa
         ";
 
         $params = [];
@@ -303,9 +329,8 @@ class PaymentsRepository
         foreach ($params as $key => $value) {
             $stmt->bindValue(':' . $key, $value, PDO::PARAM_STR);
         }
-
         $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
-
+        $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_INT);
         $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -315,6 +340,8 @@ class PaymentsRepository
         $sql = "
             INSERT INTO pagos (
                 uuid,
+                sucursal,
+                ejercicio,
                 folio,
                 consecutivo,
                 cliente,
@@ -331,6 +358,8 @@ class PaymentsRepository
                 f_registro
             ) VALUES (
                 :uuid,
+                :sucursal,
+                :ejercicio,
                 :folio,
                 :consecutive,
                 :client,
@@ -351,6 +380,8 @@ class PaymentsRepository
         $stmt = $this->db->prepare($sql);
 
         $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':sucursal', $data['branch'], PDO::PARAM_INT);
+        $stmt->bindValue(':ejercicio', $data['year'], PDO::PARAM_INT);
         $stmt->bindValue(':folio', $data['folio'], PDO::PARAM_STR);
         $stmt->bindValue(':consecutive', $data['consecutive'], PDO::PARAM_INT);
         $stmt->bindValue(':client', $data['client'], PDO::PARAM_INT);

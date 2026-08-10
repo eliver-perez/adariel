@@ -52,14 +52,23 @@ class PaymentsController extends Controller
         return $this->repository;
     }
 
-    public function index(Request $request, Response $response) {
+    public function indexBranch(Request $request, Response $response) {
         try {
             $currentUserId = Auth::id();
 
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
+            $organizationId = Auth::organizationId();
 
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron registros de su empresa.");
+            }
+            $organizationBranchId = Auth::organizationBranchId();
+
+            if($organizationBranchId === null) {
+                throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
             $service = $this->getService();
 
             $search = trim((string)$this->request->query('search', ''));
@@ -72,11 +81,14 @@ class PaymentsController extends Controller
             $offset = max(0, $offset);
 
             $data = $service->getAll([
-                'search'                => $search !== '' ? $search : null,
-                'limit'                 => $limit,
-                'offset'                => $offset,
-                'status'                => $status,
-                'uid'                   => $currentUserId,
+                'searchBy'                  => 'branch',
+                'organizationId'            => $organizationId,
+                'branchId'                  => $organizationBranchId,
+                'search'                    => $search !== '' ? $search : null,
+                'limit'                     => $limit,
+                'offset'                    => $offset,
+                'status'                    => $status,
+                'uid'                       => $currentUserId,
             ]);
 
             return $response->json([
@@ -105,7 +117,16 @@ class PaymentsController extends Controller
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
+            $organizationId = Auth::organizationId();
 
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron registros de su empresa.");
+            }
+            $organizationBranchId = Auth::organizationBranchId();
+
+            if($organizationBranchId === null) {
+                throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
             $service = $this->getService();
 
             $search = trim((string)$this->request->query('search', ''));
@@ -117,6 +138,8 @@ class PaymentsController extends Controller
             $offset = max(0, $offset);
 
             $payment = $service->getPayment([
+                'organizationId'            => $organizationId,
+                'branchId'                  => $organizationBranchId,
                 'uuid'                      => $id,
                 'search'                    => $search !== '' ? $search : null,
                 'limit'                     => $limit,
@@ -149,10 +172,21 @@ class PaymentsController extends Controller
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
+            $organizationId = Auth::organizationId();
 
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron registros de su empresa.");
+            }
+            $organizationBranchId = Auth::organizationBranchId();
+
+            if($organizationBranchId === null) {
+                throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
             $service = $this->getService();
 
             $payment = $service->getPaymentReceipt([
+                'organizationId'            => $organizationId,
+                'branchId'                  => $organizationBranchId,
                 'uuid'                      => $id,
                 'uid'                       => $currentUserId,
             ]);

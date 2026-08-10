@@ -10,6 +10,7 @@ use App\Core\Request;
 use App\Core\Response;
 use App\Core\Database;
 use App\Repositories\OrganizationsRepository;
+use App\Repositories\ScheduleTemplatesRepository;
 use App\Repositories\UsersRepository;
 use App\Repositories\UsersTypesRepository;
 use App\Repositories\GenderRepository;
@@ -31,6 +32,7 @@ class OrganizationsController extends Controller
         $conn = $database->getConnection();
 
         $organizationsRepository = new OrganizationsRepository($conn);
+        $scheduleTemplatesRepository = new ScheduleTemplatesRepository($conn);
         $usersRepository = new UsersRepository($conn);
         $usersTypesRepository = new UsersTypesRepository($conn);
         $genderRepository = new GenderRepository($conn);
@@ -39,6 +41,7 @@ class OrganizationsController extends Controller
         $settingsRepository = new SettingsRepository($conn);
 
         return new OrganizationsService($organizationsRepository,
+                                        $scheduleTemplatesRepository,
                                         $usersRepository,
                                         $usersTypesRepository,
                                         $genderRepository,
@@ -172,6 +175,49 @@ class OrganizationsController extends Controller
             return $response->json([
                 'success' => false,
                 'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function myUsers(Request $request, Response $response) {
+        try {
+            $currentUserId = Auth::id();
+
+            if($currentUserId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
+
+            $organizationId = Auth::organizationId();
+
+            if($organizationId === null) {
+                throw new RuntimeException("Sin datos de empresa registrada.");
+            }
+            $active = (int)$this->request->query('active', 1);
+
+            $service = $this->getService();
+
+            $data = $service->getMyUsers([
+                'organizationId'                => $organizationId,
+                'active'                        => $active,
+                'uid'                           => $currentUserId,
+            ]);
+
+            return $response->json([
+                    'status' => 'OK',
+                    'data' => [
+                        'users' => $data
+                    ]
+                ], 200);
+        } catch (InvalidArgumentException | RuntimeException $e) {
+            return $response->json([
+                'status' => 'ERROR',
+                'message' => $e->getMessage()
+            ], 400);
+        } catch (Throwable $e) {
+            return $response->json([
+                'status' => 'ERROR',
+                'message' => 'No fue posible obtener los paciente.'
+                // 'message' => $e->getMessage()
             ], 500);
         }
     }

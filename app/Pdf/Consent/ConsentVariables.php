@@ -9,10 +9,10 @@ class ConsentVariables
     public static function previewValues(array $data): array
     {
         return [
-            '{{clinica}}' => self::e($data['clinic_name'] ?? 'Nombre de la Clínica'),
-            '{{domicilio-clinica}}' => self::e($data['clinic_address'] ?? 'Domicilio de la clínica'),
-            '{{telefono-clinica}}' => self::e($data['clinic_phone'] ?? 'Teléfono de la clínica'),
-            '{{email-clinica}}' => self::e($data['clinic_email'] ?? 'correo@clinica.com'),
+            '{{clinica}}' => self::e($data['clinic_name'] ?? 'Empresa'),
+            '{{domicilio-clinica}}' => self::e($data['clinic_address'] ?? 'Domicilio'),
+            '{{telefono-clinica}}' => self::e($data['clinic_phone'] ?? 'Teléfono'),
+            '{{email-clinica}}' => self::e($data['clinic_email'] ?? 'correo@adariel.com'),
 
             '{{paciente-nombre}}' => self::e($data['patient_name'] ?? 'Nombre del Paciente'),
             '{{paciente-edad}}' => self::e($data['patient_age'] ?? '00'),

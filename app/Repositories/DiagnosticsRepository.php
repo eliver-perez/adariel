@@ -51,25 +51,31 @@ class DiagnosticsRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getDiagnosticName($uuid): ?string {
+    public function getDiagnosticName(array $data): ?string {
         $stmt = $this->db->prepare("
             SELECT d.diagnostico
             FROM diagnosticos d
             WHERE d.uuid = :uuid
+                AND (empresa = :empresa
+                    OR empresa IS NULL)
         ");
-        $stmt->bindValue(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_INT);
         $stmt->execute();
 
         return $stmt->fetchColumn();
     }
 
-    public function getDiagnosticId(string $uuid): ?int {
+    public function getDiagnosticId(array $data): ?int {
         $stmt = $this->db->prepare("
             SELECT id
             FROM diagnosticos
             WHERE uuid = :uuid
+                AND (empresa = :empresa
+                    OR empresa IS NULL)
             LIMIT 1");
-        $stmt->bindValue(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_INT);
         $stmt->execute();
         $id = $stmt->fetchColumn();
 

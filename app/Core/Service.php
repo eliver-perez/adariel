@@ -190,6 +190,7 @@ abstract class Service
     }
 
     function uuidStringToBinary(string $uuid): string {
+        // die($uuid);
         return hex2bin(str_replace('-', '', $uuid));
     }
 

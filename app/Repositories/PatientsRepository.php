@@ -15,7 +15,7 @@ class PatientsRepository
         return $this->db;
     }
 
-    public function getAll(?string $search = null, int $limit = 10, int $offset = 0): array {
+    public function getAll(array $data): array {
         $sql = "
             SELECT
                 p.id,
@@ -37,7 +37,7 @@ class PatientsRepository
             FROM pacientes p
                 LEFT JOIN generos g
                     ON p.genero = g.id
-            WHERE 1 = 1
+            WHERE p.empresa = :empresa
         ";
 
         $params = [];
@@ -50,7 +50,7 @@ class PatientsRepository
         foreach ($fields as $i => $field) {
             $param = "search_$i";
             $conditions[] = "$field LIKE :$param";
-            $params[$param] = '%' . $search . '%';
+            $params[$param] = '%' . $data['search'] . '%';
         }
 
         $sql .= " AND (" . implode(' OR ', $conditions) . ")";
@@ -66,21 +66,24 @@ class PatientsRepository
             $stmt->bindValue(':' . $key, $value, PDO::PARAM_STR);
         }
 
-        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->bindValue(':empresa', $data['organizationId'], PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $data['limit'], PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $data['offset'], PDO::PARAM_INT);
 
         $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getPatientId($uuid): ?int {
+    public function getPatientId(array $data): ?int {
         $stmt = $this->db->prepare("
             SELECT id
             FROM pacientes
             WHERE uuid = :uuid
+                AND empresa = :empresa
             LIMIT 1");
-        $stmt->bindValue(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_INT);
         $stmt->execute();
         $id = $stmt->fetchColumn();
 
@@ -161,6 +164,7 @@ class PatientsRepository
         $stmt = $this->db->prepare("
             INSERT INTO pacientes (
                 uuid,
+                empresa,
                 nombre,
                 paterno,
                 materno,
@@ -182,6 +186,7 @@ class PatientsRepository
                 f_registro
             ) VALUES (
                 :uuid,
+                :empresa,
                 :nombre,
                 :paterno,
                 :materno,
@@ -206,6 +211,7 @@ class PatientsRepository
 
         $stmt->execute([
             'uuid'                          => $data['uuid'],
+            'empresa'                       => $data['organizationId'],
             'nombre'                        => $data['first_name'],
             'paterno'                       => $data['last_name'],
             'materno'                       => $data['last_name_2'],
@@ -233,8 +239,9 @@ class PatientsRepository
         $stmt = $this->db->prepare("
             INSERT INTO clientes (
                 uuid,
-                es_empresa,
                 empresa,
+                es_empresa,
+                razon_social,
                 nombre,
                 paterno,
                 materno,
@@ -254,6 +261,7 @@ class PatientsRepository
                 f_registro
             ) VALUES (
                 :uuid,
+                :empresa,
                 0,
                 '',
                 :nombre,
@@ -278,6 +286,7 @@ class PatientsRepository
 
         $stmt->execute([
             'uuid'                          => $data['uuid'],
+            'empresa'                       => $data['organizationId'],
             'nombre'                        => $data['first_name'],
             'paterno'                       => $data['last_name'],
             'materno'                       => $data['last_name_2'],

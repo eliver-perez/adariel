@@ -6,6 +6,8 @@ namespace App\Services;
 
 use App\Core\Service;
 use App\Repositories\PatientsRepository;
+use App\Repositories\ScheduleRepository;
+use App\Repositories\ScheduleTemplatesRepository;
 use App\Repositories\GenderRepository;
 use App\Repositories\LocationRepository;
 use App\Repositories\BillingRepository;
@@ -18,6 +20,8 @@ class PatientsService extends Service
 {
     public function __construct(
         private PatientsRepository $patientsRepository,
+        private ScheduleRepository $scheduleRepository,
+        private ScheduleTemplatesRepository $scheduleTemplatesRepository,
         private GenderRepository $genderRepository,
         private LocationRepository $locationRepository,
         private BillingRepository $billingRepository,
@@ -25,12 +29,17 @@ class PatientsService extends Service
     ) {
     }
 
-    public function getAll(?string $search = null, int $limit = 10, int $offset = 0): array {
+    public function getAll(array $data): array {
         try {
-            $data = $this->patientsRepository->getAll($search !== '' ? $search : null,
-                $limit,
-                $offset
-            );
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+            $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron registros de su empresa.');
+
+            $data = $this->patientsRepository->getAll([
+                'organizationId'                => $organizationId,
+                'search'                        => $data['search'],
+                'limit'                         => $data['limit'],
+                'offset'                        => $data['offset'],
+            ]);
             $patients = array();
 
             foreach($data as $d) {
@@ -55,6 +64,7 @@ class PatientsService extends Service
 
     public function create(array $data): ?array {
         $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+        $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron registros de su empresa.');
 
         $firstName = $this->normalizeRequiredText(
             $data['first_name'] ?? null,
@@ -130,8 +140,8 @@ class PatientsService extends Service
         $conn = $this->patientsRepository->getConnection();
         $conn->beginTransaction();
         try {
-            $patientPrefix = $settingsService->get('codigo_paciente', 'P');
-            $clientPrefix = $settingsService->get('codigo_cliente', 'C');
+            $patientPrefix = $settingsService->getGlobal('codigo_paciente', 'P');
+            $clientPrefix = $settingsService->getGlobal('codigo_cliente', 'C');
 
             $relationship = $this->patientsRepository->getRelationshipIdByCode('self');
 
@@ -142,6 +152,7 @@ class PatientsService extends Service
             $patientUuid = $this->generateUuidBinary();
             $patientId = $this->patientsRepository->insertPatient([
                     'uuid'                          => $patientUuid,
+                    'organizationId'                => $organizationId,
                     'first_name'                    => $firstName,
                     'last_name'                     => $lastName,
                     'last_name_2'                   => $lastName2,
@@ -172,6 +183,7 @@ class PatientsService extends Service
             $clientUuid = $this->generateUuidBinary();
             $clientId = $this->patientsRepository->insertClient([
                     'uuid'                          => $clientUuid,
+                    'organizationId'                => $organizationId,
                     'first_name'                    => $firstName,
                     'last_name'                     => $lastName,
                     'last_name_2'                   => $lastName2,

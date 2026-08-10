@@ -11,11 +11,11 @@
     <!-- Title -->
     <title><?= config('name'); ?> - Autenticaci&oacute;n</title>
     <link rel="icon" type="image/png" sizes="32x32"
-        href="<?= base_url('../template/'); ?>images/favicon.ico">
+        href="<?= base_url('template/'); ?>images/favicon.ico">
 
 
     <!-- inject:css-->
-    <link rel="stylesheet" href="<?= base_url('../template/'); ?>tailwind.css">
+    <link rel="stylesheet" href="<?= base_url('template/'); ?>tailwind.css">
     <!-- endinject -->
 
     <!-- Fonts -->
@@ -64,9 +64,9 @@
     </main>
 
 
-    <script src="<?= base_url('../template/'); ?>assets/theme_assets/js/sweetalert2.all.min.js"></script>
-    <script src="<?= base_url('../template/'); ?>assets/theme_assets/js/sweetalert.init.js"></script>
-    <script src="<?= base_url('../template/'); ?>assets/theme_assets/js/jquery-3.7.1.min.js"></script>
+    <script src="<?= base_url('template/'); ?>assets/theme_assets/js/sweetalert2.all.min.js"></script>
+    <script src="<?= base_url('template/'); ?>assets/theme_assets/js/sweetalert.init.js"></script>
+    <script src="<?= base_url('template/'); ?>assets/theme_assets/js/jquery-3.7.1.min.js"></script>
     <script src="<?= asset('js/sweetalert.js') ?>"></script>
     <script src="<?= asset('js/forms.js') ?>"></script>
     <script src="<?= asset('js/select-role/index.js') ?>"></script>

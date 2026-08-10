@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Core\Service;
 use App\Repositories\OrganizationsRepository;
+use App\Repositories\ScheduleTemplatesRepository;
 use App\Repositories\UsersRepository;
 use App\Repositories\UsersTypesRepository;
 use App\Repositories\GenderRepository;
@@ -20,6 +21,7 @@ class OrganizationsService extends Service
 {
     public function __construct(
         private OrganizationsRepository $organizationsRepository,
+        private ScheduleTemplatesRepository $scheduleTemplatesRepository,
         private UsersRepository $usersRepository,
         private UsersTypesRepository $usersTypesRepository,
         private GenderRepository $genderRepository,
@@ -82,7 +84,10 @@ class OrganizationsService extends Service
                 ));
             }
 
-            $users_data = $this->organizationsRepository->getOrganizationUsers($this->uuidStringToBinary($data['uuid']));
+            $users_data = $this->organizationsRepository->getOrganizationUsers([
+                'uuid'                          => $this->uuidStringToBinary($data['uuid']),
+                'active'                        => -1
+            ]);
             $users = array();
             foreach($users_data as $d) {
                 array_push($users, array(
@@ -234,6 +239,82 @@ class OrganizationsService extends Service
                 'user_type'                         => $userTypeId,
             ]);
 
+            $this->organizationsRepository->insertOrganizationSettings([
+                'organization'                      => $organizationId,
+                'uid'                               => $uid
+            ]);
+
+            $organizationSchedule = $settingsService->get('agenda_horario_empresa', $organizationId, '[]');
+            // die(var_dump($organizationSchedule));
+            // $schedule = json_decode($organizationSchedule, true);
+            $schedule = $organizationSchedule;
+
+            if (is_array($schedule)) {
+                $weekDays = [
+                    'lunes'     => 1,
+                    'martes'    => 2,
+                    'miercoles' => 3,
+                    'jueves'    => 4,
+                    'viernes'   => 5,
+                    'sabado'    => 6,
+                    'domingo'   => 7
+                ];
+
+                $scheduleTemplateUuid = $this->generateUuidBinary();
+                $scheduleTemplateId = $this->scheduleTemplatesRepository->insertScheduleTemplate([
+                    'uuid'                          => $scheduleTemplateUuid,
+                    'organization'                  => $organizationId,
+                    'template'                      => 'Horario general',
+                    'description'                   => 'Plantilla del horario general de la empresa.',
+                    'uid'                           => $uid
+                ]);
+
+                foreach ($weekDays as $dayName => $dayNumber) {
+                    if (!isset($schedule[$dayName])) {
+                        continue;
+                    }
+
+                    $dia = $schedule[$dayName];
+
+                    /*
+                    * Si el día está inactivo, no insertamos detalles.
+                    */
+                    if (empty($dia['activo'])) {
+                        continue;
+                    }
+
+                    if (
+                        !isset($dia['periodos']) ||
+                        !is_array($dia['periodos'])
+                    ) {
+                        continue;
+                    }
+
+                    foreach ($dia['periodos'] as $periodo) {
+
+                        if (
+                            empty($periodo['inicio']) ||
+                            empty($periodo['fin'])
+                        ) {
+                            continue;
+                        }
+
+                        $scheduleTemplateDetailUuid = $this->generateUuidBinary();
+
+                        $startTime = $periodo['inicio'];
+                        $endTime = $periodo['fin'];
+
+                        $this->scheduleTemplatesRepository->insertScheduleTemplateDetails([
+                            'uuid'                      => $scheduleTemplateDetailUuid,
+                            'template'                  => $scheduleTemplateId,
+                            'day_week'                  => $dayNumber,
+                            'start'                     => $this->timeToMinutes($startTime),
+                            'end'                       => $this->timeToMinutes($endTime)
+                        ]);
+                    }
+                }
+            }
+
             $conn->commit();
 
             return [
@@ -243,6 +324,36 @@ class OrganizationsService extends Service
             if ($conn->inTransaction()) {
                 $conn->rollBack();
             }
+            throw $e;
+        }
+    }
+
+    public function getMyUsers(array $data): ?array {
+        try {
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+            $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de empresa.');
+            $active = $this->normalizeOptionalInt($data['active'] ?? null, true);
+
+            $data = $this->organizationsRepository->getOrganizationUsersById([
+                'organizationId'                => $organizationId,
+                'active'                        => $active,
+            ]);
+            $users = array();
+
+            foreach($data as $d) {
+                array_push($users, array(
+                    'id'                        => $this->uuidBinaryToString($d['uuid']),
+                    'email'                     => $d['email'],
+                    'name'                      => $d['nombre'],
+                    'type'                      => $d['tipo'],
+                    'active'                    => $d['activo'],
+                    'registered_by'             => $d['registro'],
+                    'registered_date'           => $d['f_registro'],
+                ));
+            }
+
+            return $users;
+        } catch (\Throwable $e) {
             throw $e;
         }
     }

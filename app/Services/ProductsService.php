@@ -17,9 +17,17 @@ class ProductsService extends Service
     ) {
     }
 
-    public function getAll($search, $limit, $offset): array {
+    public function getAll(array $data): array {
         try {
-            $data = $this->productsRepository->getAll($search, $limit, $offset);
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+            $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron registros de su empresa.');
+            
+            $data = $this->productsRepository->getAll([
+                'organizationId'                => $organizationId,
+                'search'                        => $data['search'],
+                'limit'                         => $data['limit'],
+                'offset'                        => $data['offset'],
+            ]);
             $procedures = array();
 
             foreach($data as $d) {
@@ -40,15 +48,20 @@ class ProductsService extends Service
         }
     }
 
-    public function getCategories(): array {
+    public function getCategories(array $data): array {
         try {
-            $data = $this->productsRepository->getCategories();
-            $categories = array();
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+            $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron registros de su empresa.');
 
+            $data = $this->productsRepository->getCategories([
+                'organizationId'                => $organizationId,
+            ]);
+            $categories = array();
             foreach($data as $d) {
                 array_push($categories, array(
-                    'id'                        => $d['id'],
-                    'category'                  => $d['categoria'],
+                    'organizationId'            => $organizationId,
+                    'id'                        => $this->uuidBinaryToString($d['uuid']),
+                    'category'                  => $d['categoria']
                 ));
             }
 
@@ -60,9 +73,10 @@ class ProductsService extends Service
 
     public function create(array $data): ?string {
         $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+        $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron registros de su empresa.');
         $code = $this->normalizeOptionalText(trim($data['code'] ?? ''));
         $bar_code = $this->normalizeOptionalText(trim($data['bar_code'] ?? ''));
-        $category = $this->normalizeRequiredInt($data['category'] ?? null, 'Es necesario seleccionar una categoria.');
+        $category = $this->normalizeRequiredText($data['category'] ?? null, 'Es necesario seleccionar una categoria.');
         $product = $this->normalizeRequiredText($data['product'] ?? null, 'Es necesario capturar el nombre del producto.');
         $description = $this->normalizeOptionalText(trim($data['description'] ?? ''));
         $unit_measure = $this->normalizeRequiredText($data['unit_measure'] ?? null, 'Es necesario seleccionar la unidad de medida.');
@@ -72,17 +86,22 @@ class ProductsService extends Service
         $total_cost = $this->normalizeRequiredFloat($data['total_cost'] ?? null, 'Es necesario capturar el precio del producto.');
         $enable_sale = $this->normalizeRequiredInt($data['enable_sale'] ?? null, 'Es necesario seleccionar si se habilita para venta.');
 
+        $categoryId = $this->productsRepository->getProductCategoryId($this->uuidStringToBinary($category));
+        if($categoryId == null)
+            throw new \RuntimeException('Ocurrio un error con la categoria.');
+
         $conn = $this->productsRepository->getConnection();
         $conn->beginTransaction();
         try {
             $productUuid = $this->generateUuidBinary();
             $productId = $this->productsRepository->insert([
                 'uuid'                          => $productUuid,
+                'organizationId'                => $organizationId,
                 'code'                          => $code,
                 'bar_code'                      => $bar_code,
                 'product'                       => $product,
                 'product_short'                 => strlen($product) > 32 ? substr($product, 0, 32) : $product,
-                'category'                      => $category,
+                'category'                      => $categoryId,
                 'description'                   => $description,
                 'unit_measure'                  => $unit_measure,
                 'base_cost'                     => $base_cost,

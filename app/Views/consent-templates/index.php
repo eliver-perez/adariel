@@ -403,7 +403,7 @@
     </div>
 </div>
 
-<script src="<?= base_url('../template/assets/vendor_assets/js/quill.js'); ?>"></script>
+<script src="<?= base_url('template/assets/vendor_assets/js/quill.js'); ?>"></script>
 <script src="<?= asset('js/consent-templates/index.js'); ?>"></script>
 
 <script>

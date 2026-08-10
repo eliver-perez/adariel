@@ -12,13 +12,13 @@ function InitializeValues(home) {
 		$('#receipt-preview').attr('src', '');
 		generated_report_id = '';
 	});
-	$('#select-filter-sales-status').on('change', GetSales);
+	$('#select-filter-sales-status').on('change', GetBranchSales);
 	$('#field-filter-sales-search').on('keyup', function(e) {
 		if($('#field-filter-sales-search').val() != searchValue) {
 			searchValue = $('#field-filter-sales-search').val();
 			clearTimeout(searchTimer);
 			searchTimer = setTimeout(function () {
-				GetSales();
+				GetBranchSales();
 			}, 500);
 		}
 	});
@@ -59,10 +59,10 @@ function GetSalesStatus() {
 	});
 }
 
-function GetSales() {
+function GetBranchSales() {
 	$('#table-sales tbody').empty();
 	$.ajax({
-        url: `${homeURL}/api/sales`,
+        url: `${homeURL}/api/sales-branch`,
 		type: 'get',
 		data: {
 			search: $('#field-filter-sales-search').val(),

@@ -5,26 +5,54 @@
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-   <link rel="icon" type="image/png" sizes="32x32" href="images/favicon.ico">
+   <link rel="shortcut icon" type="image/x-icon" href="<?= asset('images/favicon/favicon.ico'); ?>" />
+   <link rel="icon" type="image/png" sizes="16x16" href="<?= asset('images/favicon/favicon-16x16.png'); ?>" />
+   <link rel="icon" type="image/png" sizes="32x32" href="<?= asset('images/favicon/favicon-32x32.png'); ?>" />
+   <link rel="icon" type="image/png" sizes="96x96" href="<?= asset('images/favicon/favicon-96x96.png'); ?>" />
+
+   <link rel="apple-touch-icon" sizes="57x57" href="<?= asset('images/favicon/apple-57x57-touch-icon.png'); ?>" />
+   <link rel="apple-touch-icon" sizes="60x60" href="<?= asset('images/favicon/apple-60x60-touch-icon.png'); ?>" />
+   <link rel="apple-touch-icon" sizes="72x72" href="<?= asset('images/favicon/apple-72x72-touch-icon.png'); ?>" />
+   <link rel="apple-touch-icon" sizes="76x76" href="<?= asset('images/favicon/apple-76x76-touch-icon.png'); ?>" />
+   <link rel="apple-touch-icon" sizes="114x114" href="<?= asset('images/favicon/apple-114x114-touch-icon.png'); ?>" />
+   <link rel="apple-touch-icon" sizes="120x120" href="<?= asset('images/favicon/apple-120x120-touch-icon.png'); ?>" />
+   <link rel="apple-touch-icon" sizes="144x144" href="<?= asset('images/favicon/apple-144x144-touch-icon.png'); ?>" />
+   <link rel="apple-touch-icon" sizes="152x152" href="<?= asset('images/favicon/apple-152x152-touch-icon.png'); ?>" />
+   <link rel="apple-touch-icon" sizes="180x180" href="<?= asset('images/favicon/apple-180x180-touch-icon.png'); ?>" />
+   <link rel="icon" type="image/png" sizes="196x196" href="<?= asset('images/favicon/android-chrome-196x196.png'); ?>" />
+   <link rel="icon" type="image/png" href="<?= asset('images/favicon/android-chrome-192x192.png'); ?>" sizes="192x192" type="image/png">
+   <link rel="icon" type="image/png" href="<?= asset('images/favicon/android-chrome-256x256.png'); ?>" sizes="256x256" type="image/png">
+   <link rel="icon" type="image/png" href="<?= asset('images/favicon/android-chrome-384x384.png'); ?>" sizes="384x384" type="image/png">
+   <link rel="icon" type="image/png" href="<?= asset('images/favicon/android-chrome-512x512.png'); ?>" sizes="512x512" type="image/png">
+
+
+   <meta name="theme-color" content="#0099cc" />
+   
+   <meta name="msapplication-TileColor" content="#0099cc" />
+   <meta name="msapplication-TileImage" content="<?= asset('images/favicon/windows-tile.png'); ?>">
+   <meta name="msapplication-square70x70logo" content="<?= asset('images/favicon/windows-small-tile.png'); ?>" />
+   <meta name="msapplication-square150x150logo" content="<?= asset('images/favicon/windows-medium-tile.png'); ?>" />
+   <meta name="msapplication-wide310x150logo" content="<?= asset('images/favicon/windows-wide-tile.png'); ?>" />
+   <meta name="msapplication-square310x310logo" content="<?= asset('images/favicon/windows-large-tile.png'); ?>" />
    <title><?php echo config('name'); ?></title>
 
    <!-- inject:css-->
-   <link rel="stylesheet" href="<?= base_url('../template/assets/vendor_assets/css/apexcharts.min.css'); ?>">
-   <link rel="stylesheet" href="<?= base_url('../template/assets/vendor_assets/css/datepicker.css'); ?>">
-   <link rel="stylesheet" href="<?= base_url('../template/assets/vendor_assets/css/line-awesome.min.css'); ?>">
-   <link rel="stylesheet" href="<?= base_url('../template/assets/vendor_assets/css/nouislider.min.css'); ?>">
-   <link rel="stylesheet" href="<?= base_url('../template/assets/vendor_assets/css/quill.snow.css'); ?>">
-   <link rel="stylesheet" href="<?= base_url('../template/assets/vendor_assets/css/svgMap.min.css'); ?>">
-   <link rel="stylesheet" href="<?= base_url('../template/assets/vendor_assets/css/global.css'); ?>">
-   <link rel="stylesheet" href="<?= base_url('../template/tailwind.css'); ?>">
+   <link rel="stylesheet" href="<?= base_url('template/assets/vendor_assets/css/apexcharts.min.css'); ?>">
+   <link rel="stylesheet" href="<?= base_url('template/assets/vendor_assets/css/datepicker.css'); ?>">
+   <link rel="stylesheet" href="<?= base_url('template/assets/vendor_assets/css/line-awesome.min.css'); ?>">
+   <link rel="stylesheet" href="<?= base_url('template/assets/vendor_assets/css/nouislider.min.css'); ?>">
+   <link rel="stylesheet" href="<?= base_url('template/assets/vendor_assets/css/quill.snow.css'); ?>">
+   <link rel="stylesheet" href="<?= base_url('template/assets/vendor_assets/css/svgMap.min.css'); ?>">
+   <link rel="stylesheet" href="<?= base_url('template/assets/vendor_assets/css/global.css'); ?>">
+   <link rel="stylesheet" href="<?= base_url('template/tailwind.css'); ?>">
    <!-- endinject -->
 
    <!-- Fonts -->
-   <link rel="stylesheet" href="<?= base_url('../template/assets/theme_assets/fonts/jost/jost.css'); ?>">
+   <link rel="stylesheet" href="<?= base_url('template/assets/theme_assets/fonts/jost/jost.css'); ?>">
    <!-- <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet"> -->
    <!-- Icons -->
    <!-- <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css"> -->
-   <link rel="stylesheet" href="<?= base_url('../template/assets/theme_assets/css/line.css'); ?>">
+   <link rel="stylesheet" href="<?= base_url('template/assets/theme_assets/css/line.css'); ?>">
 </head>
 
 <body class=" bg-white [&.dark]:bg-main-dark font-jost relative text-[15px] font-normal leading-[1.5] m-0 p-0">
@@ -167,7 +195,7 @@
                   <span class="slug dark:text-white/40 mb-[10px] mt-[30px] block px-6 text-[12px] font-medium uppercase text-light">CLINICA</span>
                </li>
             <?php } ?>
-            <?php if($session->verifyUserRights(['citas-atender'])) { ?>
+            <?php if($session->verifyUserRights(['gerente-general', 'citas-atender'])) { ?>
                <li class="relative">
                   <a href="<?= base_url('consultations'); ?>" class="rounded-e-[20px] hover:bg-primary/10 focus:bg-primary/10 active:bg-primary/10 dark:text-subtitle-dark flex h-12 cursor-pointer items-center gap-[16px] truncate px-6 py-4 text-[14px] font-medium text-body outline-none transition duration-300 ease-linear hover:text-primary dark:hover:text-title-dark hover:outline-none focus:text-primary dark:focus:text-title-dark focus:outline-none active:text-primary active:outline-none [&.active]:text-primary dark:[&.active]:text-title-dark  motion-reduce:transition-none dark:hover:bg-box-dark-up dark:focus:bg-box-dark-up dark:active:bg-box-dark-up group capitalize ">
                      <span class="nav-icon dark:text-subtitle-dark text-[18px] text-light-extra  group-hover:text-current group-[&.active]:text-current group-focus:text-current">
@@ -337,8 +365,8 @@
                   <div class="flex md:w-[190px] xs:w-[170px] max-xs:w-[100px] max-md:pe-[30px] max-xs:pe-[15px] border-e border-[#edf2f9] dark:border-box-dark-up logo-wrapper items-center h-[71px] dark:bg-box-dark-up">
                      <a href="<?= base_url(''); ?>" class="block text-center">
                         <div class="logo-full">
-                           <img class="md:ps-[15px] dark:hidden" src="<?= base_url('../template/images/logos/logo-dark.png'); ?>" alt="Logo">
-                           <img class="md:ps-[15px] hidden dark:block" src="<?= base_url('../template/images/logos/logo-white.png'); ?>" alt="Logo">
+                           <img class="md:ps-[15px] dark:hidden" src="<?= base_url('template/images/logos/logo-dark.png'); ?>" alt="Logo">
+                           <img class="md:ps-[15px] hidden dark:block" src="<?= base_url('template/images/logos/logo-white.png'); ?>" alt="Logo">
                         </div>
                      </a>
                   </div>
@@ -382,7 +410,7 @@
                      <div class="relative" data-te-dropdown-ref>
                         <button type="button" id="author-dropdown" data-te-dropdown-toggle-ref aria-expanded="false" class="flex items-center me-1.5 text-body dark:text-subtitle-dark text-sm font-medium rounded-full md:me-0 group whitespace-nowrap">
                            <span class="sr-only">Men&uacute; de Usuario</span>
-                           <img class="min-w-[32px] w-8 h-8 rounded-full xl:me-2" src="<?= base_url('../template/images/avatars/thumbs.png'); ?>" alt="user photo">
+                           <img class="min-w-[32px] w-8 h-8 rounded-full xl:me-2" src="<?= base_url('template/images/avatars/thumbs.png'); ?>" alt="user photo">
                            <span class="hidden xl:block"><?php echo $_SESSION['ADARIEL_ERP_EMAIL']; ?></span>
                            <i class="uil uil-angle-down text-light dark:text-subtitle-dark text-[18px] hidden xl:block"></i>
                         </button>
@@ -391,7 +419,7 @@
                         <div class="absolute z-[1000] ltr:float-left rtl:float-right m-0 hidden min-w-max list-none overflow-hidden rounded-lg border-none bg-white bg-clip-padding text-left text-base shadow-lg dark:shadow-boxLargeDark dark:bg-box-dark-down  [&[data-te-dropdown-show]]:block" aria-labelledby="author-dropdown" data-te-dropdown-menu-ref>
                            <div class="min-w-[310px] max-sm:min-w-full pt-4 px-[15px] py-[12px] bg-white dark:bg-box-dark shadow-[0_2px_8px_rgba(0,0,0,.15)] dark:shadow-[0_5px_30px_rgba(1,4,19,.60)] rounded-4">
                               <figure class="flex items-center text-sm rounded-[8px] bg-section dark:bg-box-dark-up py-[20px] px-[25px] mb-[12px] gap-[15px]">
-                                 <img class="w-8 h-8 rounded-full bg-regular" src="<?= base_url('../template/images/avatars/thumbs.png'); ?>" alt="user">
+                                 <img class="w-8 h-8 rounded-full bg-regular" src="<?= base_url('template/images/avatars/thumbs.png'); ?>" alt="user">
                                  <figcaption>
                                     <div class="text-dark dark:text-title-dark mb-0.5 text-sm"><?php echo $_SESSION['ADARIEL_ERP_EMAIL']; ?></div>
                                     <div class="mb-0 text-xs font-medium dark:text-subtitle-dark"><?php echo $_SESSION['ADARIEL_ERP_ORGANIZATION']; ?></div>

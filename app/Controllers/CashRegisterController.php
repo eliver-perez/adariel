@@ -49,10 +49,23 @@ class CashRegisterController extends Controller
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
+            $organizationId = Auth::organizationId();
 
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron registros de su empresa.");
+            }
+            $organizationBranchId = Auth::organizationBranchId();
+
+            if($organizationBranchId === null) {
+                throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
             $service = $this->getService();
 
-            $cash_registers = $service->getAll();
+            $cash_registers = $service->getAll([
+                'organizationId'                => $organizationId,
+                'branchId'                      => $organizationBranchId,
+                'uid'                           => $currentUserId,
+            ]);
 
             return $response->json([
                     'success' => true,

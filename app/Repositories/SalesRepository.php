@@ -15,7 +15,7 @@ class SalesRepository
         return $this->db;
     }
 
-    public function getAll(?string $search = null, int $limit = 10, int $offset = 0, int $status = 0): array {
+    public function getAll(array $data): array {
         $sql = "
             SELECT
                 v.id,
@@ -59,8 +59,15 @@ class SalesRepository
                     ON v.estatus = ve.id
                 INNER JOIN usuarios r
                     ON v.registro = r.id
-            WHERE 1 = 1 
+                LEFT JOIN sucursales s
+                    ON v.sucursal = s.id
+            WHERE 
         ";
+
+        if($data['search_by'] == 'branch')
+            $sql .= 'v.sucursal = :sucursal';
+        else 
+            $sql .= 's.empresa = :empresa';
 
         $params = [];
 
@@ -82,12 +89,12 @@ class SalesRepository
         foreach ($fields as $i => $field) {
             $param = "search_$i";
             $conditions[] = "$field LIKE :$param";
-            $params[$param] = '%' . $search . '%';
+            $params[$param] = '%' . $data['search'] . '%';
         }
 
         $sql .= " AND (" . implode(' OR ', $conditions) . ")";
 
-        if($status != 0)
+        if($data['status'] != 0)
             $sql .= "
                 AND v.estatus = :status";
 
@@ -102,10 +109,14 @@ class SalesRepository
             $stmt->bindValue(':' . $key, $value, PDO::PARAM_STR);
         }
 
-        if($status != 0)
-            $stmt->bindValue(':status', $status, PDO::PARAM_INT);
-        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        if($data['status'] != 0)
+            $stmt->bindValue(':status', $data['status'], PDO::PARAM_INT);
+        if($data['search_by'] == 'branch')
+            $stmt->bindValue(':sucursal', $data['branch'], PDO::PARAM_INT);
+        else 
+            $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $data['limit'], PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $data['offset'], PDO::PARAM_INT);
 
         $stmt->execute();
 
@@ -116,7 +127,9 @@ class SalesRepository
         $sql = "
             INSERT INTO ventas (
                 uuid,
+                sucursal,
                 folio,
+                ejercicio,
                 consecutivo,
                 consulta,
                 cita,
@@ -136,7 +149,9 @@ class SalesRepository
             )
             SELECT 
                 :uuid,
+                c.sucursal,
                 :folio,
+                :year,
                 :consecutive,
                 c.id,
                 c.cita,
@@ -161,12 +176,14 @@ class SalesRepository
                         AND cp.principal = 1
                         AND cp.activo = 1
             WHERE c.uuid = :consultation_uuid
+                AND c.sucursal = :sucursal
         ";
 
         $stmt = $this->db->prepare($sql);
 
         $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
         $stmt->bindValue(':folio', $data['folio'], PDO::PARAM_STR);
+        $stmt->bindValue(':year', $data['year'], PDO::PARAM_INT);
         $stmt->bindValue(':consecutive', $data['consecutive'], PDO::PARAM_INT);
         $stmt->bindValue(':subtotal', $data['total'], PDO::PARAM_STR);
         $stmt->bindValue(':total', $data['total'], PDO::PARAM_STR);
@@ -176,6 +193,7 @@ class SalesRepository
         $stmt->bindValue(':observations', $data['observations'], PDO::PARAM_STR);
         $stmt->bindValue(':uid', $data['uid'], PDO::PARAM_INT);
         $stmt->bindValue(':consultation_uuid', $data['consultation_uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':sucursal', $data['branch'], PDO::PARAM_INT);
 
         $stmt->execute();
 
@@ -243,6 +261,8 @@ class SalesRepository
         $sql = "
             INSERT INTO ventas (
                 uuid,
+                sucursal,
+                ejercicio,
                 folio,
                 consecutivo,
                 consulta,
@@ -263,6 +283,8 @@ class SalesRepository
             )
             VALUES (
                 :uuid,
+                :branch,
+                :year,
                 :folio,
                 :consecutive,
                 NULL,
@@ -286,6 +308,8 @@ class SalesRepository
         $stmt = $this->db->prepare($sql);
 
         $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':branch', $data['branch'], PDO::PARAM_INT);
+        $stmt->bindValue(':year', $data['year'], PDO::PARAM_INT);
         $stmt->bindValue(':folio', $data['folio'], PDO::PARAM_STR);
         $stmt->bindValue(':consecutive', $data['consecutive'], PDO::PARAM_INT);
         $stmt->bindValue(':client', $data['client'], PDO::PARAM_INT);
@@ -371,7 +395,7 @@ class SalesRepository
         return $this->db->lastInsertId();
     }
 
-    public function getSaleData($uuid) {
+    public function getSaleData(array $data) {
         $stmt = $this->db->prepare("
             SELECT v.id,
                 v.uuid,
@@ -415,21 +439,22 @@ class SalesRepository
                 INNER JOIN usuarios u
                     ON v.registro = u.id
             WHERE v.uuid = :uuid
+                AND v.sucursal = :sucursal
             LIMIT 1");
-        $stmt->bindValue(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':sucursal', $data['branch'], PDO::PARAM_INT);
         $stmt->execute();
         $row = $stmt->fetch();
 
         return $row !== false ? $row : null;
     }
 
-    public function getSaleDetails($uuid) {
+    public function getSaleDetails(array $data) {
         $stmt = $this->db->prepare("
             SELECT vd.id,
                 vd.uuid,
                 s.id servicio_id,
                 s.uuid servicio_uuid,
-                s.codigo servicio_codigo,
                 s.servicio,
                 p.id producto_id,
                 p.uuid producto_uuid,
@@ -452,23 +477,27 @@ class SalesRepository
                 LEFT JOIN productos p
                     ON vd.producto = p.id
             WHERE v.uuid = :uuid
+                AND v.sucursal = :sucursal
         ");
 
-        $stmt->bindValue(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':sucursal', $data['branch'], PDO::PARAM_INT);
         $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getSaleBalanceDue($uuid): float {
+    public function getSaleBalanceDue(array $data): float {
         $stmt = $this->db->prepare("
             SELECT 
                 v.adeudo
             FROM ventas v
             WHERE v.uuid = :uuid
+                AND v.sucursal = :sucursal
         ");
 
-        $stmt->bindValue(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':sucursal', $data['branch'], PDO::PARAM_LOB);
         $stmt->execute();
 
         $balance_due = $stmt->fetchColumn();

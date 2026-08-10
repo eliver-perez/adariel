@@ -10,12 +10,39 @@
 
     <!-- Title -->
     <title><?= config('name'); ?> - Autenticaci&oacute;n</title>
-    <link rel="icon" type="image/png" sizes="32x32"
-        href="<?= base_url('../template/'); ?>images/favicon.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="<?= asset('images/favicon/favicon.ico'); ?>" />
+    <link rel="icon" type="image/png" sizes="16x16" href="<?= asset('images/favicon/favicon-16x16.png'); ?>" />
+    <link rel="icon" type="image/png" sizes="32x32" href="<?= asset('images/favicon/favicon-32x32.png'); ?>" />
+    <link rel="icon" type="image/png" sizes="96x96" href="<?= asset('images/favicon/favicon-96x96.png'); ?>" />
+
+    <link rel="apple-touch-icon" sizes="57x57" href="<?= asset('images/favicon/apple-57x57-touch-icon.png'); ?>" />
+    <link rel="apple-touch-icon" sizes="60x60" href="<?= asset('images/favicon/apple-60x60-touch-icon.png'); ?>" />
+    <link rel="apple-touch-icon" sizes="72x72" href="<?= asset('images/favicon/apple-72x72-touch-icon.png'); ?>" />
+    <link rel="apple-touch-icon" sizes="76x76" href="<?= asset('images/favicon/apple-76x76-touch-icon.png'); ?>" />
+    <link rel="apple-touch-icon" sizes="114x114" href="<?= asset('images/favicon/apple-114x114-touch-icon.png'); ?>" />
+    <link rel="apple-touch-icon" sizes="120x120" href="<?= asset('images/favicon/apple-120x120-touch-icon.png'); ?>" />
+    <link rel="apple-touch-icon" sizes="144x144" href="<?= asset('images/favicon/apple-144x144-touch-icon.png'); ?>" />
+    <link rel="apple-touch-icon" sizes="152x152" href="<?= asset('images/favicon/apple-152x152-touch-icon.png'); ?>" />
+    <link rel="apple-touch-icon" sizes="180x180" href="<?= asset('images/favicon/apple-180x180-touch-icon.png'); ?>" />
+    <link rel="icon" type="image/png" sizes="196x196" href="<?= asset('images/favicon/android-chrome-196x196.png'); ?>" />
+    <link rel="icon" type="image/png" href="<?= asset('images/favicon/android-chrome-192x192.png'); ?>" sizes="192x192" type="image/png">
+    <link rel="icon" type="image/png" href="<?= asset('images/favicon/android-chrome-256x256.png'); ?>" sizes="256x256" type="image/png">
+    <link rel="icon" type="image/png" href="<?= asset('images/favicon/android-chrome-384x384.png'); ?>" sizes="384x384" type="image/png">
+    <link rel="icon" type="image/png" href="<?= asset('images/favicon/android-chrome-512x512.png'); ?>" sizes="512x512" type="image/png">
+
+
+    <meta name="theme-color" content="#0099cc" />
+    
+    <meta name="msapplication-TileColor" content="#0099cc" />
+    <meta name="msapplication-TileImage" content="<?= asset('images/favicon/windows-tile.png'); ?>">
+    <meta name="msapplication-square70x70logo" content="<?= asset('images/favicon/windows-small-tile.png'); ?>" />
+    <meta name="msapplication-square150x150logo" content="<?= asset('images/favicon/windows-medium-tile.png'); ?>" />
+    <meta name="msapplication-wide310x150logo" content="<?= asset('images/favicon/windows-wide-tile.png'); ?>" />
+    <meta name="msapplication-square310x310logo" content="<?= asset('images/favicon/windows-large-tile.png'); ?>" />
 
 
     <!-- inject:css-->
-    <link rel="stylesheet" href="<?= base_url('../template/'); ?>tailwind.css">
+    <link rel="stylesheet" href="<?= base_url('template/'); ?>tailwind.css">
     <!-- endinject -->
 
     <!-- Fonts -->
@@ -116,9 +143,9 @@
     </main>
 
 
-    <script src="<?= base_url('../template/'); ?>assets/theme_assets/js/sweetalert2.all.min.js"></script>
-    <script src="<?= base_url('../template/'); ?>assets/theme_assets/js/sweetalert.init.js"></script>
-    <script src="<?= base_url('../template/'); ?>assets/theme_assets/js/jquery-3.7.1.min.js"></script>
+    <script src="<?= base_url('template/'); ?>assets/theme_assets/js/sweetalert2.all.min.js"></script>
+    <script src="<?= base_url('template/'); ?>assets/theme_assets/js/sweetalert.init.js"></script>
+    <script src="<?= base_url('template/'); ?>assets/theme_assets/js/jquery-3.7.1.min.js"></script>
     <script src="<?= asset('js/sweetalert.js') ?>"></script>
     <script src="<?= asset('js/sha512.js') ?>"></script>
     <script src="<?= asset('js/forms.js') ?>"></script>

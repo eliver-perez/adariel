@@ -175,32 +175,35 @@ function GetTemplates() {
 		contentType: false,
 		dataType: "json",
 		success: function(response) {
-			$.each(response.data.templates, function(k, v) {
-				$('#table-templates').find('tbody').append(`<tr id="tr-template-${v.id}" onclick="javascript:SelectTemplate('${v.id}');" class="transition duration-300 ease-in-out border-b hover:bg-neutral-100 dark:border-neutral-500 dark:hover:bg-neutral-600 cursor-pointer">
-																<td class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-																	<span class="font-medium capitalize text-dark dark:text-title-dark text-15">${v.template_name}</span>
-																</td>
-																<td class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-																	${v.version}
-																</td>
-																<td class="td-template-status px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-																	${v.status}
-																</td>
-																<td class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-																	${v.registered_by}
-																</td>
-																<td class="px-4 py-2.5 font-normal last:text-start capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-																	${v.registered_date}
-																</td>
-															</tr>`);
-			});
+			if(response.success) {
+				$.each(response.data.templates, function(k, v) {
+					$('#table-templates').find('tbody').append(`<tr id="tr-template-${v.id}" onclick="javascript:SelectTemplate('${v.id}');" class="transition duration-300 ease-in-out border-b hover:bg-neutral-100 dark:border-neutral-500 dark:hover:bg-neutral-600 cursor-pointer">
+																	<td class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
+																		<span class="font-medium capitalize text-dark dark:text-title-dark text-15">${v.template_name}</span>
+																	</td>
+																	<td class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
+																		${v.version}
+																	</td>
+																	<td class="td-template-status px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
+																		${v.status}
+																	</td>
+																	<td class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
+																		${v.registered_by}
+																	</td>
+																	<td class="px-4 py-2.5 font-normal last:text-start capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
+																		${v.registered_date}
+																	</td>
+																</tr>`);
+				});
+			}
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
-			console.log('STATUS:', textStatus);
-			console.log('ERROR:', errorThrown);
-			console.log('RESPONSE TEXT:', XMLHttpRequest.responseText);
-
-			alert(XMLHttpRequest.responseText);
+			try {
+				let response = JSON.parse(XMLHttpRequest.responseText);
+				ShowToastMessage(response.message, 'error')
+			} catch(e) {
+				ShowToastMessage(XMLHttpRequest.responseText, 'error');
+			}
 		}  
 	});
 }
@@ -214,32 +217,41 @@ function SelectTemplate(id) {
 			type: 'get',
 			dataType: "json",
 			success: function(response) {
-				if($('#accordion-sector-datos-generales').find('button').attr('aria-expanded') === 'false')
-					$('#accordion-sector-datos-generales').find('button').trigger('click');
-				$('#field-codigo').val(response.data.code);
-				$('#field-nombre').val(response.data.name);
-				$('#field-version').val(response.data.version);
-				$('#field-estatus').val(response.data.status);
-				$('#field-fecha-actualizado').val(response.data.updated_date);
-				$('#field-fecha-registrado').val(response.data.registered_date);
-				$('#field-registro').val(response.data.registered_by);
-				loadFilePreview(`${homeURL}/../storage/templates/consents/${response.data.uuid}/${response.data.logo}`, response.data.logo, true);
-				if(response.data.status_code == 'borrador')
-					$('#btn-guardar-cambios').removeClass('!visible hidden');
+				console.log(response);
+				if(response.success) {
+					if($('#accordion-sector-datos-generales').find('button').attr('aria-expanded') === 'false')
+						$('#accordion-sector-datos-generales').find('button').trigger('click');
+					$('#field-codigo').val(response.data.code);
+					$('#field-nombre').val(response.data.name);
+					$('#field-version').val(response.data.version);
+					$('#field-estatus').val(response.data.status);
+					$('#field-fecha-actualizado').val(response.data.updated_date);
+					$('#field-fecha-registrado').val(response.data.registered_date);
+					$('#field-registro').val(response.data.registered_by);
+					if(response.data.logo != null) {
+						loadFilePreview(`${homeURL}/media/${response.data.logo}`, response.data.logo_name, true);
+					}
+					if(response.data.status_code == 'borrador')
+						$('#btn-guardar-cambios').removeClass('!visible hidden');
 
-				if(response.data.status_code == 'activo')
-					$('#btn-plantilla-activar').attr('disabled', true);
-				else
-					$('#btn-plantilla-activar').attr('disabled', false);
-				
-				$('#btn-visualizar-plantilla').attr('disabled', false);
-				template.setContents(JSON.parse(response.data.delta));
+					if(response.data.status_code == 'activo')
+						$('#btn-plantilla-activar').attr('disabled', true);
+					else
+						$('#btn-plantilla-activar').attr('disabled', false);
+					
+					$('#btn-visualizar-plantilla').attr('disabled', false);
+					template.setContents(JSON.parse(response.data.delta));
+				} else {
+					ShowToastMessage(response.message, 'error');
+				}
 			},
 			error: function(XMLHttpRequest, textStatus, errorThrown) { 
-				console.log('STATUS:', textStatus);
-				console.log('ERROR:', errorThrown);
-				console.log('RESPONSE TEXT:', XMLHttpRequest.responseText);
-				alert(XMLHttpRequest.responseText);
+				try {
+					let response = JSON.parse(XMLHttpRequest.responseText);
+					ShowToastMessage(response.message, 'error')
+				} catch(e) {
+					ShowToastMessage(XMLHttpRequest.responseText, 'error');
+				}
 			}  
 		});
 	}
@@ -278,14 +290,19 @@ function RegisterTemplate() {
 		contentType: false,
 		dataType: "json",
 		success: function(response) {
-			ShowToastMessage('Plantilla registrada con exito', 'success');
+			if(response.success) {
+				ShowToastMessage('Plantilla registrada con exito', 'success');
+			} else {
+				ShowToastMessage(response.message, 'error');
+			}
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
-			console.log('STATUS:', textStatus);
-			console.log('ERROR:', errorThrown);
-			console.log('RESPONSE TEXT:', XMLHttpRequest.responseText);
-
-			alert(XMLHttpRequest.responseText);
+			try {
+				let response = JSON.parse(XMLHttpRequest.responseText);
+				ShowToastMessage(response.message, 'error')
+			} catch(e) {
+				ShowToastMessage(XMLHttpRequest.responseText, 'error');
+			}
 		}  
 	});
 }
@@ -358,14 +375,19 @@ function UpdateTemplate() {
 			contentType: false,
 			dataType: "json",
 			success: function(response) {
-				ShowToastMessage('Plantilla registrada con exito', 'success');
+				if(response.success) {
+					ShowToastMessage('Plantilla registrada con exito', 'success');
+				} else {
+					ShowToastMessage(response.message, 'error');
+				}
 			},
 			error: function(XMLHttpRequest, textStatus, errorThrown) { 
-				console.log('STATUS:', textStatus);
-				console.log('ERROR:', errorThrown);
-				console.log('RESPONSE TEXT:', XMLHttpRequest.responseText);
-
-				alert(XMLHttpRequest.responseText);
+				try {
+					let response = JSON.parse(XMLHttpRequest.responseText);
+					ShowToastMessage(response.message, 'error')
+				} catch(e) {
+					ShowToastMessage(XMLHttpRequest.responseText, 'error');
+				}
 			}  
 		});
 	}
@@ -406,18 +428,23 @@ function StartTemplateActivation() {
 			type: 'get',
 			dataType: "json",
 			success: function(response) {
-				if(response.data.code == 'borrador') {
-					ShowSweetAlertConfirmCancelCallback('info', 'Activar Plantilla', 'Cuando la plantilla cambie de borrador a activa no será posible volver hacer cambios.', 'Activar', 'Cancelar', (r) => { if(r.isConfirmed) ActivateTemplate(response.data.uuid) });
-				} else if(response.data.code == 'inactivo') {
-					ActivateTemplate(response.data.uuid);
+				if(response.success) {
+					if(response.data.code == 'borrador') {
+						ShowSweetAlertConfirmCancelCallback('info', 'Activar Plantilla', 'Cuando la plantilla cambie de borrador a activa no será posible volver hacer cambios.', 'Activar', 'Cancelar', (r) => { if(r.isConfirmed) ActivateTemplate(response.data.uuid) });
+					} else if(response.data.code == 'inactivo') {
+						ActivateTemplate(response.data.uuid);
+					}
+				} else {
+					ShowToastMessage(response.message, 'error');
 				}
 			},
 			error: function(XMLHttpRequest, textStatus, errorThrown) { 
-				console.log('STATUS:', textStatus);
-				console.log('ERROR:', errorThrown);
-				console.log('RESPONSE TEXT:', XMLHttpRequest.responseText);
-
-				alert(XMLHttpRequest.responseText);
+				try {
+					let response = JSON.parse(XMLHttpRequest.responseText);
+					ShowToastMessage(response.message, 'error')
+				} catch(e) {
+					ShowToastMessage(XMLHttpRequest.responseText, 'error');
+				}
 			}  
 		});
 	}
@@ -435,37 +462,42 @@ function ActivateTemplate(id) {
 		contentType: false,
 		dataType: "json",
 		success: function(response) {
-			const statuses = document.querySelectorAll('.td-template-status');
+			if(response.success) {
+				const statuses = document.querySelectorAll('.td-template-status');
 
-			statuses.forEach(status => {
-				if (status.textContent.trim().toLowerCase() !== 'borrador') {
-					status.textContent = 'Inactivo';
+				statuses.forEach(status => {
+					if (status.textContent.trim().toLowerCase() !== 'borrador') {
+						status.textContent = 'Inactivo';
+					}
+				});
+
+				const template_row = document.getElementById(`tr-template-${response.data.uuid}`);
+
+				if (template_row) {
+					const status = template_row.querySelector('.td-template-status');
+
+					if (status) {
+						status.textContent = 'Activo';
+					}
 				}
-			});
+				
+				if(!$('#btn-guardar-cambios').hasClass('hidden'))
+					$('#btn-guardar-cambios').addClass('!visible hidden');
+				
+				$('#btn-plantilla-activar').attr('disabled', true);
 
-			const template_row = document.getElementById(`tr-template-${response.data.uuid}`);
-
-			if (template_row) {
-				const status = template_row.querySelector('.td-template-status');
-
-				if (status) {
-					status.textContent = 'Activo';
-				}
+				ShowToastMessage('Plantilla activada con exito', 'success');
+			} else {
+				ShowToastMessage(response.message, 'error');
 			}
-			
-			if(!$('#btn-guardar-cambios').hasClass('hidden'))
-				$('#btn-guardar-cambios').addClass('!visible hidden');
-			
-			$('#btn-plantilla-activar').attr('disabled', true);
-
-			ShowToastMessage('Plantilla activada con exito', 'success');
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
-			console.log('STATUS:', textStatus);
-			console.log('ERROR:', errorThrown);
-			console.log('RESPONSE TEXT:', XMLHttpRequest.responseText);
-
-			alert(XMLHttpRequest.responseText);
+			try {
+				let response = JSON.parse(XMLHttpRequest.responseText);
+				ShowToastMessage(response.message, 'error')
+			} catch(e) {
+				ShowToastMessage(XMLHttpRequest.responseText, 'error');
+			}
 		}  
 	});
 }

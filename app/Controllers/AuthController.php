@@ -105,7 +105,8 @@ class AuthController extends Controller
             $stmt = $conn->prepare("
                 SELECT
                 usr.id,
-                s.uuid sucursal_id,
+                s.id sucursal_id,
+                s.uuid sucursal_uuid,
                 s.sucursal,
                 TRIM(
                     CONCAT(
@@ -148,6 +149,7 @@ class AuthController extends Controller
             foreach($data as $tu) {
                 array_push($tipos_usuario, array('id'                   => $tu['id'],
                                                 'sucursal_id'           => $tu['sucursal_id'],
+                                                'sucursal_uuid'         => $tu['sucursal_uuid'],
                                                 'sucursal'              => $tu['sucursal'],
                                                 'domicilio'             => $tu['domicilio'],
                                                 'tipo_usuario_id'       => $tu['tipo_usuario_id'],
@@ -189,6 +191,8 @@ class AuthController extends Controller
             $_SESSION['ADARIEL_ERP_ORGANIZATION_UUID'] = $organization_uuid != null ? $service->uuidBinarytoString($organization_uuid) : '';
             $_SESSION['ADARIEL_ERP_ORGANIZATION'] = $organization;
             if(count($tipos_usuario) > 0) {
+                $_SESSION['ADARIEL_ERP_ORGANIZATION_BRANCH_ID'] = count($tipos_usuario) == 1 ? $tipos_usuario[0]['sucursal_id'] : null;
+                $_SESSION['ADARIEL_ERP_ORGANIZATION_BRANCH'] = count($tipos_usuario) == 1 ? $tipos_usuario[0]['sucursal'] : null;
                 $_SESSION['ADARIEL_ERP_USER_ROLE'] = count($tipos_usuario) == 1 ? $tipos_usuario[0]['id'] : null;
                 $_SESSION['ADARIEL_ERP_USER_TYPE_CODE'] = count($tipos_usuario) == 1 ? $tipos_usuario[0]['tipo_usuario_codigo'] : null;
                 $_SESSION['ADARIEL_ERP_USER_TYPE'] = count($tipos_usuario) == 1 ? $tipos_usuario[0]['tipo_usuario'] : null;

@@ -18,7 +18,7 @@ function InitializeValues(home) {
 
 function GetPayments() {
 	$.ajax({
-        url: `${homeURL}/api/payments`,
+        url: `${homeURL}/api/payments-branch`,
 		type: 'get',
 		data: {
 			

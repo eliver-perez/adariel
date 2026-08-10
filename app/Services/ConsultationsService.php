@@ -16,6 +16,7 @@ use App\Repositories\PatientsRepository;
 use App\Repositories\GenderRepository;
 use App\Repositories\LocationRepository;
 use App\Repositories\FoliosRepository;
+use App\Repositories\OrganizationsRepository;
 use App\Repositories\SettingsRepository;
 use App\Services\SettingsService;
 use InvalidArgumentException;
@@ -35,18 +36,22 @@ class ConsultationsService extends Service
         private GenderRepository $genderRepository,
         private LocationRepository $locationRepository,
         private FoliosRepository $foliosRepository,
+        private OrganizationsRepository $organizationsRepository,
         private SettingsRepository $settingsRepository
     ) {
     }
 
     public function getAll(array $data): array {
         try {
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+            $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+            $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
+
             $status_id = $this->appointmentsStatusRepository->getBlockIdByCode($data['status']);
 
-            // throw new RuntimeException("StatusID: ".$data['status'].": ".$status_id);
-            // throw new RuntimeException("UID: ".$data['uid']);
-
             $data = $this->consultationsRepository->getAll([
+                'organization'      => $organizationId,
+                'branch'            => $branchId,
                 'status'            => $status_id,
                 'search'            => $data['search'] !== '' ? $data['search'] : null,
                 'limit'             => $data['limit'],
@@ -78,6 +83,10 @@ class ConsultationsService extends Service
 
     function getConsultation($data): ?array {
         try {
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+            $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+            $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
+
             $uuid = $this->normalizeRequiredText(
                 $data['uuid'] ?? null,
                 'Error al recibir identificador de la consulta.'
@@ -87,41 +96,44 @@ class ConsultationsService extends Service
             $conn->beginTransaction();
 
             $appointment_block_uuid = $this->uuidStringToBinary($data['uuid']);
-            $appointment_block_id = $this->appointmentsRepository->getAppointmentBlockId($appointment_block_uuid);
+            $appointment_block_id = $this->appointmentsRepository->getAppointmentBlockId([
+                'uuid'                          => $appointment_block_uuid,
+                'branch'                        => $branchId
+            ]);
 
-            $appointment_uuid = $this->consultationsRepository->getAppointmentUuidByBlock($appointment_block_uuid);
-            $appointment_id = $this->appointmentsRepository->getAppointmentId($appointment_block_uuid);
+            $appointment_uuid = $this->consultationsRepository->getAppointmentUuidByBlock([
+                'uuid'                          => $appointment_block_uuid,
+                'branch'                        => $branchId
+            ]);
+            $appointment_id = $this->appointmentsRepository->getAppointmentId([
+                'uuid'                          => $appointment_block_uuid,
+                'branch'                        => $branchId
+            ]);
 
-            $consultation_uuid = $this->consultationsRepository->getConsultationUuidByAppointment($appointment_uuid);
+            $consultation_uuid = $this->consultationsRepository->getConsultationUuidByAppointment([
+                'uuid'                          => $appointment_uuid,
+                'branch'                        => $branchId
+            ]);
 
-            $procedures_data = $this->consultationsRepository->getAppointmentProcedures($appointment_uuid, $data['uid']);
+            $procedures_data = $this->consultationsRepository->getAppointmentProcedures([
+                'uuid'                          => $appointment_uuid,
+                'uid'                           => $data['uid'],
+                'branch'                        => $branchId
+            ]);
 
-            if(!$consultation_uuid) {
-                $appointment_status = $this->appointmentsRepository->appointmentStatus($appointment_uuid);
-                if($appointment_status == 'en_espera' || $appointment_status == 'agendada') {
+            $appointment_status = $this->appointmentsRepository->appointmentStatus([
+                'uuid'                      => $appointment_uuid,
+                'branch'                    => $branchId
+            ]);
+
+            if($appointment_status == 'en_espera' || $appointment_status == 'agendada') {
+                if(!$consultation_uuid) {
                     $consultation_uuid = $this->generateUuidBinary();
-
-                    $startedStatus = $this->normalizeRequiredInt(
-                        $this->appointmentsStatusRepository->getIdByCode('en_proceso') ?? null,
-                        'Ocurrio un error al intentar obtener información.'
-                    );
-                    $blockStartedStatus = $this->normalizeRequiredInt(
-                        $this->appointmentsStatusRepository->getBlockIdByCode('en_proceso') ?? null,
-                        'Ocurrio un error al intentar obtener información.'
-                    );
-
                     $this->consultationsRepository->startConsultation([
-                        'uuid'                  => $consultation_uuid,
-                        'uid'                   => $data['uid'],
-                        'appointment_block_id'  => $appointment_block_id,
-                    ]);
-                    $this->appointmentsRepository->changeAppointmentStatus([
-                        'appointment'           => $appointment_uuid,
-                        'status'                => $startedStatus,
-                    ]);
-                    $this->appointmentsRepository->changeAppointmentBlockStatusByUuid([
-                        'block'                 => $appointment_block_uuid,
-                        'status'                => $blockStartedStatus,
+                        'uuid'                      => $consultation_uuid,
+                        'uid'                       => $data['uid'],
+                        'appointment_block_id'      => $appointment_block_id,
+                        'branch'                    => $branchId
                     ]);
 
                     foreach($procedures_data as $pd) {
@@ -136,9 +148,32 @@ class ConsultationsService extends Service
                         ]);
                     }
                 }
+                if($data['start'] == 1) {
+                    $startedStatus = $this->normalizeRequiredInt(
+                        $this->appointmentsStatusRepository->getIdByCode('en_proceso') ?? null,
+                        'Ocurrio un error al intentar obtener información.'
+                    );
+                    
+                    $blockStartedStatus = $this->normalizeRequiredInt(
+                        $this->appointmentsStatusRepository->getBlockIdByCode('en_proceso') ?? null,
+                        'Ocurrio un error al intentar obtener información.'
+                    );
+                    $this->appointmentsRepository->changeAppointmentStatus([
+                        'appointment'               => $appointment_uuid,
+                        'status'                    => $startedStatus,
+                        'branch'                    => $branchId
+                    ]);
+                    $this->appointmentsRepository->changeAppointmentBlockStatusByUuid([
+                        'block'                     => $appointment_block_uuid,
+                        'status'                    => $blockStartedStatus,
+                    ]);
+                }
             }
 
-            $consultation_data = $this->consultationsRepository->getConsultation($appointment_block_uuid);
+            $consultation_data = $this->consultationsRepository->getConsultation([
+                'uuid'                              => $appointment_block_uuid,
+                'branch'                            => $branchId
+            ]);
             $procedures = array();
 
             if(!$consultation_data)
@@ -151,7 +186,10 @@ class ConsultationsService extends Service
                     $time_end = $sd['h_fin'];
                 else if($sd['h_inicio' != $time_end])
                     break;
-                $m_data = $this->proceduresRepository->getProcedureEnabledModules($sd['uuid']);
+                $m_data = $this->proceduresRepository->getProcedureEnabledModules([
+                    'uuid'                          => $sd['uuid'],
+                    'organization'                  => $organizationId
+                ]);
                 $m_found = false;
                 foreach($m_data as $md) {
                     $m_found = false;
@@ -173,7 +211,6 @@ class ConsultationsService extends Service
                 }
                 array_push($procedures, array(
                     'id'                        => $this->uuidBinaryToString($sd['uuid']),
-                    'code'                      => $sd['codigo'],
                     'procedure'                 => $sd['servicio'],
                     'duration'                  => $sd['duracion'],
                     'time_start'                => $this->formatTimeTo12h($this->minutesToTime($sd['h_inicio'])),
@@ -222,10 +259,9 @@ class ConsultationsService extends Service
 
     function updateConsultationInitialObservations($data): void {
         try {
-            $uid = $this->normalizeRequiredInt(
-                $data['uid'] ?? -1,
-                'No existe una sesion activa.'
-            );
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+            $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+            $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
 
             $uuid = $this->normalizeRequiredText(
                 $data['uuid'] ?? null,
@@ -238,12 +274,25 @@ class ConsultationsService extends Service
             );
 
             $appointment_block_uuid = $this->uuidStringToBinary($data['uuid']);
-            $appointment_block_id = $this->appointmentsRepository->getAppointmentBlockId($appointment_block_uuid);
+            $appointment_block_id = $this->appointmentsRepository->getAppointmentBlockId([
+                'uuid'                          => $appointment_block_uuid,
+                'branch'                        => $branchId
+            ]);
 
-            $consultation_uuid = $this->consultationsRepository->getConsultationUuidByBlock($appointment_block_uuid);
+            $consultation_uuid = $this->consultationsRepository->getConsultationUuidByBlock([
+                'uuid'                          => $appointment_block_uuid,
+                'branch'                        => $branchId
+            ]);
 
             $conn = $this->consultationsRepository->getConnection();
             $conn->beginTransaction();
+
+            if(!$this->validateUpdate([
+                    'consultation_uuid'             => $consultation_uuid,
+                    'organization'                  => $organizationId,
+                    'branch'                        => $branchId
+                ]))
+                throw new RuntimeException("Consulta no habilitada para hacer cambios");
 
             $this->consultationsRepository->updateConsultationInitialObservations([
                 'uuid'                          => $consultation_uuid,
@@ -261,10 +310,9 @@ class ConsultationsService extends Service
 
     function updateConsultationPodiatricExploration($data): void {
         try {
-            $uid = $this->normalizeRequiredInt(
-                $data['uid'] ?? -1,
-                'No existe una sesion activa.'
-            );
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+            $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+            $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
 
             $uuid = $this->normalizeRequiredText(
                 $data['uuid'] ?? null,
@@ -272,11 +320,27 @@ class ConsultationsService extends Service
             );
 
             $appointment_block_uuid = $this->uuidStringToBinary($data['uuid']);
-            $appointment_block_id = $this->appointmentsRepository->getAppointmentBlockId($appointment_block_uuid);
+            $appointment_block_id = $this->appointmentsRepository->getAppointmentBlockId([
+                'uuid'                              => $appointment_block_uuid,
+                'branch'                            => $branchId
+            ]);
 
-            $consultation_uuid = $this->consultationsRepository->getConsultationUuidByBlock($appointment_block_uuid);
+            $consultation_uuid = $this->consultationsRepository->getConsultationUuidByBlock([
+                'uuid'                              => $appointment_block_uuid,
+                'branch'                            => $branchId
+            ]);
 
-            $podiatric_exploration_uuid = $this->consultationsRepository->getPodiatricExplorationUuid($consultation_uuid);
+            if(!$this->validateUpdate([
+                    'consultation_uuid'             => $consultation_uuid,
+                    'organization'                  => $organizationId,
+                    'branch'                        => $branchId
+                ]))
+                throw new RuntimeException("Consulta no habilitada para hacer cambios");
+
+            $podiatric_exploration_uuid = $this->consultationsRepository->getPodiatricExplorationUuid([
+                'uuid'                              => $consultation_uuid,
+                'branch'                            => $branchId
+            ]);
 
             $foot_type = $this->normalizeOptionalInt(intval($data['foot_type']) ?? 0);
             $metatarsal_formula = $this->normalizeOptionalInt(intval($data['metatarsal_formula']) ?? 0);
@@ -345,24 +409,36 @@ class ConsultationsService extends Service
 
     function getConsultationProcedures($data): ?array {
         try {
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+            $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+            $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
+            
             $uuid = $this->normalizeRequiredText(
                 $data['uuid'] ?? null,
                 'Error al recibir identificador de la consulta.'
             );
 
             $appointment_block_uuid = $this->uuidStringToBinary($data['uuid']);
-            $appointment_block_id = $this->appointmentsRepository->getAppointmentBlockId($appointment_block_uuid);
+            $appointment_block_id = $this->appointmentsRepository->getAppointmentBlockId([
+                'uuid'                          => $appointment_block_uuid,
+                'branch'                        => $branchId
+            ]);
 
-            $consultation_uuid = $this->consultationsRepository->getConsultationUuidByBlock($appointment_block_uuid);
+            $consultation_uuid = $this->consultationsRepository->getConsultationUuidByBlock([
+                'uuid'                          => $appointment_block_uuid,
+                'branch'                        => $branchId
+            ]);
 
-            $consultation_procedures_data = $this->consultationsRepository->getConsultationProcedures($consultation_uuid);
+            $consultation_procedures_data = $this->consultationsRepository->getConsultationProcedures([
+                'uuid'                          => $consultation_uuid,
+                'organization'                  => $organizationId,
+            ]);
             $consultation_procedures = array();
 
             foreach($consultation_procedures_data as $d) {
                 array_push($consultation_procedures, array(
                     'id'                        => $this->uuidBinaryToString($d['uuid']),
                     'procedure_id'              => $this->uuidBinaryToString($d['servicio_uuid']),
-                    'procedure_code'            => $d['codigo_servicio'],
                     'procedure'                 => $d['servicio'],
                     'quantity'                  => intval($d['cantidad']),
                     'unit_price'                => $d['precio_unitario'],
@@ -380,15 +456,57 @@ class ConsultationsService extends Service
         }
     }
 
-    function getProcedureData($data): ?array {
+    function getConsultationPodiatricExploration($data): ?array {
         try {
-            $uid = $this->normalizeRequiredInt(
-                $data['uid'] ?? -1,
-                'No existe una sesion activa.'
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+            $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+            $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
+            
+            $uuid = $this->normalizeRequiredText(
+                $data['uuid'] ?? null,
+                'Error al recibir identificador de la consulta.'
             );
 
-            if($uid === -1)
-                throw new RuntimeException('No existe una sesion activa.');
+            $appointment_block_uuid = $this->uuidStringToBinary($data['uuid']);
+            $appointment_block_id = $this->appointmentsRepository->getAppointmentBlockId([
+                'uuid'                          => $appointment_block_uuid,
+                'branch'                        => $branchId
+            ]);
+
+            $consultation_uuid = $this->consultationsRepository->getConsultationUuidByBlock([
+                'uuid'                          => $appointment_block_uuid,
+                'branch'                        => $branchId
+            ]);
+
+            $consultation_podiatric_exploration_data = $this->consultationsRepository->getConsultationPodiatricExploration([
+                'uuid'                          => $consultation_uuid,
+                'branch'                        => $branchId,
+            ]);
+
+            return [
+                'id'                                => $this->uuidBinarytoString($consultation_podiatric_exploration_data['uuid']),
+                'foot_type'                         => $consultation_podiatric_exploration_data['tipo_pie'],
+                'metatarsal_formula'                => $consultation_podiatric_exploration_data['formula_metatarsal'],
+                'gait_disorder'                     => $consultation_podiatric_exploration_data['alteraciones_marcha'],
+                'left_pulse_type'                   => $consultation_podiatric_exploration_data['pulso_pedio_izquierdo'],
+                'right_pulse_type'                  => $consultation_podiatric_exploration_data['pulso_pedio_derecho'],
+                'left_sensitivity_type'             => $consultation_podiatric_exploration_data['sensibilidad_izquierdo'],
+                'right_sensitivity_type'            => $consultation_podiatric_exploration_data['sensibilidad_derecho'],
+                'temperature_type'                  => $consultation_podiatric_exploration_data['temperatura_pies'],
+                'foot_color_type'                   => $consultation_podiatric_exploration_data['coloracion_pies'],
+                'observations'                      => $consultation_podiatric_exploration_data['observaciones'],
+                'advice'                            => $consultation_podiatric_exploration_data['recomendaciones'],
+            ];
+        } catch (\Throwable $e) {
+            throw $e;
+        }
+    }
+
+    function getProcedureData($data): ?array {
+        try {
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+            $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+            $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
 
             $uuid = $this->normalizeRequiredText(
                 $data['procedure'] ?? null,
@@ -398,13 +516,13 @@ class ConsultationsService extends Service
 
             $procedure_uuid = $this->uuidStringToBinary($uuid);
             $procedure_data = $this->consultationsRepository->getProcedureData([
+                'organization'                  => $organizationId,
                 'uuid'                          => $procedure_uuid,
                 'uid'                           => $uid,
             ]);
 
             return [
                 'id'                                => $this->uuidBinaryToString($procedure_data['uuid']),
-                'code'                              => $procedure_data['codigo'],
                 'procedure'                         => $procedure_data['servicio'],
                 'cost'                              => $procedure_data['costo'] ?? $procedure_data['costo_base'],
                 'in_list'                           => $procedure_data['costo'] ? 1 : 0,
@@ -416,10 +534,9 @@ class ConsultationsService extends Service
 
     function updateConsultationsProcedures($data): void {
         try {
-            $uid = $this->normalizeRequiredInt(
-                $data['uid'] ?? -1,
-                'No existe una sesion activa.'
-            );
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+            $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+            $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
 
             $uuid = $this->normalizeRequiredText(
                 $data['uuid'] ?? null,
@@ -427,22 +544,34 @@ class ConsultationsService extends Service
             );
 
             $appointment_block_uuid = $this->uuidStringToBinary($data['uuid']);
-            $appointment_block_id = $this->appointmentsRepository->getAppointmentBlockId($appointment_block_uuid);
+            $appointment_block_id = $this->appointmentsRepository->getAppointmentBlockId([
+                'uuid'                      => $appointment_block_uuid,
+                'branch'                    => $branchId
+            ]);
 
-            $consultation_uuid = $this->consultationsRepository->getConsultationUuidByBlock($appointment_block_uuid);
+            $consultation_uuid = $this->consultationsRepository->getConsultationUuidByBlock([
+                'uuid'                      => $appointment_block_uuid,
+                'branch'                    => $branchId
+            ]);
 
             $conn = $this->consultationsRepository->getConnection();
             $conn->beginTransaction();
 
-            $procedures = json_decode($data['procedures']);
+            if(!$this->validateUpdate([
+                    'consultation_uuid'             => $consultation_uuid,
+                    'organization'                  => $organizationId,
+                    'branch'                        => $branchId
+                ]))
+                throw new RuntimeException("Consulta no habilitada para hacer cambios");
 
-            // die(var_dump($procedures));
+            $procedures = json_decode($data['procedures']);
 
             foreach($procedures as $p) {
                 if($p->action != 'no_changes') {
                     $procedure_uuid = $this->uuidStringToBinary($p->procedure_id);
                     $procedure_data = $this->consultationsRepository->getProcedureData([
                         'uuid'                          => $procedure_uuid,
+                        'organization'                  => $organizationId,
                         'uid'                           => $uid,
                     ]);
                     $procedure_cost = $procedure_data['costo'] ?? $procedure_data['costo_base'];
@@ -453,7 +582,8 @@ class ConsultationsService extends Service
                     if($p->action === 'add') {
                         if($this->consultationsRepository->checkIfExistsConsultationProcedure([
                                 'consultation_uuid'             => $consultation_uuid, 
-                                'procedure_uuid'                => $procedure_uuid
+                                'procedure_uuid'                => $procedure_uuid,
+                                'branch'                        => $branchId
                             ]))
                             throw new RuntimeException("Por favor revisa la lista de nuevo");
                         $consultation_procedure_uuid = $this->generateUuidBinary();
@@ -475,7 +605,8 @@ class ConsultationsService extends Service
                     } else if($p->action === 'modify') {
                         if(!$this->consultationsRepository->checkIfExistsConsultationProcedure([
                                 'consultation_uuid'             => $consultation_uuid, 
-                                'procedure_uuid'                => $procedure_uuid
+                                'procedure_uuid'                => $procedure_uuid,
+                                'branch'                        => $branchId
                             ]))
                             throw new RuntimeException("Por favor revisa la lista de nuevo");
                         
@@ -491,7 +622,8 @@ class ConsultationsService extends Service
                     } else if($p->action === 'remove') {
                         if(!$this->consultationsRepository->checkIfExistsConsultationProcedure([
                                 'consultation_uuid'             => $consultation_uuid, 
-                                'procedure_uuid'                => $procedure_uuid
+                                'procedure_uuid'                => $procedure_uuid,
+                                'branch'                        => $branchId
                             ]))
                             throw new RuntimeException("Por favor revisa la lista de nuevo");
 
@@ -515,17 +647,30 @@ class ConsultationsService extends Service
 
     function getConsultationDiagnostics($data): ?array {
         try {
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+            $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+            $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
+
             $uuid = $this->normalizeRequiredText(
                 $data['uuid'] ?? null,
                 'Error al recibir identificador de la consulta.'
             );
 
             $appointment_block_uuid = $this->uuidStringToBinary($data['uuid']);
-            $appointment_block_id = $this->appointmentsRepository->getAppointmentBlockId($appointment_block_uuid);
+            $appointment_block_id = $this->appointmentsRepository->getAppointmentBlockId([
+                'uuid'                          => $appointment_block_uuid,
+                'branch'                        => $branchId
+            ]);
 
-            $consultation_uuid = $this->consultationsRepository->getConsultationUuidByBlock($appointment_block_uuid);
+            $consultation_uuid = $this->consultationsRepository->getConsultationUuidByBlock([
+                'uuid'                          => $appointment_block_uuid,
+                'branch'                        => $branchId
+            ]);
 
-            $consultation_diagnostics_data = $this->consultationsRepository->getConsultationDiagnostics($consultation_uuid);
+            $consultation_diagnostics_data = $this->consultationsRepository->getConsultationDiagnostics([
+                'uuid'                          => $consultation_uuid,
+                'branch'                        => $branchId
+            ]);
             $consultation_diagnostics = array();
 
             foreach($consultation_diagnostics_data as $d) {
@@ -541,7 +686,10 @@ class ConsultationsService extends Service
                 ));
             }
 
-            $diagnostic_summary = $this->consultationsRepository->getConsultationDiagnosticsSummary($consultation_uuid);
+            $diagnostic_summary = $this->consultationsRepository->getConsultationDiagnosticsSummary([
+                'uuid'                              => $consultation_uuid,
+                'branch'                            => $branchId
+            ]);
 
             return [
                 'diagnostic_summary'                 => $diagnostic_summary,
@@ -554,10 +702,9 @@ class ConsultationsService extends Service
 
     function getDiagnosticData($data): ?array {
         try {
-            $uid = $this->normalizeRequiredInt(
-                $data['uid'] ?? -1,
-                'No existe una sesion activa.'
-            );
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+            $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+            $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
 
             if($uid === -1)
                 throw new RuntimeException('No existe una sesion activa.');
@@ -570,7 +717,8 @@ class ConsultationsService extends Service
 
             $diagnostic_uuid = $this->uuidStringToBinary($uuid);
             $diagnostic_data = $this->consultationsRepository->getDiagnosticData([
-                'uuid'                          => $diagnostic_uuid
+                'uuid'                          => $diagnostic_uuid,
+                'organization'                  => $organizationId
             ]);
 
             return [
@@ -585,10 +733,9 @@ class ConsultationsService extends Service
 
     function updateConsultationsDiagnostics($data): void {
         try {
-            $uid = $this->normalizeRequiredInt(
-                $data['uid'] ?? -1,
-                'No existe una sesion activa.'
-            );
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+            $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+            $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
 
             $uuid = $this->normalizeRequiredText(
                 $data['uuid'] ?? null,
@@ -596,30 +743,51 @@ class ConsultationsService extends Service
             );
 
             $appointment_block_uuid = $this->uuidStringToBinary($data['uuid']);
-            $appointment_block_id = $this->appointmentsRepository->getAppointmentBlockId($appointment_block_uuid);
+            $appointment_block_id = $this->appointmentsRepository->getAppointmentBlockId([
+                'uuid'                          => $appointment_block_uuid,
+                'branch'                        => $branchId
+            ]);
 
-            $consultation_uuid = $this->consultationsRepository->getConsultationUuidByBlock($appointment_block_uuid);
+            $consultation_uuid = $this->consultationsRepository->getConsultationUuidByBlock([
+                'uuid'                          => $appointment_block_uuid,
+                'branch'                        => $branchId
+            ]);
 
             $conn = $this->consultationsRepository->getConnection();
             $conn->beginTransaction();
+
+            if(!$this->validateUpdate([
+                    'consultation_uuid'             => $consultation_uuid,
+                    'organization'                  => $organizationId,
+                    'branch'                        => $branchId
+                ]))
+                throw new RuntimeException("Consulta no habilitada para hacer cambios");
 
             $diagnostics = json_decode($data['diagnostics']);
 
             $this->consultationsRepository->updateConsultationDiagnosticObservations([
                 'uuid'                          => $consultation_uuid,
                 'observations'                  => $data['observations'],
+                'branch'                        => $branchId
             ]);
 
             foreach($diagnostics as $d) {
                 if($d->action != 'no_changes') {
                     $diagnostic_uuid = $this->uuidStringToBinary($d->diagnostic_id);
-                    $diagnostic_id = $this->diagnosticsRepository->getDiagnosticId($diagnostic_uuid);
-                    $diagnostic_name = $this->diagnosticsRepository->getDiagnosticName($diagnostic_uuid);
+                    $diagnostic_id = $this->diagnosticsRepository->getDiagnosticId([
+                        'uuid'                  => $diagnostic_uuid,
+                        'organization'          => $organizationId
+                    ]);
+                    $diagnostic_name = $this->diagnosticsRepository->getDiagnosticName([
+                        'uuid'                  => $diagnostic_uuid,
+                        'organization'          => $organizationId
+                    ]);
                     
                     if($d->action === 'add') {
                         if($this->consultationsRepository->checkIfExistsConsultationDiagnostic([
                                 'consultation_uuid'             => $consultation_uuid, 
-                                'diagnostic_uuid'               => $diagnostic_uuid
+                                'diagnostic_uuid'               => $diagnostic_uuid,
+                                'branch'                        => $branchId
                             ]))
                             throw new RuntimeException("Por favor revisa la lista de nuevo");
                             
@@ -639,7 +807,8 @@ class ConsultationsService extends Service
                     } else if($d->action === 'modify') {
                         if(!$this->consultationsRepository->checkIfExistsConsultationDiagnostic([
                                 'consultation_uuid'             => $consultation_uuid, 
-                                'diagnostic_uuid'                => $diagnostic_uuid
+                                'diagnostic_uuid'               => $diagnostic_uuid,
+                                'branch'                        => $branchId
                             ]))
                             throw new RuntimeException("Por favor revisa la lista de nuevo");
                         
@@ -653,7 +822,8 @@ class ConsultationsService extends Service
                     } else if($d->action === 'remove') {
                         if(!$this->consultationsRepository->checkIfExistsConsultationDiagnostic([
                                 'consultation_uuid'             => $consultation_uuid, 
-                                'diagnostic_uuid'               => $diagnostic_uuid
+                                'diagnostic_uuid'               => $diagnostic_uuid,
+                                'branch'                        => $branchId
                             ]))
                             throw new RuntimeException("Por favor revisa la lista de nuevo");
 
@@ -674,17 +844,30 @@ class ConsultationsService extends Service
 
     function getConsultationSores($data): ?array {
         try {
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+            $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+            $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
+
             $uuid = $this->normalizeRequiredText(
                 $data['uuid'] ?? null,
                 'Error al recibir identificador de la consulta.'
             );
 
             $appointment_block_uuid = $this->uuidStringToBinary($data['uuid']);
-            $appointment_block_id = $this->appointmentsRepository->getAppointmentBlockId($appointment_block_uuid);
+            $appointment_block_id = $this->appointmentsRepository->getAppointmentBlockId([
+                'uuid'                          => $appointment_block_uuid,
+                'branch'                        => $branchId
+            ]);
 
-            $consultation_uuid = $this->consultationsRepository->getConsultationUuidByBlock($appointment_block_uuid);
+            $consultation_uuid = $this->consultationsRepository->getConsultationUuidByBlock([
+                'uuid'                          => $appointment_block_uuid,
+                'branch'                        => $branchId
+            ]);
 
-            $consultation_sores_data = $this->consultationsRepository->getConsultationSores($consultation_uuid);
+            $consultation_sores_data = $this->consultationsRepository->getConsultationSores([
+                'uuid'                          => $consultation_uuid,
+                'branch'                        => $branchId
+            ]);
             $consultation_sores = array();
 
             foreach($consultation_sores_data as $d) {
@@ -723,10 +906,9 @@ class ConsultationsService extends Service
 
     function updateConsultationsSores($data): void {
         try {
-            $uid = $this->normalizeRequiredInt(
-                $data['uid'] ?? -1,
-                'No existe una sesion activa.'
-            );
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+            $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+            $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
 
             $uuid = $this->normalizeRequiredText(
                 $data['uuid'] ?? null,
@@ -734,12 +916,25 @@ class ConsultationsService extends Service
             );
 
             $appointment_block_uuid = $this->uuidStringToBinary($data['uuid']);
-            $appointment_block_id = $this->appointmentsRepository->getAppointmentBlockId($appointment_block_uuid);
+            $appointment_block_id = $this->appointmentsRepository->getAppointmentBlockId([
+                'uuid'                          => $appointment_block_uuid,
+                'branch'                        => $branchId
+            ]);
 
-            $consultation_uuid = $this->consultationsRepository->getConsultationUuidByBlock($appointment_block_uuid);
+            $consultation_uuid = $this->consultationsRepository->getConsultationUuidByBlock([
+                'uuid'                          => $appointment_block_uuid,
+                'branch'                        => $branchId
+            ]);
 
             $conn = $this->consultationsRepository->getConnection();
             $conn->beginTransaction();
+
+            if(!$this->validateUpdate([
+                    'consultation_uuid'             => $consultation_uuid,
+                    'organization'                  => $organizationId,
+                    'branch'                        => $branchId
+                ]))
+                throw new RuntimeException("Consulta no habilitada para hacer cambios");
 
             $sores = json_decode($data['sores']);
 
@@ -823,7 +1018,8 @@ class ConsultationsService extends Service
                         $sore_uuid = $this->uuidStringToBinary($s->id);
                         if(!$this->consultationsRepository->checkIfExistsConsultationSore([
                                 'consultation_uuid'             => $consultation_uuid, 
-                                'sore_uuid'                     => $sore_uuid
+                                'sore_uuid'                     => $sore_uuid,
+                                'branch'                        => $branchId
                             ]))
                             throw new RuntimeException("Por favor revisa la lista de nuevo");
                         
@@ -837,7 +1033,8 @@ class ConsultationsService extends Service
                         $sore_uuid = $this->uuidStringToBinary($s->id);
                         if(!$this->consultationsRepository->checkIfExistsConsultationSore([
                                 'consultation_uuid'             => $consultation_uuid, 
-                                'sore_uuid'                     => $sore_uuid
+                                'sore_uuid'                     => $sore_uuid,
+                                'branch'                        => $branchId
                             ]))
                             throw new RuntimeException("Por favor revisa la lista de nuevo");
 
@@ -860,10 +1057,9 @@ class ConsultationsService extends Service
         $originalPath = '';
         $thumbPath = '';
         try {
-            $uid = $this->normalizeRequiredInt(
-                $data['uid'] ?? -1,
-                'No existe una sesion activa.'
-            );
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+            $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+            $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
 
             $uuid = $this->normalizeRequiredText(
                 $data['uuid'] ?? null,
@@ -885,9 +1081,28 @@ class ConsultationsService extends Service
                 throw new RuntimeException('La imagen supera 5MB');
 
             $appointment_block_uuid = $this->uuidStringToBinary($data['uuid']);
-            $appointment_block_id = $this->appointmentsRepository->getAppointmentBlockId($appointment_block_uuid);
+            $appointment_block_id = $this->appointmentsRepository->getAppointmentBlockId([
+                'uuid'                          => $appointment_block_uuid,
+                'branch'                        => $branchId
+            ]);
 
-            $consultation_uuid = $this->consultationsRepository->getConsultationUuidByBlock($appointment_block_uuid);
+            $organization_uuid = $this->organizationsRepository->getOrganizationUuid($organizationId);
+            $organization_branch_uuid = $this->organizationsRepository->getOrganizationBranchUuid($organizationId);
+
+            $consultation_uuid = $this->consultationsRepository->getConsultationUuidByBlock([
+                'uuid'                          => $appointment_block_uuid,
+                'branch'                        => $branchId
+            ]);
+
+            if(!$this->validateUpdate([
+                    'consultation_uuid'             => $consultation_uuid,
+                    'organization'                  => $organizationId,
+                    'branch'                        => $branchId
+                ]))
+                throw new RuntimeException("Consulta no habilitada para hacer cambios");
+
+            $organization_uuid_plain = $this->uuidBinaryToString($organization_uuid);
+            $organization_branch_uuid_plain = $this->uuidBinaryToString($organization_branch_uuid);
             $consultation_uuid_plain = $this->uuidBinaryToString($consultation_uuid);
 
             $tmpPath = $data['evidence']['tmp_name'];
@@ -932,7 +1147,7 @@ class ConsultationsService extends Service
             $evidence_uuid = $this->generateUuidBinary();
             $evidence_uuid_plain = $this->uuidBinaryToString($evidence_uuid);
 
-            $relativePath = 'consultations/'.$consultation_uuid_plain.'/evidence/';
+            $relativePath = 'consultations/'.$organization_uuid_plain.'/'.$consultation_uuid_plain.'/evidence/';
             $basePath = STORAGE_PATH . '/' . $relativePath;
 
             if (!is_dir($basePath)) {
@@ -1052,10 +1267,9 @@ class ConsultationsService extends Service
 
     function updateConsultationIndications($data): void {
         try {
-            $uid = $this->normalizeRequiredInt(
-                $data['uid'] ?? -1,
-                'No existe una sesion activa.'
-            );
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+            $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+            $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
 
             $uuid = $this->normalizeRequiredText(
                 $data['uuid'] ?? null,
@@ -1068,9 +1282,22 @@ class ConsultationsService extends Service
             );
 
             $appointment_block_uuid = $this->uuidStringToBinary($data['uuid']);
-            $appointment_block_id = $this->appointmentsRepository->getAppointmentBlockId($appointment_block_uuid);
+            $appointment_block_id = $this->appointmentsRepository->getAppointmentBlockId([
+                'uuid'                          => $appointment_block_uuid,
+                'branch'                        => $branchId
+            ]);
 
-            $consultation_uuid = $this->consultationsRepository->getConsultationUuidByBlock($appointment_block_uuid);
+            $consultation_uuid = $this->consultationsRepository->getConsultationUuidByBlock([
+                'uuid'                          => $appointment_block_uuid,
+                'branch'                        => $branchId
+            ]);
+
+            if(!$this->validateUpdate([
+                    'consultation_uuid'             => $consultation_uuid,
+                    'organization'                  => $organizationId,
+                    'branch'                        => $branchId
+                ]))
+                throw new RuntimeException("Consulta no habilitada para hacer cambios");
 
             $this->consultationsRepository->updateConsultationIndications([
                 'uuid'                          => $consultation_uuid,
@@ -1083,10 +1310,9 @@ class ConsultationsService extends Service
 
     function finishConsultation($data): void {
         try {
-            $uid = $this->normalizeRequiredInt(
-                $data['uid'] ?? -1,
-                'No existe una sesion activa.'
-            );
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+            $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+            $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
 
             $uuid = $this->normalizeRequiredText(
                 $data['uuid'] ?? null,
@@ -1097,11 +1323,24 @@ class ConsultationsService extends Service
             $conn->beginTransaction();
 
             $appointment_block_uuid = $this->uuidStringToBinary($data['uuid']);
-            $appointment_block_id = $this->appointmentsRepository->getAppointmentBlockId($appointment_block_uuid);
-            $appointment_uuid = $this->consultationsRepository->getAppointmentUuidByBlock($appointment_block_uuid);
-            $consultation_uuid = $this->consultationsRepository->getConsultationUuidByBlock($appointment_block_uuid);
+            $appointment_block_id = $this->appointmentsRepository->getAppointmentBlockId([
+                'uuid'                          => $appointment_block_uuid,
+                'branch'                        => $branchId
+            ]);
+            $appointment_uuid = $this->consultationsRepository->getAppointmentUuidByBlock([
+                'uuid'                          => $appointment_block_uuid,
+                'branch'                        => $branchId
+            ]);
+            $consultation_uuid = $this->consultationsRepository->getConsultationUuidByBlock([
+                'uuid'                          => $appointment_block_uuid,
+                'branch'                        => $branchId
+            ]);
 
-            $validate_data = $this->validBeforeFinish($consultation_uuid);
+            $validate_data = $this->validBeforeFinish([
+                'consultation_uuid'             => $consultation_uuid,
+                'organization'                  => $organizationId,
+                'branch'                        => $branchId
+            ]);
             $total = $validate_data['total'];
             $discount = $validate_data['discount'];
             $debt = $validate_data['debt'];
@@ -1133,7 +1372,11 @@ class ConsultationsService extends Service
                 'uid'                                   => $uid,
             ]);
 
-            $procedures_data = $this->consultationsRepository->getAppointmentProcedures($appointment_uuid, $uid);
+            $procedures_data = $this->consultationsRepository->getAppointmentProcedures([
+                'uuid'                                  => $appointment_uuid,
+                'uid'                                   => $uid,
+                'branch'                                => $branchId
+            ]);
             $time_end = 0;
             foreach($procedures_data as $pd) {
                 if($time_end == 0)
@@ -1150,27 +1393,42 @@ class ConsultationsService extends Service
             $unfinished_blocks = $this->appointmentsRepository->getUnfinishedAppointmentBlocksCount([
                 'uuid'                                  => $appointment_uuid,
                 'status'                                => $blockFinishStatus,
+                'branch'                                => $branchId
             ]);
             if($unfinished_blocks['pendientes'] == 0) {
                 $this->appointmentsRepository->finishAppointment([
                     'uuid'                              => $appointment_uuid,
                     'status'                            => $finishStatus,
                     'uid'                               => $uid,
+                    'branch'                            => $branchId
                 ]);
             }
 
             $sale_pending_status = $this->salesStatusRepository->getIdByCode('pendiente');
 
             $year = date('Y');
-            $c_aux = $this->foliosRepository->getConsecutive('venta', $year);
+            $c_aux = $this->foliosRepository->getConsecutive([
+                'type'                                  => 'venta',
+                'branch'                                => $branchId,
+                'year'                                  => $year
+            ]);
+            if(!$c_aux) {
+                $c_aux = 0;
+                $this->foliosRepository->insertConsecutive([
+                    'consecutive'                           => $c_aux,
+                    'type'                                  => 'venta',
+                    'branch'                                => $branchId,
+                    'year'                                  => $year
+                ]);
+            }
             $sale_consecutive = $c_aux + 1;
             $folio = 'V-' . str_pad((string) $sale_consecutive, 7, '0', STR_PAD_LEFT) . '/' . substr($year, -2);
 
             $sale_uuid = $this->generateUuidBinary();
-
             $sale_id = $this->salesRepository->createFromConsultation([
                 'uuid'                                      => $sale_uuid,
                 'folio'                                     => $folio,
+                'year'                                      => $year,
                 'consecutive'                               => $sale_consecutive,
                 'subtotal'                                  => $total,
                 'total'                                     => $total,
@@ -1180,6 +1438,7 @@ class ConsultationsService extends Service
                 'observations'                              => '',
                 'uid'                                       => $uid,
                 'consultation_uuid'                         => $consultation_uuid,
+                'branch'                                    => $branchId
             ]);
 
             foreach($procedures as $p) {
@@ -1187,7 +1446,7 @@ class ConsultationsService extends Service
                 $this->salesRepository->createFromConsultationDetails([
                     'uuid'                                  => $sale_detail_uuid,
                     'sale'                                  => $sale_id,
-                    'procedure'                             => $p['id'],
+                    'procedure'                             => $p['service_id'],
                     'description'                           => $p['service'],
                     'quantity'                              => $p['quantity'],
                     'unit_price'                            => $p['unit_price'],
@@ -1198,7 +1457,12 @@ class ConsultationsService extends Service
                 ]);
             }
 
-            $this->foliosRepository->updateConsecutive('venta', $year, $sale_consecutive);
+            $this->foliosRepository->updateConsecutive([
+                'consecutive'                           => $sale_consecutive,
+                'type'                                  => 'venta',
+                'branch'                                => $branchId,
+                'year'                                  => $year
+            ]);
 
             $conn->commit();
         } catch(\Throwable $e) {
@@ -1209,33 +1473,51 @@ class ConsultationsService extends Service
         }
     }
 
-    function validBeforeFinish($consultation_uuid): ?array {
-        $consultation_data = $this->consultationsRepository->getConsultationStatus($consultation_uuid);
+    function validBeforeFinish(array $data): ?array {
+        $consultation_data = $this->consultationsRepository->getConsultationStatus([
+            'uuid'                          => $data['consultation_uuid'],
+            'branch'                        => $data['branch']
+        ]);
         if($consultation_data != null && intval($consultation_data['estatus']) == 0) {
             $next_appointment = null;
 
-            $modules = $this->proceduresRepository->getConsultationProcedureModules($consultation_uuid);
+            $modules = $this->proceduresRepository->getConsultationProcedureModules([
+                'uuid'                      => $data['consultation_uuid'],
+                'branch'                    => $data['branch']
+            ]);
             foreach($modules as $m) {
                 if(intval($m['obligatorio']) == 1) {
                     switch($m['codigo']) {
                         case 'exploracion-podologica':
-                            if(!$this->consultationsRepository->checkIfConsultationPodriaticExplorationExists($consultation_uuid))
+                            if(!$this->consultationsRepository->checkIfConsultationPodriaticExplorationExists([
+                                'uuid'                      => $data['consultation_uuid'],
+                                'branch'                    => $data['branch']
+                            ]))
                                 throw new RuntimeException('No existe exploración podologica registrada.');
                             break;
                         case 'diagnosticos':
-                            $consultation_diagnostics = $this->consultationsRepository->getConsultationDiagnostics($consultation_uuid);
+                            $consultation_diagnostics = $this->consultationsRepository->getConsultationDiagnostics([
+                                'uuid'                      => $data['consultation_uuid'],
+                                'branch'                    => $data['branch']
+                            ]);
                             if(count($consultation_diagnostics) == 0)
                                 throw new RuntimeException("No hay diagnosticos registrados.");
                             break;
                         case 'lesiones_ulceras':
-                            $consultation_sores = $this->consultationsRepository->getConsultationSores($consultation_uuid);
+                            $consultation_sores = $this->consultationsRepository->getConsultationSores([
+                                'uuid'                      => $data['consultation_uuid'],
+                                'branch'                    => $data['branch']
+                            ]);
                             if(count($consultation_sores) == 0)
                                 throw new RuntimeException("No hay lesiones registradas.");
                             break;
                         case 'plantillas':
                             break;
                         case 'evidencia-fotografica':
-                            $consultation_evidence = $this->consultationsRepository->getConsultationEvidence($consultation_uuid);
+                            $consultation_evidence = $this->consultationsRepository->getConsultationEvidence([
+                                'uuid'                      => $data['consultation_uuid'],
+                                'branch'                    => $data['branch']
+                            ]);
                             if(count($consultation_evidence) == 0)
                                 throw new RuntimeException("No hay evidencia registrada");
                             break;
@@ -1243,7 +1525,10 @@ class ConsultationsService extends Service
                 }
             }
 
-            $consultation_procedures = $this->consultationsRepository->getConsultationProcedures($consultation_uuid);
+            $consultation_procedures = $this->consultationsRepository->getConsultationProcedures([
+                'uuid'                          => $data['consultation_uuid'],
+                'organization'                  => $data['organization']
+            ]);
             $total = 0;
             $discount = 0;
             $procedures = array();
@@ -1284,6 +1569,18 @@ class ConsultationsService extends Service
 
         } else {
             throw new RuntimeException("La consulta no esta abierta para hacer cambios.");
+        }
+    }
+
+    function validateUpdate(array $data): bool {
+        $consultation_data = $this->consultationsRepository->getConsultationStatus([
+            'uuid'                          => $data['consultation_uuid'],
+            'branch'                        => $data['branch']
+        ]);
+        if($consultation_data != null && intval($consultation_data['estatus']) == 0 && $consultation_data['cita_estatus_codigo'] == 'en_proceso') {
+            return true;
+        } else {
+            return false;
         }
     }
 }

@@ -15,7 +15,7 @@ final readonly class WhatsAppMessageRepository
 
     public function createPending(
         string $uuid,
-        int $companyId,
+        int $organizationId,
         int $integrationId,
         string $provider,
         string $type,
@@ -29,7 +29,7 @@ final readonly class WhatsAppMessageRepository
         array $parameters = [],
         array $requestPayload = [],
         bool $isTest = false,
-        ?int $userId = null
+        ?int $uid = null
     ): int {
         $statement = $this->database->prepare(
             'INSERT INTO mensajes_whatsapp (
@@ -84,7 +84,7 @@ final readonly class WhatsAppMessageRepository
 
         $statement->bindParam(
             ':empresa',
-            $companyId,
+            $organizationId,
             PDO::PARAM_INT
         );
 
@@ -194,8 +194,8 @@ final readonly class WhatsAppMessageRepository
 
         $statement->bindValue(
             ':registrado_por',
-            $userId,
-            $userId === null
+            $uid,
+            $uid === null
                 ? PDO::PARAM_NULL
                 : PDO::PARAM_INT
         );

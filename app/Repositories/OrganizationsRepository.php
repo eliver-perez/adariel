@@ -174,7 +174,7 @@ class OrganizationsRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getOrganizationUsers(string $uuid) {
+    public function getOrganizationUsers(array $data) {
         $sql = "
             SELECT
                 u.uuid,
@@ -194,8 +194,45 @@ class OrganizationsRepository
             WHERE e.uuid = :uuid
         ";
 
+        if($data['active'] != -1)
+            $sql .= "AND u.activo = :active";
+
         $stmt = $this->db->prepare($sql);
-        $stmt->bindParam(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->bindParam(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        if($data['active'] != -1)
+            $stmt->bindParam(':active', $data['active'], PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getOrganizationUsersById(array $data) {
+        $sql = "
+            SELECT
+                u.uuid,
+                u.email,
+                u.nombre,
+                ut.tipo,
+                u.activo,
+                r.nombre registro,
+                COALESCE(DATE_FORMAT(u.f_registro, '%d/%m/%Y %r'), '') f_registro
+            FROM usuarios u
+                INNER JOIN usuarios_tipos ut
+                    ON u.tipo_usuario = ut.id
+                INNER JOIN empresas e
+                    ON u.empresa = e.id
+                LEFT JOIN usuarios r
+                    ON u.registro = r.id
+            WHERE e.id = :id
+        ";
+
+        if($data['active'] != -1)
+            $sql .= "AND u.activo = :active";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':id', $data['organizationId'], PDO::PARAM_LOB);
+        if($data['active'] != -1)
+            $stmt->bindParam(':active', $data['active'], PDO::PARAM_INT);
         $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -212,6 +249,30 @@ class OrganizationsRepository
         $id = $stmt->fetchColumn();
 
         return $id !== false ? (int) $id : null;
+    }
+
+    public function getOrganizationUuid($id) {
+        $stmt = $this->db->prepare("
+            SELECT uuid
+            FROM empresas
+            WHERE id = :id
+            LIMIT 1");
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchColumn();
+    }
+
+    public function getOrganizationBranchUuid($id) {
+        $stmt = $this->db->prepare("
+            SELECT uuid
+            FROM sucursales
+            WHERE id = :id
+            LIMIT 1");
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchColumn();
     }
 
     public function getOrganizationNextConsecutive(): int {
@@ -372,6 +433,29 @@ class OrganizationsRepository
             'encargado'                     => $data['manager'],
             'registro'                      => $data['uid'],
         ]);
+
+        return (int) $this->db->lastInsertId();
+    }
+
+    public function insertOrganizationSettings(array $data): int {
+        $stmt = $this->db->prepare("
+            INSERT INTO ajustes_empresas (
+                empresa,
+                ajuste,
+                valor,
+                registro,
+                f_registro
+            ) SELECT :empresa,
+                    id,
+                    valor_defecto,
+                    :registro,
+                    NOW()
+                    FROM ajustes a
+                    WHERE a.activo = 1
+        ");
+        $stmt->bindParam(':empresa', $data['organization'], PDO::PARAM_LOB);
+        $stmt->bindParam(':registro', $data['uid'], PDO::PARAM_LOB);
+        $stmt->execute();
 
         return (int) $this->db->lastInsertId();
     }

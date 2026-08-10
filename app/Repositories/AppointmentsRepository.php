@@ -15,15 +15,17 @@ class AppointmentsRepository
         return $this->db;
     }
 
-    public function appointmentExistsByUuid(string $uuid): bool
+    public function appointmentExistsByUuid(array $data): bool
     {
         $stmt = $this->db->prepare("
             SELECT 1
             FROM citas
             WHERE uuid = :uuid
+                AND sucursal = :sucursal
             LIMIT 1
         ");
-        $stmt->bindParam(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->bindParam(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindParam(':sucursal', $data['branch'], PDO::PARAM_INT);
         $stmt->execute();
 
         return (bool) $stmt->fetchColumn();
@@ -33,9 +35,11 @@ class AppointmentsRepository
         $stmt = $this->db->prepare("
             UPDATE citas
             SET estatus = :status
-            WHERE uuid = :appointment");
+            WHERE uuid = :appointment
+                AND sucursal = :sucursal");
         $stmt->bindParam(':appointment', $data['appointment'], PDO::PARAM_LOB);
         $stmt->bindParam(':status', $data['status']);
+        $stmt->bindParam(':sucursal', $data['branch'], PDO::PARAM_INT);
         $stmt->execute();
     }
 
@@ -45,10 +49,12 @@ class AppointmentsRepository
             SET estatus = :status,
                 termino_cita = :uid,
                 f_termino_cita = NOW()
-            WHERE uuid = :uuid");
+            WHERE uuid = :uuid
+                AND sucursal = :sucursal");
         $stmt->bindParam(':uuid', $data['uuid'], PDO::PARAM_LOB);
         $stmt->bindParam(':status', $data['status']);
         $stmt->bindParam(':uid', $data['uid']);
+        $stmt->bindParam(':sucursal', $data['branch'], PDO::PARAM_INT);
         $stmt->execute();
     }
 
@@ -78,11 +84,13 @@ class AppointmentsRepository
                     ON cb.cita = c.id
             WHERE c.uuid = :appointment
                 AND cb.estatus = :status
+                AND c.sucursal = :sucursal
             ORDER BY cb.h_inicio ASC
             LIMIT 1
         ");
         $stmt->bindParam(':appointment', $data['appointment'], PDO::PARAM_LOB);
         $stmt->bindParam(':status', $data['status']);
+        $stmt->bindParam(':sucursal', $data['branch'], PDO::PARAM_INT);
         $stmt->execute();
         $appointmentBlock = $stmt->fetchColumn();
 
@@ -126,7 +134,7 @@ class AppointmentsRepository
         $stmt->execute();
     }
 
-    public function appointmentStatus(string $uuid): string {
+    public function appointmentStatus(array $data): string {
         $stmt = $this->db->prepare("
             SELECT
             ce.codigo
@@ -134,39 +142,47 @@ class AppointmentsRepository
                 INNER JOIN citas_estatus ce
                     ON c.estatus = ce.id
             WHERE uuid = :uuid
+                AND c.sucursal = :sucursal
         ");
         
-        $stmt->bindParam(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->bindParam(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindParam(':sucursal', $data['branch'], PDO::PARAM_INT);
         $stmt->execute();
         $data = $stmt->fetch(PDO::FETCH_ASSOC);
 
         return $data != null ? $data['codigo'] : '';
     }
 
-    public function getAppointmentId(string $uuid): ?int {
+    public function getAppointmentId(array $data): ?int {
         $stmt = $this->db->prepare("
             SELECT
             c.id
             FROM citas c
             WHERE c.uuid = :uuid
+                AND c.sucursal = :sucursal
         ");
         
-        $stmt->bindParam(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->bindParam(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindParam(':sucursal', $data['branch'], PDO::PARAM_INT);
         $stmt->execute();
         $data = $stmt->fetch(PDO::FETCH_ASSOC);
 
         return $data != null ? $data['id'] : 0;
     }
 
-    public function getAppointmentBlockId(string $uuid): ?int {
+    public function getAppointmentBlockId(array $data): ?int {
         $stmt = $this->db->prepare("
             SELECT
             cb.id
             FROM citas_bloques cb
+                INNER JOIN citas c
+                    ON cb.cita = c.id
             WHERE cb.uuid = :uuid
+                AND c.sucursal = :sucursal
         ");
         
-        $stmt->bindParam(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->bindParam(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindParam(':sucursal', $data['branch'], PDO::PARAM_INT);
         $stmt->execute();
         $data = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -176,12 +192,16 @@ class AppointmentsRepository
     public function getUnfinishedAppointmentBlocksCount($data): ?array {
         $stmt = $this->db->prepare("
             SELECT COUNT(*) pendientes
-            FROM citas_bloques
-            WHERE cita = :uuid
-            AND estatus <> :status;
+            FROM citas_bloques cb
+                INNER JOIN citas c
+                    ON cb.cita = c.id
+            WHERE c.uuid = :uuid
+                AND c.sucursal = :sucursal
+            AND cb.estatus <> :status;
             ");
 
         $stmt->bindParam(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindParam(':sucursal', $data['branch'], PDO::PARAM_INT);
         $stmt->bindParam(':status', $data['status'], PDO::PARAM_INT);
         $stmt->execute();
         $row = $stmt->fetch();
@@ -189,7 +209,7 @@ class AppointmentsRepository
         return $row != null ? $row : null;
     }
 
-    public function getCalendarAppointments(string $start, string $end): array {
+    public function getCalendarAppointments(array $data): array {
         $stmt = $this->db->prepare("
             SELECT
             c.uuid,
@@ -225,17 +245,17 @@ class AppointmentsRepository
                     ON p.genero = g.id
             WHERE c.fecha >= :start
                 AND c.fecha < :end
+                AND c.sucursal = :branch
             ");
-        
-        $stmt->execute([
-            'start' => $start,
-            'end' => $end
-        ]);
+        $stmt->bindValue(':start', $data['start']);
+        $stmt->bindValue(':end', $data['end']);
+        $stmt->bindValue(':branch', $data['branch']);
+        $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getProcedureCost(string $procedureId, string $staffId): float {
+    public function getProcedureCost(array $data): float {
         $stmt = $this->db->prepare("
             SELECT ps.costo
             FROM servicios s
@@ -245,9 +265,11 @@ class AppointmentsRepository
                     ON ps.personal = p.id
             WHERE s.uuid = :procedure_uuid
                 AND p.uuid = :staff_uuid
+                AND s.empresa = :empresa
         ");
-        $stmt->bindValue(':procedure_uuid', $procedureId, PDO::PARAM_LOB);
-        $stmt->bindValue(':staff_uuid', $staffId, PDO::PARAM_LOB);
+        $stmt->bindValue(':procedure_uuid', $data['procedureId'], PDO::PARAM_LOB);
+        $stmt->bindValue(':staff_uuid', $data['staffId'], PDO::PARAM_LOB);
+        $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_INT);
         $stmt->execute();
         $cost = $stmt->fetchColumn();
 
@@ -258,7 +280,7 @@ class AppointmentsRepository
         return (float)$cost;
     }
 
-    public function getStaffName(string $staffId): string {
+    public function getStaffName(array $data): string {
         $stmt = $this->db->prepare("
             SELECT TRIM(
                 CONCAT(
@@ -269,8 +291,10 @@ class AppointmentsRepository
             )
             FROM personal
             WHERE uuid = :uuid
+                AND empresa = :empresa
         ");
-        $stmt->bindValue(':uuid', $staffId, PDO::PARAM_LOB);
+        $stmt->bindValue(':uuid', $data['staffId'], PDO::PARAM_LOB);
+        $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_INT);
         $stmt->execute();
         $name = $stmt->fetchColumn();
 
@@ -281,13 +305,15 @@ class AppointmentsRepository
         return $name;
     }
 
-    public function getProcedureName(string $procedureId): string {
+    public function getProcedureName(array $data): string {
         $stmt = $this->db->prepare("
             SELECT servicio
             FROM servicios
             WHERE uuid = :uuid
+                AND empresa = :empresa
         ");
-        $stmt->bindValue(':uuid', $procedureId, PDO::PARAM_LOB);
+        $stmt->bindValue(':uuid', $data['procedureId'], PDO::PARAM_LOB);
+        $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_INT);
         $stmt->execute();
         $name = $stmt->fetchColumn();
 
@@ -298,9 +324,9 @@ class AppointmentsRepository
         return $name;
     }
 
-    public function getStaffAvailability(string $staffId, string $date, int $interval): array {
+    public function getStaffAvailability(array $data): array {
         // 1. Día de la semana
-        $weekday = (int)date('w', strtotime($date));
+        $weekday = (int)date('w', strtotime($data['date']));
 
         /*
             DISPONIBILIDAD BASE
@@ -314,9 +340,11 @@ class AppointmentsRepository
                     ON h.personal = p.id
             WHERE p.uuid = :staff_uuid
                 AND hld.dia_semana = :day
+                AND h.sucursal = :sucursal
                 AND h.activo = 1
         ");
-        $stmt->bindValue(':staff_uuid', $staffId, PDO::PARAM_LOB);
+        $stmt->bindValue(':staff_uuid', $data['staffId'], PDO::PARAM_LOB);
+        $stmt->bindValue(':sucursal', $data['branch'], PDO::PARAM_INT);
         $stmt->bindValue(':day', $weekday);
 
         $stmt->execute();
@@ -330,14 +358,16 @@ class AppointmentsRepository
             SELECT h_inicio AS start, h_fin AS end
             FROM bloqueos_agenda
             WHERE personal = :staff
+                AND sucursal = :sucursal
                 AND f_inicio <= :date_start
                 AND f_fin >= :date_end
         ");
 
         $stmt->execute([
-            'staff' => $staffId,
-            'date_start' => $date,
-            'date_end' => $date
+            'staff' => $data['staffId'],
+            'sucursal' => $data['branch'],
+            'date_start' => $data['date'],
+            'date_end' => $data['date']
         ]);
 
         $dayUnavailable = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -352,12 +382,14 @@ class AppointmentsRepository
             JOIN citas_estatus ce ON c.estatus = ce.id
             WHERE cb.personal = :staff
                 AND ce.codigo NOT IN ('cancelada', 'rechazada')
+                AND c.sucursal = :sucursal
                 AND c.fecha = :date
         ");
 
         $stmt->execute([
-            'staff' => $staffId,
-            'date' => $date
+            'staff' => $data['staffId'],
+            'sucursal' => $data['branch'],
+            'date' => $data['date']
         ]);
 
         $dayBusy = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -375,12 +407,12 @@ class AppointmentsRepository
         /*
             RECORTE SI ES HOY
         */
-        if ($date === date('Y-m-d')) {
+        if ($data['date'] === date('Y-m-d')) {
             $nowMinutes = (int)date('H') * 60 + (int)date('i');
 
-            $remainder = $nowMinutes % $interval;
+            $remainder = $nowMinutes % $data['interval'];
             if ($remainder !== 0) {
-                $nowMinutes += ($interval - $remainder);
+                $nowMinutes += ($data['interval'] - $remainder);
             }
 
             $free = $this->trimPastIntervals($free, $nowMinutes);
@@ -502,6 +534,8 @@ class AppointmentsRepository
         $stmt = $this->db->prepare("
             INSERT INTO citas (
                 uuid,
+                sucursal,
+                ejercicio,
                 paciente,
                 asunto,
                 forma,
@@ -520,6 +554,8 @@ class AppointmentsRepository
                 f_actualizacion
             ) VALUES (
                 :uuid,
+                :sucursal,
+                YEAR(NOW()),
                 :paciente,
                 :asunto,
                 :forma,
@@ -541,6 +577,7 @@ class AppointmentsRepository
 
         $stmt->execute([
             'uuid'                  => $data['uuid'],
+            'sucursal'              => $data['branch'],
             'paciente'              => $data['patient'],
             'asunto'                => $data['appointment_type'],
             'forma'                 => $data['booking_channel'],
@@ -619,5 +656,33 @@ class AppointmentsRepository
             'personal'              => $data['staff'],
             'costo'                 => $data['cost'],
         ]);
+    }
+
+    public function getAppointmentConsecutive(array $data): ?int {
+        $stmt = $this->db->prepare("
+            SELECT
+            COALESCE(MAX(consecutivo), 0) + 1 consecutive
+            FROM citas c
+            WHERE c.sucursal = :sucursal
+                AND c.ejercicio = YEAR(NOW())
+            FOR UPDATE
+        ");
+        
+        $stmt->bindParam(':sucursal', $data['branch'], PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchColumn();
+    }
+
+    public function updateAppointmentConsecutive(array $data): void {
+        $stmt = $this->db->prepare("
+            UPDATE citas SET
+				consecutivo = :consecutivo,
+				folio = :folio
+                WHERE id = :id");
+        $stmt->bindParam(':consecutivo', $data['consecutive']);
+        $stmt->bindParam(':folio', $data['folio']);
+        $stmt->bindParam(':id', $data['id']);
+        $stmt->execute();
     }
 }

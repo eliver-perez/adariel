@@ -136,7 +136,7 @@
         <div class="col-span-12">
             <label for="field-lesion-observaciones" class="inline-flex items-center w-[178px] mb-2 text-md font-normal text-dark dark:text-title-dark">Observaciones:</label>
             <div class="w-full">
-                <textarea id="field-lesion-observaciones" name="lesion_observaciones" rows="3" class=" rounded-4 border-normal border-1 text-[15px] dark:bg-box-dark-up dark:border-box-dark-up px-[20px] py-[12px] outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full focus:ring-primary focus:border-primary resize-none" placeholder="Resumen de diagnostico..."></textarea>
+                <textarea id="field-lesion-observaciones" name="lesion_observaciones" rows="3" class=" rounded-4 border-normal border-1 text-[15px] dark:bg-box-dark-up dark:border-box-dark-up px-[20px] py-[12px] outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full focus:ring-primary focus:border-primary resize-none" placeholder="Observaciones..."></textarea>
             </div>
         </div>
         <div class="col-span-12">

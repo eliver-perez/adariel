@@ -72,19 +72,22 @@ class WhatsAppMessageController
         Response $response
     ): void {
         try {
-            $service = $this->getService();
-
             $currentUserId = Auth::id();
 
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
+            $organizationId = Auth::organizationId();
 
-            $companyId = Auth::organizationId();
-
-            if($companyId === null) {
-                throw new RuntimeException("Sin datos de empresa.");
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron registros de su empresa.");
             }
+            $organizationBranchId = Auth::organizationBranchId();
+
+            if($organizationBranchId === null) {
+                throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
+            $service = $this->getService();
 
             $data = $request->input();
 
@@ -99,8 +102,8 @@ class WhatsAppMessageController
             }
 
             $result = $this->getService()->sendTestTemplate(
-                companyId: $companyId,
-                userId: $currentUserId,
+                organizationId: $organizationId,
+                uid: $currentUserId,
                 recipient: $recipient,
                 template: trim(
                     (string) ($data['template'] ?? 'hello_world')
@@ -142,31 +145,5 @@ class WhatsAppMessageController
                 'message' => $exception->getMessage(),
             ], 500);
         }
-    }
-
-    private function getAuthenticatedUserId(): int
-    {
-        $userId = Auth::id();
-
-        if ($userId === null || (int) $userId <= 0) {
-            throw new RuntimeException(
-                'No se encontró un usuario autenticado.'
-            );
-        }
-
-        return (int) $userId;
-    }
-
-    private function getAuthenticatedCompanyId(): int
-    {
-        $companyId = Auth::organizationId();
-
-        if ($companyId === null || (int) $companyId <= 0) {
-            throw new RuntimeException(
-                'No se encontró una empresa autenticada.'
-            );
-        }
-
-        return (int) $companyId;
     }
 }

@@ -19,7 +19,9 @@ class POSRepository
         $sql = "
             INSERT INTO ventas (
                 uuid,
+                sucursal,
                 folio,
+                ejercicio,
                 consecutivo,
                 consulta,
                 cita,
@@ -39,7 +41,9 @@ class POSRepository
             )
             SELECT 
                 :uuid,
+                c.sucursal,
                 :folio,
+                YEAR(NOW()),
                 :consecutive,
                 c.id,
                 c.cita,

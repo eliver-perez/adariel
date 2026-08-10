@@ -62,6 +62,15 @@ function initDatePicker(id, onChangeCallback) {
   return dp;
 }
 
+function refreshSelectOption(id) {
+  const selectEl = document.getElementById(id);
+  const selectInstance = te.Select.getInstance(selectEl);
+  if (selectInstance) {
+      selectInstance.dispose();
+  }
+  new te.Select(selectEl);
+}
+
 function ActiveMenu(l) {
   const links = document.querySelectorAll(`a[href="${l}"]`);
 

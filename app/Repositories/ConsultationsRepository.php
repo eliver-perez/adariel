@@ -47,6 +47,7 @@ class ConsultationsRepository
                 INNER JOIN usuarios u
                     ON pu.usuario = u.id
             WHERE u.id = :usuario
+                AND c.sucursal = :sucursal
         ";
 
         if($data['status'] != -1)
@@ -84,6 +85,7 @@ class ConsultationsRepository
             $stmt->bindValue(':status', $data['status'], PDO::PARAM_INT);
 
         $stmt->bindValue(':usuario', $data['uid'], PDO::PARAM_INT);
+        $stmt->bindValue(':sucursal', $data['branch'], PDO::PARAM_INT);
         $stmt->bindValue(':limit', $data['limit'], PDO::PARAM_INT);
         $stmt->bindValue(':offset', $data['offset'], PDO::PARAM_INT);
 
@@ -124,7 +126,7 @@ class ConsultationsRepository
         return $row['personal'] ?: null;
     }
 
-    public function getConsultationUuidByBlock($uuid) {
+    public function getConsultationUuidByBlock(array $data) {
         $stmt = $this->db->prepare("
             SELECT c.uuid
             FROM consultas c
@@ -133,10 +135,12 @@ class ConsultationsRepository
                 INNER JOIN citas_bloques cb
                     ON cb.cita = ct.id
             WHERE cb.uuid = :uuid
+                AND ct.sucursal = :sucursal
             LIMIT 1
         ");
 
-        $stmt->bindValue(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':sucursal', $data['branch'], PDO::PARAM_INT);
         $stmt->execute();
 
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -144,7 +148,7 @@ class ConsultationsRepository
         return $row['uuid'] ?: null;
     }
 
-    public function getConsultation($uuid): ?array {
+    public function getConsultation(array $data): ?array {
         $stmt = $this->db->prepare("
             SELECT cb.uuid,
                 ct.folio,
@@ -193,10 +197,12 @@ class ConsultationsRepository
                 INNER JOIN usuarios u
                     ON pu.usuario = u.id
             WHERE cb.uuid = :uuid
+                AND ct.sucursal = :sucursal
             LIMIT 1
         ");
 
-        $stmt->bindValue(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':sucursal', $data['branch'], PDO::PARAM_INT);
         $stmt->execute();
 
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -204,26 +210,27 @@ class ConsultationsRepository
         return $row ?: null;
     }
 
-    public function getAppointmentUuidByBlock(string $uuid) {
+    public function getAppointmentUuidByBlock(array $data) {
         $stmt = $this->db->prepare("
             SELECT c.uuid
             FROM citas c
                 INNER JOIN citas_bloques cb
                     ON c.id = cb.cita
             WHERE cb.uuid = :uuid
+                AND c.sucursal = :sucursal
             LIMIT 1
         ");
-        $stmt->bindParam(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->bindParam(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindParam(':sucursal', $data['branch'], PDO::PARAM_INT);
         $stmt->execute();
 
         return $stmt->fetchColumn();
     }
 
-    public function getAppointmentProcedures(string $uuid, int $uid): ?array {
+    public function getAppointmentProcedures(array $data): ?array {
         $stmt = $this->db->prepare("
             SELECT s.id,
                 s.uuid,
-                s.codigo,
                 s.servicio,
                 cb.uuid block_uuid,
                 cb.duracion,
@@ -246,24 +253,39 @@ class ConsultationsRepository
                         and cs.personal = pu.personal
             WHERE c.uuid = :uuid
                 AND u.id = :uid
+                AND c.sucursal = :sucursal
             ORDER BY cb.h_inicio
         ");
 
-        $stmt->bindValue(':uuid', $uuid, PDO::PARAM_LOB);
-        $stmt->bindValue(':uid', $uid, PDO::PARAM_INT);
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':uid', $data['uid'], PDO::PARAM_INT);
+        $stmt->bindValue(':sucursal', $data['branch'], PDO::PARAM_INT);
         $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getConsultationStatus(string $uuid) {
+    public function getConsultationStatus(array $data) {
         $stmt = $this->db->prepare("
-            SELECT c.id, c.cita, c.paciente, c.personal, c.estatus
+            SELECT c.id,
+                c.cita,
+                c.paciente,
+                c.personal,
+                c.estatus,
+                ce.id cita_estatus_id,
+                ce.codigo cita_estatus_codigo,
+                ce.estatus cita_estatus
             FROM consultas c
+                INNER JOIN citas ct
+                    ON c.cita = ct.id
+                INNER JOIN citas_estatus ce
+                    ON ct.estatus = ce.id
             WHERE c.uuid = :uuid
+                AND c.sucursal = :sucursal
             LIMIT 1;
         ");
-        $stmt->bindParam(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->bindParam(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindParam(':sucursal', $data['branch'], PDO::PARAM_INT);
         $stmt->execute();
 
         $row = $stmt->fetch();
@@ -271,7 +293,7 @@ class ConsultationsRepository
         return $row;
     }
 
-    public function getConsultationUuidByAppointment(string $uuid)
+    public function getConsultationUuidByAppointment(array $data)
     {
         $stmt = $this->db->prepare("
             SELECT c.uuid
@@ -279,9 +301,11 @@ class ConsultationsRepository
                 INNER JOIN citas ct
                     ON c.cita = ct.id
             WHERE ct.uuid = :uuid
+                AND ct.sucursal = :sucursal
             LIMIT 1
         ");
-        $stmt->bindParam(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->bindParam(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindParam(':sucursal', $data['branch'], PDO::PARAM_LOB);
         $stmt->execute();
 
         return $stmt->fetchColumn();
@@ -292,6 +316,7 @@ class ConsultationsRepository
             INSERT INTO consultas (
                 uuid,
                 cita,
+                sucursal,
                 paciente,
                 personal,
                 estatus,
@@ -302,6 +327,7 @@ class ConsultationsRepository
             SELECT
                 :uuid,
                 c.id,
+                c.sucursal,
                 c.paciente,
                 cb.personal,
                 0,
@@ -309,14 +335,16 @@ class ConsultationsRepository
                 :registro,
                 NOW()
             FROM citas_bloques cb
-            INNER JOIN citas c ON c.id = cb.cita
+                INNER JOIN citas c
+                    ON c.id = cb.cita
             WHERE cb.id = :cita_bloque
-            AND NOT EXISTS (
-                SELECT 1
-                FROM consultas co
-                WHERE co.cita = c.id
-                    AND co.personal = cb.personal
-            )
+                AND c.sucursal = :sucursal
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM consultas co
+                    WHERE co.cita = c.id
+                        AND co.personal = cb.personal
+                )
             LIMIT 1
         ";
 
@@ -325,6 +353,7 @@ class ConsultationsRepository
         $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
         $stmt->bindValue(':registro', $data['uid'], PDO::PARAM_INT);
         $stmt->bindValue(':cita_bloque', $data['appointment_block_id'], PDO::PARAM_INT);
+        $stmt->bindValue(':sucursal', $data['branch'], PDO::PARAM_INT);
 
         $stmt->execute();
 
@@ -370,11 +399,13 @@ class ConsultationsRepository
                     ON cp.servicio = s.id
             WHERE c.uuid = :consultation_uuid
                 AND s.uuid = :procedure_uuid
+                AND c.sucursal = :sucursal
             LIMIT 1
         ");
 
         $stmt->bindValue(':consultation_uuid', $data['consultation_uuid'], PDO::PARAM_LOB);
         $stmt->bindValue(':procedure_uuid', $data['procedure_uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':sucursal', $data['branch'], PDO::PARAM_INT);
 
         $stmt->execute();
 
@@ -560,13 +591,12 @@ class ConsultationsRepository
         return true;
     }
 
-    public function getConsultationProcedures($uuid) {
+    public function getConsultationProcedures(array $data) {
         $stmt = $this->db->prepare("
             SELECT cp.id,
                 cp.uuid,
                 s.id servicio_id,
                 s.uuid servicio_uuid,
-                s.codigo codigo_servicio,
                 s.servicio,
                 cp.cantidad,
                 cp.precio_unitario,
@@ -583,19 +613,49 @@ class ConsultationsRepository
                 INNER JOIN usuarios u
                     ON cp.registro = u.id
             WHERE c.uuid = :uuid
+                AND s.empresa = :empresa
         ");
 
-        $stmt->bindValue(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_INT);
         $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getConsultationPodiatricExploration(array $data) {
+        $stmt = $this->db->prepare("
+            SELECT ep.id,
+                    ep.uuid,
+                    ep.tipo_pie,
+                    ep.formula_metatarsal,
+                    ep.alteraciones_marcha,
+                    ep.pulso_pedio_izquierdo,
+                    ep.pulso_pedio_derecho,
+                    ep.sensibilidad_izquierdo,
+                    ep.sensibilidad_derecho,
+                    ep.temperatura_pies,
+                    ep.coloracion_pies,
+                    ep.observaciones,
+                    ep.recomendaciones
+                    FROM exploracion_podologica ep
+                        INNER JOIN consultas c
+                            ON ep.consulta = c.id
+                    WHERE c.uuid = :uuid
+                        AND c.sucursal = :sucursal
+        ");
+
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':sucursal', $data['branch'], PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
     public function getProcedureData($data) {
         $stmt = $this->db->prepare("
             SELECT s.id,
                 s.uuid,
-                s.codigo,
                 s.servicio,
                 s.costo_base,
                 ps.costo
@@ -604,16 +664,18 @@ class ConsultationsRepository
                     ON s.id = ps.servicio
                     AND ps.personal = :uid
             WHERE s.uuid = :uuid
+                AND s.empresa = :empresa
         ");
 
         $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
         $stmt->bindValue(':uid', $data['uid'], PDO::PARAM_INT);
+        $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_INT);
         $stmt->execute();
 
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function getConsultationDiagnostics($uuid) {
+    public function getConsultationDiagnostics(array $data) {
         $stmt = $this->db->prepare("
             SELECT cd.id,
                 cd.uuid,
@@ -633,22 +695,26 @@ class ConsultationsRepository
                 INNER JOIN diagnosticos_tipos dt
                     ON cd.tipo_diagnostico = dt.id
             WHERE c.uuid = :uuid
+                AND c.sucursal = :sucursal
         ");
 
-        $stmt->bindValue(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':sucursal', $data['branch'], PDO::PARAM_INT);
         $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getConsultationDiagnosticsSummary($uuid) {
+    public function getConsultationDiagnosticsSummary(array $data) {
         $stmt = $this->db->prepare("
             SELECT c.diagnostico_resumen
             FROM consultas c
             WHERE c.uuid = :uuid
+                AND c.sucursal = :sucursal
         ");
 
-        $stmt->bindValue(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':sucursal', $data['branch'], PDO::PARAM_INT);
         $stmt->execute();
 
         return $stmt->fetchColumn();
@@ -662,9 +728,12 @@ class ConsultationsRepository
                 d.diagnostico
             FROM diagnosticos d
             WHERE d.uuid = :uuid
+                AND (d.empresa = :empresa
+                    OR d.empresa IS NULL)
         ");
 
         $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_INT);
         $stmt->execute();
 
         return $stmt->fetch(PDO::FETCH_ASSOC);
@@ -680,11 +749,13 @@ class ConsultationsRepository
                     ON cd.diagnostico_catalogo = d.id
             WHERE c.uuid = :consultation_uuid
                 AND d.uuid = :diagnostic_uuid
+                AND c.sucursal = :sucursal
             LIMIT 1
         ");
 
         $stmt->bindValue(':consultation_uuid', $data['consultation_uuid'], PDO::PARAM_LOB);
         $stmt->bindValue(':diagnostic_uuid', $data['diagnostic_uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':sucursal', $data['branch'], PDO::PARAM_INT);
 
         $stmt->execute();
 
@@ -771,14 +842,16 @@ class ConsultationsRepository
         try {
             $sql = "
                 UPDATE consultas SET
-                                diagnostico_resumen = :observations
-                                WHERE uuid = :uuid
+                        diagnostico_resumen = :observations
+                        WHERE uuid = :uuid
+                            AND sucursal = :sucursal
             ";
 
             $stmt = $this->db->prepare($sql);
 
             $stmt->bindValue(':observations', $data['observations'], PDO::PARAM_STR);
             $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+            $stmt->bindValue(':sucursal', $data['branch'], PDO::PARAM_INT);
 
             $stmt->execute();
 
@@ -808,7 +881,7 @@ class ConsultationsRepository
         return true;
     }
     
-    public function getConsultationSores($uuid) {
+    public function getConsultationSores(array $data) {
         $stmt = $this->db->prepare("
             SELECT clu.id,
                 clu.uuid,
@@ -852,9 +925,11 @@ class ConsultationsRepository
                 LEFT JOIN color_exudado ce
                     ON clu.color_exudado = ce.id
             WHERE c.uuid = :uuid
+                AND c.sucursal = :sucursal
         ");
 
-        $stmt->bindValue(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':sucursal', $data['branch'], PDO::PARAM_INT);
         $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -868,11 +943,13 @@ class ConsultationsRepository
                     ON clu.consulta = c.id
             WHERE c.uuid = :consultation_uuid
                 AND clu.uuid = :sore_uuid
+                AND c.sucursal = :sucursal
             LIMIT 1
         ");
 
         $stmt->bindValue(':consultation_uuid', $data['consultation_uuid'], PDO::PARAM_LOB);
         $stmt->bindValue(':sore_uuid', $data['sore_uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':sucursal', $data['branch'], PDO::PARAM_INT);
 
         $stmt->execute();
 
@@ -1024,17 +1101,19 @@ class ConsultationsRepository
         }
     }
 
-    public function getPodiatricExplorationUuid($uuid) {
+    public function getPodiatricExplorationUuid(array $data) {
         $stmt = $this->db->prepare("
             SELECT ep.uuid
             FROM exploracion_podologica ep
                 INNER JOIN consultas c
                     ON ep.consulta = c.id
             WHERE c.uuid = :uuid
+                AND c.sucursal = :sucursal
             LIMIT 1
         ");
 
-        $stmt->bindValue(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':sucursal', $data['branch'], PDO::PARAM_LOB);
         $stmt->execute();
 
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -1152,6 +1231,7 @@ class ConsultationsRepository
             $stmt->execute();
 
             if ($stmt->rowCount() === 0) {
+                die('false');
                 return false;
             }
 
@@ -1231,7 +1311,7 @@ class ConsultationsRepository
         }
     }
 
-    public function getConsultationEvidence($uuid) {
+    public function getConsultationEvidence(array $data) {
         $stmt = $this->db->prepare("
             SELECT ce.id,
                 ce.uuid,
@@ -1264,26 +1344,28 @@ class ConsultationsRepository
                 INNER JOIN personal p
                     ON pu.personal = p.id
             WHERE c.uuid = :uuid
+                AND c.sucursal = :sucursal
         ");
 
-        $stmt->bindValue(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':sucursal', $data['branch'], PDO::PARAM_INT);
         $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function checkIfConsultationPodriaticExplorationExists($uuid): bool {
+    public function checkIfConsultationPodriaticExplorationExists(array $data): bool {
         $stmt = $this->db->prepare("
             SELECT 1
             FROM exploracion_podologica ep
                 INNER JOIN consultas c
                     ON ep.consulta = c.id
             WHERE c.uuid = :consultation_uuid
+                AND c.sucursal = :sucursal
             LIMIT 1
         ");
-
-        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
-
+        $stmt->bindValue(':consultation_uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':sucursal', $data['branch'], PDO::PARAM_INT);
         $stmt->execute();
 
         return (bool) $stmt->fetchColumn();

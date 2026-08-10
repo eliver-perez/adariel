@@ -26,20 +26,18 @@ class SettingsService
         return $this->cache[$id] = $this->castValue($value, $setting['tipo']);
     }
 
-    public function get(string $id, mixed $default = null): mixed
+    public function get(string $id, int $organization, mixed $default = null): mixed
     {
         if (isset($this->cache[$id])) {
             return $this->cache[$id];
         }
-        $setting = $this->repository->getById($id);
+        $setting = $this->repository->getById($id, $organization);
 
         if (!$setting) {
             return $default;
         }
 
-        $value = $setting['valor'] !== ''
-            ? $setting['valor']
-            : $setting['valor_defecto'];
+        $value = $setting['valor'];
 
         return $this->cache[$id] = $this->castValue($value, $setting['tipo']);
     }

@@ -32,23 +32,27 @@ class SettingsRepository
         return $row ?: null;
     }
 
-    public function getById(string $id): ?array
+    public function getById(string $id, int $organization): ?array
     {
         $sql = "
             SELECT 
-                a.id,
-                a.valor,
-                a.valor_defecto,
+                ae.id,
+                ae.valor,
                 at.codigo AS tipo
-            FROM ajustes a
-            INNER JOIN ajustes_tipo at ON a.tipo = at.id
-            WHERE a.id = :id
-              AND a.activo = 1
+            FROM ajustes_empresas ae
+                INNER JOIN ajustes a
+                    ON ae.ajuste = a.id
+                INNER JOIN ajustes_tipo at
+                    ON a.tipo = at.id
+            WHERE ae.ajuste = :id
+                AND ae.empresa = :empresa
             LIMIT 1
         ";
 
         $stmt = $this->db->prepare($sql);
-        $stmt->execute(['id' => $id]);
+        $stmt->bindParam(':id', $id);
+        $stmt->bindParam(':empresa', $organization);
+        $stmt->execute();
 
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 

@@ -18,8 +18,6 @@ function GetAppointmentsStatus() {
 	$.ajax({
         url: `${homeURL}/api/appointments/status`,
 		type: 'get',
-		processData: false,
-		contentType: false,
 		dataType: "json",
 		success: function(response) {
 			console.log(response);

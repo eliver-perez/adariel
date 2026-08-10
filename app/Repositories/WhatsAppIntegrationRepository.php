@@ -17,7 +17,7 @@ final readonly class WhatsAppIntegrationRepository
      * Obtiene la integración de WhatsApp de una empresa,
      * independientemente de que esté activa o inactiva.
      */
-    public function findByCompany(int $companyId): ?array
+    public function findByCompany(int $organizationId): ?array
     {
         $statement = $this->database->prepare(
             'SELECT
@@ -42,7 +42,7 @@ final readonly class WhatsAppIntegrationRepository
         );
 
         $statement->execute([
-            'empresa' => $companyId,
+            'empresa' => $organizationId,
         ]);
 
         $integration = $statement->fetch(PDO::FETCH_ASSOC);
@@ -58,7 +58,7 @@ final readonly class WhatsAppIntegrationRepository
      * Obtiene únicamente la integración activa.
      * Este será el método utilizado al enviar mensajes.
      */
-    public function findActiveByCompany(int $companyId): ?array
+    public function findActiveByCompany(int $organizationId): ?array
     {
         $statement = $this->database->prepare(
             'SELECT
@@ -84,7 +84,7 @@ final readonly class WhatsAppIntegrationRepository
         );
 
         $statement->execute([
-            'empresa' => $companyId,
+            'empresa' => $organizationId,
         ]);
 
         $integration = $statement->fetch(PDO::FETCH_ASSOC);
@@ -103,7 +103,7 @@ final readonly class WhatsAppIntegrationRepository
      */
     public function save(
         string $uuid,
-        int $companyId,
+        int $organizationId,
         string $provider,
         string $name,
         array $configuration,
@@ -111,12 +111,12 @@ final readonly class WhatsAppIntegrationRepository
         bool $active,
         int $userId
     ): int {
-        $integration = $this->findByCompany($companyId);
+        $integration = $this->findByCompany($organizationId);
 
         if ($integration === null) {
             return $this->insert(
                 uuid: $uuid,
-                companyId: $companyId,
+                organizationId: $organizationId,
                 provider: $provider,
                 name: $name,
                 configuration: $this->encodeJson($configuration),
@@ -130,7 +130,8 @@ final readonly class WhatsAppIntegrationRepository
             integrationId: $integration['id'],
             provider: $provider,
             name: $name,
-            configuration: $configuration,
+            configuration: $this->encodeJson($configuration),
+            storedCredentials: $integration['credenciales'],
             credentials: $credentials,
             active: $active,
             userId: $userId
@@ -167,7 +168,7 @@ final readonly class WhatsAppIntegrationRepository
 
     private function insert(
         string $uuid,
-        int $companyId,
+        int $organizationId,
         string $provider,
         string $name,
         string $configuration,
@@ -199,15 +200,15 @@ final readonly class WhatsAppIntegrationRepository
             )'
         );
 
-        $statement->bindParam(':uuid', $uuid, PDO::PARAM_LOB);
-        $statement->bindParam(':empresa', $companyId, PDO::PARAM_INT);
-        $statement->bindParam(':proveedor', $provider, PDO::PARAM_STR);
-        $statement->bindParam(':nombre', $name, PDO::PARAM_STR);
-        $statement->bindParam(':configuracion', $configuration, PDO::PARAM_STR);
-        $statement->bindParam(':credenciales', $credentials, PDO::PARAM_STR);
-        $statement->bindParam(':activo', $active, PDO::PARAM_INT);
-        $statement->bindParam(':registrado_por', $userId, PDO::PARAM_INT);
-        $statement->bindParam(':actualizado_por', $userId, PDO::PARAM_INT);
+        $statement->bindValue(':uuid', $uuid, PDO::PARAM_LOB);
+        $statement->bindValue(':empresa', $organizationId, PDO::PARAM_INT);
+        $statement->bindValue(':proveedor', $provider, PDO::PARAM_STR);
+        $statement->bindValue(':nombre', $name, PDO::PARAM_STR);
+        $statement->bindValue(':configuracion', $configuration, PDO::PARAM_STR);
+        $statement->bindValue(':credenciales', $credentials, PDO::PARAM_STR);
+        $statement->bindValue(':activo', $active, PDO::PARAM_INT);
+        $statement->bindValue(':registrado_por', $userId, PDO::PARAM_INT);
+        $statement->bindValue(':actualizado_por', $userId, PDO::PARAM_INT);
 
         $statement->execute();
 
@@ -218,7 +219,8 @@ final readonly class WhatsAppIntegrationRepository
         int $integrationId,
         string $provider,
         string $name,
-        array $configuration,
+        string $configuration,
+        string $storedCredentials,
         string $credentials,
         bool $active,
         int $userId
@@ -239,15 +241,17 @@ final readonly class WhatsAppIntegrationRepository
              WHERE id = :id'
         );
 
-        $statement->execute([
-            'proveedor'       => $provider,
-            'nombre'          => $name,
-            'configuracion'   => $this->encodeJson($configuration),
-            'credenciales'    => $credentials,
-            'activo'          => $active ? 1 : 0,
-            'actualizado_por' => $userId,
-            'id'              => $integrationId,
-        ]);
+        $statement->bindValue(':proveedor', $provider);
+        $statement->bindValue(':nombre', $name);
+        $statement->bindValue(':configuracion', $configuration);
+        if($credentials != '')
+            $statement->bindValue(':credenciales', $credentials, PDO::PARAM_STR);
+        else
+            $statement->bindValue(':credenciales', $storedCredentials, PDO::PARAM_STR);
+        $statement->bindValue(':activo', $active ? 1 : 0);
+        $statement->bindValue(':actualizado_por', $userId);
+        $statement->bindValue(':id', $integrationId);
+        $statement->execute();
     }
 
     private function hydrate(array $integration): array

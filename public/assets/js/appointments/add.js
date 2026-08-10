@@ -190,11 +190,6 @@ function GetProcedures() {
 	$.ajax({
         url: `${homeURL}/api/procedures`,
 		type: 'get',
-		data: {
-			search: ''
-		},
-		processData: false,
-		contentType: false,
 		dataType: "json",
 		success: function(response) {
 			console.log(response);
@@ -218,33 +213,35 @@ function GetProcedures() {
 
 function GetProceduresStaff() {
 	var procedure = $('#select-servicio').val();
-	$('#select-servicio-atiende').empty();
-	$.ajax({
-        url: `${homeURL}/api/procedures/${procedure}/staff`,
-		type: 'get',
-		data: {
-			procedure: procedure
-		},
-		processData: false,
-		contentType: false,
-		dataType: "json",
-		success: function(response) {
-			console.log(response);
-			$.each(response.data.staff, function(k, v) {
-				$('#select-servicio-atiende').append($('<option>', {
-					value: v.id,
-					text: `${v.name} (${accounting.formatMoney(v.cost)})`
-				}));
-			});
-		},
-		error: function(XMLHttpRequest, textStatus, errorThrown) { 
-			console.log('STATUS:', textStatus);
-			console.log('ERROR:', errorThrown);
-			console.log('RESPONSE TEXT:', XMLHttpRequest.responseText);
+	if(procedure != null) {
+		$('#select-servicio-atiende').empty();
+		$.ajax({
+			url: `${homeURL}/api/procedures/${procedure}/staff`,
+			type: 'get',
+			data: {
+				procedure: procedure
+			},
+			processData: false,
+			contentType: false,
+			dataType: "json",
+			success: function(response) {
+				console.log(response);
+				$.each(response.data.staff, function(k, v) {
+					$('#select-servicio-atiende').append($('<option>', {
+						value: v.id,
+						text: `${v.name} (${accounting.formatMoney(v.cost)})`
+					}));
+				});
+			},
+			error: function(XMLHttpRequest, textStatus, errorThrown) { 
+				console.log('STATUS:', textStatus);
+				console.log('ERROR:', errorThrown);
+				console.log('RESPONSE TEXT:', XMLHttpRequest.responseText);
 
-			alert(XMLHttpRequest.responseText);
-		}  
-	});
+				alert(XMLHttpRequest.responseText);
+			}  
+		});
+	}
 }
 
 function SearchPatients() {
@@ -307,60 +304,62 @@ function SelectPatient(id, code, patient) {
 function AgregarServicio() {
 	var procedure = $('#select-servicio').val();
 	var staff = $('#select-servicio-atiende').val();
-	var duplicate = false;
-	$.each(procedures, function(k, v) {
-		if(v.procedureId == procedure) {
-			ShowToastMessage('El servicio seleccionado ya se encuentra en la lista', 'error');
-			duplicate = true;
+	if(procedure != null && staff != null) {
+		var duplicate = false;
+		$.each(procedures, function(k, v) {
+			if(v.procedureId == procedure) {
+				ShowToastMessage('El servicio seleccionado ya se encuentra en la lista', 'error');
+				duplicate = true;
+				return;
+			}
+		});
+		if(duplicate)
 			return;
-		}
-	});
-	if(duplicate)
-		return;
-	$.ajax({
-        url: `${homeURL}/api/procedures/${procedure}/staff/${staff}`,
-		type: 'get',
-		data: {
-			procedure: procedure,
-			staff: staff
-		},
-		contentType: false,
-		dataType: "json",
-		success: function(response) {
-			procedures.push(new Procedures(response.data.id,
-											response.data.procedimiento_id,
-											response.data.procedimiento,
-											response.data.personal_id,
-											response.data.nombre,
-											response.data.costo,
-											response.data.duracion
-			));
-			$('.procedimientos-agregados').append(`<li id="procedimiento-agregado-${response.data.id}" class="p-2 border border-primary rounded-10 last:mb-0 mb-[20px] flex items-center justify-between">
-													<div class="flex items-center gap-[15px]">
-														<div>
-															<label class="text-theme-gray text-[15px] dark:text-subtitle-dark hover:text-primary font-medium leading-[19px]">
-															${response.data.procedimiento} (${response.data.duracion} min.) </label>
-															<div class="before:-translate-y-1/2 before:absolute before:bg-secondary before:content-[''] before:h-[6px] before:rounded-full before:top-[50%] before:transform before:w-[6px] dark:text-subtitle-dark leading-1 before:start-0 ps-[12px] mt-[-4px] relative text-[12px] text-theme-gray">
-															${response.data.nombre} - ${accounting.formatMoney(response.data.costo)} </div>
-															<span class="before:bg-success hidden"></span>
+		$.ajax({
+			url: `${homeURL}/api/procedures/${procedure}/staff/${staff}`,
+			type: 'get',
+			data: {
+				procedure: procedure,
+				staff: staff
+			},
+			contentType: false,
+			dataType: "json",
+			success: function(response) {
+				procedures.push(new Procedures(response.data.id,
+												response.data.procedimiento_id,
+												response.data.procedimiento,
+												response.data.personal_id,
+												response.data.nombre,
+												response.data.costo,
+												response.data.duracion
+				));
+				$('.procedimientos-agregados').append(`<li id="procedimiento-agregado-${response.data.id}" class="p-2 border border-primary rounded-10 last:mb-0 mb-[20px] flex items-center justify-between">
+														<div class="flex items-center gap-[15px]">
+															<div>
+																<label class="text-theme-gray text-[15px] dark:text-subtitle-dark hover:text-primary font-medium leading-[19px]">
+																${response.data.procedimiento} (${response.data.duracion} min.) </label>
+																<div class="before:-translate-y-1/2 before:absolute before:bg-secondary before:content-[''] before:h-[6px] before:rounded-full before:top-[50%] before:transform before:w-[6px] dark:text-subtitle-dark leading-1 before:start-0 ps-[12px] mt-[-4px] relative text-[12px] text-theme-gray">
+																${response.data.nombre} - ${accounting.formatMoney(response.data.costo)} </div>
+																<span class="before:bg-success hidden"></span>
+															</div>
 														</div>
-													</div>
-													<button onclick="javascript:RemoveService(${response.data.id})" type="button" class=" toggle-active text-danger bg-danger/10 border-danger/10 text-[13px] font-semibold px-[12px] hover:text-white hover:bg-danger transition-all duration-300 border-none rounded-3 [&.active]:bg-danger [&.active]:text-white h-[32px] rounded-4 group">
-														Remover
-													</button>
-												</li>`);
-			RefreshMetrics();
-			if(showProcedures)
-				ShowProcedures();
-		},
-		error: function(XMLHttpRequest, textStatus, errorThrown) { 
-			console.log('STATUS:', textStatus);
-			console.log('ERROR:', errorThrown);
-			console.log('RESPONSE TEXT:', XMLHttpRequest.responseText);
+														<button onclick="javascript:RemoveService(${response.data.id})" type="button" class=" toggle-active text-danger bg-danger/10 border-danger/10 text-[13px] font-semibold px-[12px] hover:text-white hover:bg-danger transition-all duration-300 border-none rounded-3 [&.active]:bg-danger [&.active]:text-white h-[32px] rounded-4 group">
+															Remover
+														</button>
+													</li>`);
+				RefreshMetrics();
+				if(showProcedures)
+					ShowProcedures();
+			},
+			error: function(XMLHttpRequest, textStatus, errorThrown) { 
+				console.log('STATUS:', textStatus);
+				console.log('ERROR:', errorThrown);
+				console.log('RESPONSE TEXT:', XMLHttpRequest.responseText);
 
-			alert(XMLHttpRequest.responseText);
-		}  
-	});
+				alert(XMLHttpRequest.responseText);
+			}  
+		});
+	}
 }
 
 function RemoveService(id) {

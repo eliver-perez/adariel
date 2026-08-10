@@ -58,8 +58,23 @@ class SalesController extends Controller
         return $this->repository;
     }
 
-    public function index(Request $request, Response $response) {
+    public function indexBranch(Request $request, Response $response) {
         try {
+            $currentUserId = Auth::id();
+
+            if($currentUserId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
+            $organizationId = Auth::organizationId();
+
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron registros de su empresa.");
+            }
+            $organizationBranchId = Auth::organizationBranchId();
+
+            if($organizationBranchId === null) {
+                throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
             $service = $this->getService();
 
             $search = trim((string)$this->request->query('search', ''));
@@ -72,11 +87,16 @@ class SalesController extends Controller
             $limit = max(1, min($limit, 50));
             $offset = max(0, $offset);
 
-            $data = $service->getAll($search !== '' ? $search : null,
-                $limit,
-                $offset,
-                $status
-            );
+            $data = $service->getAll([
+                'searchBy'                          => 'branch',
+                'organizationId'                    => $organizationId,
+                'branchId'                          => $organizationBranchId,
+                'search'                            => $search !== '' ? $search : null,
+                'limit'                             => $limit,
+                'offset'                            => $offset,
+                'status'                            => $status,
+                'uid'                               => $currentUserId,
+            ]);
 
             return $response->json([
                     'success' => true,
@@ -104,12 +124,23 @@ class SalesController extends Controller
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
+            $organizationId = Auth::organizationId();
 
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron registros de su empresa.");
+            }
+            $organizationBranchId = Auth::organizationBranchId();
+
+            if($organizationBranchId === null) {
+                throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
             $service = $this->getService();
 
             $sale = $service->getSale([
-                'uuid'                      => $id,
-                'uid'                       => $currentUserId,
+                'organizationId'                    => $organizationId,
+                'branchId'                          => $organizationBranchId,
+                'uuid'                              => $id,
+                'uid'                               => $currentUserId,
             ]);
 
             return $response->json([

@@ -77,13 +77,28 @@ class POSController extends Controller
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
+            $organizationId = Auth::organizationId();
 
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron registros de su empresa.");
+            }
+            $organizationBranchId = Auth::organizationBranchId();
+
+            if($organizationBranchId === null) {
+                throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
             $service = $this->getService();
 
             $action = trim((string)$this->request->input('action', ''));
             $data = json_decode(trim((string)$this->request->input('data', '')));
 
-            $cart = $service->updateCart($action, $data);
+            $cart = $service->updateCart([
+                'organizationId'            => $organizationId,
+                'branchId'                  => $organizationBranchId,
+                'action'                    => $action,
+                'data'                      => $data,
+                'uid'                       => $currentUserId
+            ]);
 
             return $response->json([
                     'success' => true,
@@ -111,7 +126,16 @@ class POSController extends Controller
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
+            $organizationId = Auth::organizationId();
 
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron registros de su empresa.");
+            }
+            $organizationBranchId = Auth::organizationBranchId();
+
+            if($organizationBranchId === null) {
+                throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
             $service = $this->getService();
 
             $cart = $service->getCart();
@@ -142,12 +166,23 @@ class POSController extends Controller
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
+            $organizationId = Auth::organizationId();
 
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron registros de su empresa.");
+            }
+            $organizationBranchId = Auth::organizationBranchId();
+
+            if($organizationBranchId === null) {
+                throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
             $service = $this->getService();
 
             $cart = json_decode(trim((string)$this->request->input('cart', '')));
 
             $cart = $service->checkout([
+                'organizationId'            => $organizationId,
+                'branchId'                  => $organizationBranchId,
                 'cart'                      => $cart,
                 'uid'                       => $currentUserId,
             ]);

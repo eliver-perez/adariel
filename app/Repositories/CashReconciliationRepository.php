@@ -26,8 +26,15 @@ class CashReconciliationRepository
             FROM cortes c
                 LEFT JOIN usuarios u
                     ON c.abierta_por = u.id
-            WHERE 1=1
+                LEFT JOIN sucursales s
+                    ON c.sucursal = s.id
+            WHERE
         ";
+
+        if($data['search_by'] == 'branch')
+            $sql .= 'c.sucursal = :sucursal';
+        else 
+            $sql .= 's.empresa = :empresa';
 
         $params = [];
 
@@ -55,7 +62,10 @@ class CashReconciliationRepository
             $stmt->bindValue(':' . $key, $value, PDO::PARAM_STR);
         }
 
-        // $stmt->bindValue(':usuario', $data['uid'], PDO::PARAM_INT);
+        if($data['search_by'] == 'branch')
+            $stmt->bindValue(':sucursal', $data['branch'], PDO::PARAM_INT);
+        else 
+            $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_INT);
         $stmt->bindValue(':limit', $data['limit'], PDO::PARAM_INT);
         $stmt->bindValue(':offset', $data['offset'], PDO::PARAM_INT);
 
@@ -64,30 +74,34 @@ class CashReconciliationRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getCashReconciliationId(string $uuid): ?int {
+    public function getCashReconciliationId(array $data): ?int {
         $stmt = $this->db->prepare("
-            SELECT id
-            FROM cortes
-            WHERE uuid = :uuid
+            SELECT c.id
+            FROM cortes c
+            WHERE c.uuid = :uuid
+                AND c.sucursal = :sucursal
             LIMIT 1");
-        $stmt->bindValue(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':sucursal', $data['branch'], PDO::PARAM_INT);
         $stmt->execute();
         $id = $stmt->fetchColumn();
 
         return $id !== false ? (int) $id : null;
     }
 
-    public function verifyIfExistsOpen($uid) {
+    public function verifyIfExistsOpen(array $data) {
         $stmt = $this->db->prepare("
             SELECT
                 c.uuid
             FROM cortes c
             WHERE c.abierta_por = :uid
+                AND c.sucursal = :sucursal
             AND c.f_cierre IS NULL
             LIMIT 1
         ");
 
-        $stmt->bindParam(':uid', $uid, PDO::PARAM_INT);
+        $stmt->bindParam(':uid', $data['uid'], PDO::PARAM_INT);
+        $stmt->bindParam(':sucursal', $data['branch'], PDO::PARAM_INT);
         $stmt->execute();
         $id = $stmt->fetchColumn();
 
@@ -130,10 +144,14 @@ class CashReconciliationRepository
                     ON c.cerrada_por = closed.id
                 LEFT JOIN cortes_estatus ce
                     ON c.estatus = ce.id
+                LEFT JOIN sucursales s
+                    ON c.sucursal = s.id
             WHERE c.uuid = :uuid
+                AND s.empresa = :empresa
         ");
 
         $stmt->bindParam(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindParam(':empresa', $data['organization'], PDO::PARAM_INT);
         $stmt->execute();
         $row = $stmt->fetch();
 
@@ -215,6 +233,10 @@ class CashReconciliationRepository
         $stmt = $this->db->prepare("
             INSERT INTO cortes (
                 uuid,
+                sucursal,
+                ejercicio,
+                consecutivo,
+                folio,
                 caja,
                 abierta_por,
                 f_abierta,
@@ -226,6 +248,10 @@ class CashReconciliationRepository
                 f_registro
             ) VALUES (
                 :uuid,
+                :branch,
+                :year,
+                :consecutive,
+                :folio,
                 :cash_register,
                 :initialized_by,
                 NOW(),
@@ -239,6 +265,10 @@ class CashReconciliationRepository
         ");
 
         $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':branch', $data['branch'], PDO::PARAM_INT);
+        $stmt->bindValue(':year', $data['year'], PDO::PARAM_INT);
+        $stmt->bindValue(':consecutive', $data['consecutive'], PDO::PARAM_INT);
+        $stmt->bindValue(':folio', $data['folio'], PDO::PARAM_STR);
         $stmt->bindValue(':cash_register', $data['cash_register'], PDO::PARAM_INT);
         $stmt->bindValue(':initialized_by', $data['uid'], PDO::PARAM_INT);
         $stmt->bindValue(':initialize_amount', $data['initialize_amount'], PDO::PARAM_STR);

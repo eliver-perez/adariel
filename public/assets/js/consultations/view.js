@@ -15,6 +15,8 @@ let add_sore = false;
 let pain_scale = 0;
 
 let podiatricExplorationTimer = null;
+let loadingPodiatricExploration = true;
+let savePodiatricExplorationTimeoutSec = 10000;
 
 let savingConsultationObservations = false;
 let savingConsultationPodiatricExploration = false;
@@ -40,6 +42,7 @@ function InitializeValues(home) {
 		$('#field-observaciones-iniciales').on('change', () => { saveConsultationObservations(); });
 	}
 	if(window.consultationModules?.podiatricExploration) {
+		loadingPodiatricExploration = true;
 		GetPodiatricExplorationCatalog();
 		$('#select-tipo-pie').on('change', setPodiaticExplorationSaveTimer);
 		$('#select-formula-metatarsal').on('change', setPodiaticExplorationSaveTimer);
@@ -268,8 +271,12 @@ function uploadEvidencePhoto(file, type) {
         },
 
         error: function(XMLHttpRequest, textStatus, errorThrown) { 
-			let response = JSON.parse(XMLHttpRequest.responseText);
-			ShowToastMessage(response.message, 'error')
+			try {
+				let response = JSON.parse(XMLHttpRequest.responseText);
+				ShowToastMessage(response.message, 'error')
+			} catch(e) {
+				ShowToastMessage(XMLHttpRequest.responseText, 'error');
+			}
 
             showUploadError(tempId, message);
         },
@@ -294,12 +301,14 @@ function showUploadError(tempId, message) {
 }
 
 function setPodiaticExplorationSaveTimer() {
-	clearTimeout(podiatricExplorationTimer);
+	if(!loadingPodiatricExploration) {
+		clearTimeout(podiatricExplorationTimer);
 
-    podiatricExplorationTimer = setTimeout(() => {
-        saveConsultationPodriaticExploration();
-        podiatricExplorationTimer = null;
-    }, 10000);
+		podiatricExplorationTimer = setTimeout(() => {
+			saveConsultationPodriaticExploration();
+			podiatricExplorationTimer = null;
+		}, savePodiatricExplorationTimeoutSec);
+	}
 }
 
 function selectTab(tab) {
@@ -365,8 +374,12 @@ function GetConsultationProcedures() {
 			}
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
-			let response = JSON.parse(XMLHttpRequest.responseText);
-			ShowToastMessage(response.message, 'error')
+			try {
+				let response = JSON.parse(XMLHttpRequest.responseText);
+				ShowToastMessage(response.message, 'error')
+			} catch(e) {
+				ShowToastMessage(XMLHttpRequest.responseText, 'error');
+			}
 		}  
 	});
 }
@@ -407,8 +420,12 @@ function GetConsultationDiagnostics() {
 			}
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
-			let response = JSON.parse(XMLHttpRequest.responseText);
-			ShowToastMessage(response.message, 'error')
+			try {
+				let response = JSON.parse(XMLHttpRequest.responseText);
+				ShowToastMessage(response.message, 'error')
+			} catch(e) {
+				ShowToastMessage(XMLHttpRequest.responseText, 'error');
+			}
 		}  
 	});
 }
@@ -471,8 +488,12 @@ function GetConsultationSores() {
 			}
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
-			let response = JSON.parse(XMLHttpRequest.responseText);
-			ShowToastMessage(response.message, 'error')
+			try {
+				let response = JSON.parse(XMLHttpRequest.responseText);
+				ShowToastMessage(response.message, 'error')
+			} catch(e) {
+				ShowToastMessage(XMLHttpRequest.responseText, 'error');
+			}
 		}  
 	});
 }
@@ -564,8 +585,12 @@ function addConsultationDiagnostic() {
 				},
 				error: function(XMLHttpRequest, textStatus, errorThrown) {
 					addingConsultationDiagnostic = false;
-					let response = JSON.parse(XMLHttpRequest.responseText);	
-					ShowToastMessage(response.message, 'error');
+					try {
+						let response = JSON.parse(XMLHttpRequest.responseText);
+						ShowToastMessage(response.message, 'error')
+					} catch(e) {
+						ShowToastMessage(XMLHttpRequest.responseText, 'error');
+					}
 				}  
 			});
 		} else {
@@ -684,8 +709,12 @@ function addConsultationProcedure() {
 				}
 			},
 			error: function(XMLHttpRequest, textStatus, errorThrown) { 
-				let response = JSON.parse(XMLHttpRequest.responseText);	
-				ShowToastMessage(response.message, 'error');
+				try {
+					let response = JSON.parse(XMLHttpRequest.responseText);
+					ShowToastMessage(response.message, 'error')
+				} catch(e) {
+					ShowToastMessage(XMLHttpRequest.responseText, 'error');
+				}
 			}  
 		});
 	}
@@ -954,8 +983,12 @@ function GetPodiatricSoresCatalog() {
 			}
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
-			let response = JSON.parse(XMLHttpRequest.responseText);
-			ShowToastMessage(response.message, 'error')
+			try {
+				let response = JSON.parse(XMLHttpRequest.responseText);
+				ShowToastMessage(response.message, 'error')
+			} catch(e) {
+				ShowToastMessage(XMLHttpRequest.responseText, 'error');
+			}
 		}  
 	});
 }
@@ -966,8 +999,8 @@ function GetPodiatricExplorationCatalog() {
 		type: 'get',
 		dataType: "json",
 		success: function(response) {
-			// console.log(response);
 			if(response.success) {
+				$('#select-tipo-pie').empty();
 				$('#select-tipo-pie').append($('<option>', { value: 0, text: 'N/A' }));
 				$.each(response.data.foot_types, function(k, v) {
 					$('#select-tipo-pie').append($('<option>', {
@@ -1037,11 +1070,64 @@ function GetPodiatricExplorationCatalog() {
 
 				clearTimeout(podiatricExplorationTimer);
 				podiatricExplorationTimer = null;
+				GetPodiatricExplorationData();
 			}
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
-			let response = JSON.parse(XMLHttpRequest.responseText);
-			ShowToastMessage(response.message, 'error')
+			try {
+				let response = JSON.parse(XMLHttpRequest.responseText);
+				ShowToastMessage(response.message, 'error')
+			} catch(e) {
+				ShowToastMessage(XMLHttpRequest.responseText, 'error');
+			}
+		}  
+	});
+}
+
+function refreshSelect() {
+
+}
+
+function GetPodiatricExplorationData() {
+	$.ajax({
+        url: `${homeURL}/api/consultations/${consultation_id}/podiatric-exploration`,
+		type: 'get',
+		dataType: "json",
+		success: function(response) {
+			console.log(response);
+			if(response.success) {
+				// alert($('#select-tipo-pie option[value="' + response.data.foot_type + '"]').length);
+				$('#select-tipo-pie').val(response.data.foot_type);
+				refreshSelectOption('select-tipo-pie');
+				$('#select-formula-metatarsal').val(response.data.metatarsal_formula);
+				refreshSelectOption('select-formula-metatarsal');
+				$('#field-alteraciones-marcha').val(response.data.gait_disorder);
+				$('#select-pulso-pedio-izquierdo').val(response.data.left_pulse_type);
+				refreshSelectOption('select-pulso-pedio-izquierdo');
+				$('#select-pulso-pedio-derecho').val(response.data.right_pulse_type);
+				refreshSelectOption('select-pulso-pedio-derecho');
+				$('#select-sensibilidad-izquierdo').val(response.data.left_sensitivity_type);
+				refreshSelectOption('select-sensibilidad-izquierdo');
+				$('#select-sensibilidad-derecho').val(response.data.right_sensitivity_type);
+				refreshSelectOption('select-sensibilidad-derecho');
+				$('#select-temperatura-pies').val(response.data.temperature_type);
+				refreshSelectOption('select-temperatura-pies');
+				$('#select-coloracion-pies').val(response.data.foot_color_type);
+				refreshSelectOption('select-coloracion-pies');
+				$('#field-exploracion-podologica-observaciones').val(response.data.observations);
+				$('#field-exploracion-podologica-recomendaciones').val(response.data.advice);
+				loadingPodiatricExploration = false;
+			} else {
+				ShowToastMessage(response.message, 'error');
+			}
+		},
+		error: function(XMLHttpRequest, textStatus, errorThrown) { 
+			try {
+				let response = JSON.parse(XMLHttpRequest.responseText);
+				ShowToastMessage(response.message, 'error')
+			} catch(e) {
+				ShowToastMessage(XMLHttpRequest.responseText, 'error');
+			}
 		}  
 	});
 }
@@ -1062,8 +1148,12 @@ function GetProcedures() {
 			$('#select-search-procedure').trigger('change');
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
-			let response = JSON.parse(XMLHttpRequest.responseText);
-			ShowToastMessage(response.message, 'error')
+			try {
+				let response = JSON.parse(XMLHttpRequest.responseText);
+				ShowToastMessage(response.message, 'error')
+			} catch(e) {
+				ShowToastMessage(XMLHttpRequest.responseText, 'error');
+			}
 		}  
 	});
 }
@@ -1088,8 +1178,12 @@ function GetDiagnostics() {
 			}
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
-			let response = JSON.parse(XMLHttpRequest.responseText);
-			ShowToastMessage(response.message, 'error')
+			try {
+				let response = JSON.parse(XMLHttpRequest.responseText);
+				ShowToastMessage(response.message, 'error')
+			} catch(e) {
+				ShowToastMessage(XMLHttpRequest.responseText, 'error');
+			}
 		}  
 	});
 }
@@ -1114,8 +1208,12 @@ function GetDiagnosticTypes() {
 			}
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
-			let response = JSON.parse(XMLHttpRequest.responseText);
-			ShowToastMessage(response.message, 'error')
+			try {
+				let response = JSON.parse(XMLHttpRequest.responseText);
+				ShowToastMessage(response.message, 'error')
+			} catch(e) {
+				ShowToastMessage(XMLHttpRequest.responseText, 'error');
+			}
 		}  
 	});
 }
@@ -1138,8 +1236,12 @@ function GetPodiatryFootTypes() {
 			}
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
-			let response = JSON.parse(XMLHttpRequest.responseText);
-			ShowToastMessage(response.message, 'error')
+			try {
+				let response = JSON.parse(XMLHttpRequest.responseText);
+				ShowToastMessage(response.message, 'error')
+			} catch(e) {
+				ShowToastMessage(XMLHttpRequest.responseText, 'error');
+			}
 		}  
 	});
 }
@@ -1167,8 +1269,12 @@ function GetPodiatryPulseTypes() {
 			}
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
-			let response = JSON.parse(XMLHttpRequest.responseText);
-			ShowToastMessage(response.message, 'error')
+			try {
+				let response = JSON.parse(XMLHttpRequest.responseText);
+				ShowToastMessage(response.message, 'error')
+			} catch(e) {
+				ShowToastMessage(XMLHttpRequest.responseText, 'error');
+			}
 		}  
 	});
 }
@@ -1196,8 +1302,12 @@ function GetPodiatrySensitivityTypes() {
 			}
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
-			let response = JSON.parse(XMLHttpRequest.responseText);
-			ShowToastMessage(response.message, 'error')
+			try {
+				let response = JSON.parse(XMLHttpRequest.responseText);
+				ShowToastMessage(response.message, 'error')
+			} catch(e) {
+				ShowToastMessage(XMLHttpRequest.responseText, 'error');
+			}
 		}  
 	});
 }
@@ -1220,8 +1330,12 @@ function GetPodiatryFootTemperatureTypes() {
 			}
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
-			let response = JSON.parse(XMLHttpRequest.responseText);
-			ShowToastMessage(response.message, 'error')
+			try {
+				let response = JSON.parse(XMLHttpRequest.responseText);
+				ShowToastMessage(response.message, 'error')
+			} catch(e) {
+				ShowToastMessage(XMLHttpRequest.responseText, 'error');
+			}
 		}  
 	});
 }
@@ -1244,8 +1358,12 @@ function GetPodiatryFootColorTypes() {
 			}
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
-			let response = JSON.parse(XMLHttpRequest.responseText);
-			ShowToastMessage(response.message, 'error')
+			try {
+				let response = JSON.parse(XMLHttpRequest.responseText);
+				ShowToastMessage(response.message, 'error')
+			} catch(e) {
+				ShowToastMessage(XMLHttpRequest.responseText, 'error');
+			}
 		}  
 	});
 }
@@ -1268,8 +1386,12 @@ function GetPodiatryMetatarsalFormulas() {
 			}
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
-			let response = JSON.parse(XMLHttpRequest.responseText);
-			ShowToastMessage(response.message, 'error')
+			try {
+				let response = JSON.parse(XMLHttpRequest.responseText);
+				ShowToastMessage(response.message, 'error')
+			} catch(e) {
+				ShowToastMessage(XMLHttpRequest.responseText, 'error');
+			}
 		}  
 	});
 }
@@ -1315,9 +1437,12 @@ function saveConsultationProcedures(auto = false) {
 				},
 				error: function(XMLHttpRequest, textStatus, errorThrown) {
 					savingConsultationProcedures = false;
-					let response = JSON.parse(XMLHttpRequest.responseText);
-					
-					ShowToastMessage(response.message, 'error')
+					try {
+						let response = JSON.parse(XMLHttpRequest.responseText);
+						ShowToastMessage(response.message, 'error')
+					} catch(e) {
+						ShowToastMessage(XMLHttpRequest.responseText, 'error');
+					}
 				}  
 			});
 		} else {
@@ -1350,8 +1475,12 @@ function saveConsultationDiagnostics(auto = false) {
 			},
 			error: function(XMLHttpRequest, textStatus, errorThrown) {
 				savingConsultationDiagnostics = false;
-				let response = JSON.parse(XMLHttpRequest.responseText);	
-				ShowToastMessage(response.message, 'error');
+				try {
+					let response = JSON.parse(XMLHttpRequest.responseText);
+					ShowToastMessage(response.message, 'error')
+				} catch(e) {
+					ShowToastMessage(XMLHttpRequest.responseText, 'error');
+				}
 			}  
 		});
 	} else {
@@ -1380,8 +1509,12 @@ function saveConsultationSores(auto = false) {
 			},
 			error: function(XMLHttpRequest, textStatus, errorThrown) {
 				savingConsultationSores = false;
-				let response = JSON.parse(XMLHttpRequest.responseText);	
-				ShowToastMessage(response.message, 'error');
+				try {
+					let response = JSON.parse(XMLHttpRequest.responseText);
+					ShowToastMessage(response.message, 'error')
+				} catch(e) {
+					ShowToastMessage(XMLHttpRequest.responseText, 'error');
+				}
 			}  
 		});
 	} else {
@@ -1409,8 +1542,12 @@ function saveConsultationObservations(auto = false) {
 			},
 			error: function(XMLHttpRequest, textStatus, errorThrown) {
 				savingConsultationObservations = false;
-				let response = JSON.parse(XMLHttpRequest.responseText);	
-				ShowToastMessage(response.message, 'error');
+				try {
+					let response = JSON.parse(XMLHttpRequest.responseText);
+					ShowToastMessage(response.message, 'error')
+				} catch(e) {
+					ShowToastMessage(XMLHttpRequest.responseText, 'error');
+				}
 			}  
 		});
 	} else {
@@ -1449,8 +1586,12 @@ function saveConsultationPodriaticExploration(auto = false) {
 			},
 			error: function(XMLHttpRequest, textStatus, errorThrown) {
 				savingConsultationPodiatricExploration = false;
-				let response = JSON.parse(XMLHttpRequest.responseText);	
-				ShowToastMessage(response.message, 'error');
+				try {
+					let response = JSON.parse(XMLHttpRequest.responseText);
+					ShowToastMessage(response.message, 'error')
+				} catch(e) {
+					ShowToastMessage(XMLHttpRequest.responseText, 'error');
+				}
 			}  
 		});
 	} else {
@@ -1478,8 +1619,12 @@ function saveConsultationIndications(auto = false) {
 			},
 			error: function(XMLHttpRequest, textStatus, errorThrown) {
 				savingConsultationIndications = false;
-				let response = JSON.parse(XMLHttpRequest.responseText);
-				ShowToastMessage(response.message, 'error')
+				try {
+					let response = JSON.parse(XMLHttpRequest.responseText);
+					ShowToastMessage(response.message, 'error')
+				} catch(e) {
+					ShowToastMessage(XMLHttpRequest.responseText, 'error');
+				}
 			}  
 		});
 	} else {
@@ -1535,10 +1680,13 @@ function saveEndConsultation() {
 				}
 			},
 			error: function(XMLHttpRequest, textStatus, errorThrown) {
-				console.log(XMLHttpRequest.responseText);
 				savingConsultationFinish = false;
-				let response = JSON.parse(XMLHttpRequest.responseText);	
-				ShowToastMessage(response.message, 'error');
+				try {
+					let response = JSON.parse(XMLHttpRequest.responseText);
+					ShowToastMessage(response.message, 'error')
+				} catch(e) {
+					ShowToastMessage(XMLHttpRequest.responseText, 'error');
+				}
 			}  
 		});
 	} else {

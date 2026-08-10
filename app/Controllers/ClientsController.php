@@ -50,6 +50,16 @@ class ClientsController extends Controller
 
     public function index(Request $request, Response $response) {
         try {
+            $currentUserId = Auth::id();
+
+            if($currentUserId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
+            $organizationId = Auth::organizationId();
+
+            if($organizationId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
             $service = $this->getService();
 
             $search = trim((string)$this->request->query('search', ''));
@@ -60,10 +70,13 @@ class ClientsController extends Controller
             $limit = max(1, min($limit, 50));
             $offset = max(0, $offset);
 
-            $data = $service->getAll($search !== '' ? $search : null,
-                $limit,
-                $offset
-            );
+            $data = $service->getAll([
+                'organizationId'                    => $organizationId,
+                'search'                            => $search !== '' ? $search : null,
+                'limit'                             => $limit,
+                'offset'                            => $offset,
+                'uid'                               => $currentUserId,
+            ]);
 
             return $response->json([
                     'success' => true,
@@ -91,10 +104,16 @@ class ClientsController extends Controller
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
+            $organizationId = Auth::organizationId();
+
+            if($organizationId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
 
             $service = $this->getService();
 
-            $patient = $service->create([
+            $client = $service->create([
+                'organizationId'            => $organizationId,
                 'first_name'                => $request->input('nombre'),
                 'last_name'                 => $request->input('paterno'),
                 'last_name_2'               => $request->input('materno'),
@@ -133,10 +152,9 @@ class ClientsController extends Controller
 
             return $response->json([
                 'status' => 'OK',
-                'message' => 'Paciente registrado correctamente.',
+                'message' => 'Cliente registrado correctamente.',
                 'data' => [
-                    'pid' => $patient['id'],
-                    'puid' => $patient['uuid'],
+                    'id' => $client['uuid'],
                 ]
             ], 201);
         } catch (InvalidArgumentException | RuntimeException $e) {

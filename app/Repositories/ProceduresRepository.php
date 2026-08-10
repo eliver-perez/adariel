@@ -34,20 +34,22 @@ class ProceduresRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getProcedureId(string $uuid): ?int {
+    public function getProcedureId(array $data): ?int {
         $stmt = $this->db->prepare("
             SELECT id
             FROM servicios
             WHERE uuid = :uuid
+                AND empresa = :empresa
             LIMIT 1");
-        $stmt->bindValue(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_INT);
         $stmt->execute();
         $id = $stmt->fetchColumn();
 
         return $id !== false ? (int) $id : null;
     }
 
-    public function getProcedureEnabledModules($uuid): array {
+    public function getProcedureEnabledModules(array $data): array {
         $stmt = $this->db->prepare("
            SELECT cm.uuid,
                 cm.codigo,
@@ -61,16 +63,18 @@ class ProceduresRepository
                         ON scm.modulo = cm.id
 				WHERE s.uuid = :uuid
                     AND scm.activo = 1
+                    AND s.empresa = :empresa
                 ORDER BY scm.orden
         ");
 
-        $stmt->bindValue(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_INT);
         $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getConsultationProcedureModules($uuid): array {
+    public function getConsultationProcedureModules(array $data): array {
         $stmt = $this->db->prepare("
            SELECT cm.uuid,
                 cm.codigo,
@@ -88,16 +92,18 @@ class ProceduresRepository
                     INNER JOIN consultas_modulos cm
                         ON scm.modulo = cm.id
 				WHERE c.uuid = :uuid
+                    AND c.sucursal = :sucursal
                 ORDER BY scm.orden
         ");
 
-        $stmt->bindValue(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':sucursal', $data['branch'], PDO::PARAM_INT);
         $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getProcedureStaff($uuid): array {
+    public function getProcedureStaff(array $data): array {
         $stmt = $this->db->prepare("
            SELECT p.id,
                 p.uuid,
@@ -116,15 +122,17 @@ class ProceduresRepository
 					INNER JOIN personal p
 						ON ps.personal = p.id
 				WHERE s.uuid = :uuid
+                    AND s.empresa = :empresa
         ");
 
-        $stmt->bindValue(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->bindValue(':empresa', $data['organizationId'], PDO::PARAM_LOB);
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
         $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getProcedureStaffData($procedure, $staff): array {
+    public function getProcedureStaffData(array $data): array {
         $stmt = $this->db->prepare("
            SELECT ps.id,
                     p.id personal_id,
@@ -149,12 +157,14 @@ class ProceduresRepository
                     WHERE s.uuid = :procedure
                         AND p.uuid = :staff
                         AND ps.f_baja IS NULL
+                        AND s.empresa = :empresa
                     ORDER BY ps.f_registro DESC
                     LIMIT 1
         ");
 
-        $stmt->bindValue(':procedure', $procedure, PDO::PARAM_LOB);
-        $stmt->bindValue('staff', $staff, PDO::PARAM_LOB);
+        $stmt->bindValue(':procedure', $data['procedure'], PDO::PARAM_LOB);
+        $stmt->bindValue(':staff', $data['staff'], PDO::PARAM_LOB);
+        $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_INT);
         $stmt->execute();
         
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -202,7 +212,7 @@ class ProceduresRepository
                 :requiere_material,
                 :es_procedimiento,
                 :registro,
-                1,
+                :activo,
                 NOW()
             )
         ");
@@ -215,7 +225,85 @@ class ProceduresRepository
         $stmt->bindParam(':costo_base', $data['base_cost'], PDO::PARAM_STR);
         $stmt->bindParam(':requiere_material', $data['requires_material'], PDO::PARAM_INT);
         $stmt->bindParam(':es_procedimiento', $data['is_procedure'], PDO::PARAM_INT);
+        $stmt->bindParam(':activo', $data['is_active'], PDO::PARAM_INT);
         $stmt->bindParam(':registro', $data['uid'], PDO::PARAM_INT);
+
+        $stmt->execute();
+
+        return (int) $this->db->lastInsertId();
+    }
+
+    public function getProcedureData(array $data): array {
+        $stmt = $this->db->prepare("
+           SELECT s.uuid,
+                s.servicio,
+                s.descripcion,
+                s.duracion_min,
+                s.costo_base,
+                s.requiere_material,
+                s.es_procedimiento,
+                s.activo
+				FROM servicios s
+				WHERE s.uuid = :uuid
+                    AND s.empresa = :empresa
+        ");
+
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':empresa', $data['organizationId'], PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+    
+    public function updateProcedure(array $data) {
+        $stmt = $this->db->prepare("
+            UPDATE servicios SET
+                servicio = :servicio,
+                descripcion = :descripcion,
+                duracion_min = :duracion_min,
+                costo_base = :costo_base,
+                requiere_material = :requiere_material,
+                es_procedimiento = :es_procedimiento,
+                activo = :activo,
+                f_actualizacion = NOW()
+                WHERE uuid = :uuid
+                    AND empresa = :empresa
+        ");
+
+        $stmt->bindParam(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindParam(':empresa', $data['organization'], PDO::PARAM_STR);
+        $stmt->bindParam(':servicio', $data['procedure'], PDO::PARAM_STR);
+        $stmt->bindParam(':descripcion', $data['description'], PDO::PARAM_STR);
+        $stmt->bindParam(':duracion_min', $data['duration'], PDO::PARAM_STR);
+        $stmt->bindParam(':costo_base', $data['base_cost'], PDO::PARAM_STR);
+        $stmt->bindParam(':requiere_material', $data['requires_material'], PDO::PARAM_INT);
+        $stmt->bindParam(':es_procedimiento', $data['is_procedure'], PDO::PARAM_INT);
+        $stmt->bindParam(':activo', $data['is_active'], PDO::PARAM_INT);
+
+        $stmt->execute();
+    }
+    
+    public function insertProcedureStaff(array $data): int {
+        $stmt = $this->db->prepare("
+            INSERT INTO personal_servicios (
+                uuid,
+                personal,
+                servicio,
+                costo,
+                f_registro
+            ) VALUES (
+                :uuid,
+                :personal,
+                :servicio,
+                :costo,
+                NOW()
+            )
+        ");
+
+        $stmt->bindParam(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindParam(':personal', $data['staff'], PDO::PARAM_STR);
+        $stmt->bindParam(':servicio', $data['procedure'], PDO::PARAM_STR);
+        $stmt->bindParam(':costo', $data['cost'], PDO::PARAM_STR);
 
         $stmt->execute();
 

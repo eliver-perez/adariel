@@ -25,12 +25,17 @@ class ClientsService extends Service
     ) {
     }
 
-    public function getAll(?string $search = null, int $limit = 10, int $offset = 0): array {
+    public function getAll(array $data): array {
         try {
-            $data = $this->clientsRepository->getAll($search !== '' ? $search : null,
-                $limit,
-                $offset
-            );
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+            $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron registros de su empresa.');
+
+            $data = $this->clientsRepository->getAll([
+                'organization'                  => $organizationId,
+                'search'                        => $data['search'],
+                'limit'                         => $data['limit'],
+                'offset'                        => $data['offset'],
+            ]);
             $clients = array();
 
             foreach($data as $d) {
@@ -38,12 +43,12 @@ class ClientsService extends Service
                     'id'                        => $this->uuidBinaryToString($d['uuid']),
                     'code'                      => $d['clave'],
                     'name'                      => $d['nombre'],
-                    'dob'                       => $d['f_nacimiento'],
-                    'gender'                    => $d['genero'],
-                    'address'                   => $d['domicilio'],
-                    'phone'                     => $d['telefono'],
-                    'mobile'                    => $d['movil'],
-                    'email'                     => $d['email'],
+                    'dob'                       => $d['f_nacimiento'] ?? '',
+                    'gender'                    => $d['genero'] ?? '',
+                    'address'                   => $d['domicilio'] ?? '',
+                    'phone'                     => $d['telefono'] ?? '',
+                    'mobile'                    => $d['movil'] ?? '',
+                    'email'                     => $d['email'] ?? '',
                     'registered_date'           => $d['f_registro'],
                     'last_payment_date'         => $d['ultimo_pago'],
                 ));

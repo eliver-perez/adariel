@@ -15,7 +15,7 @@ class ClientsRepository
         return $this->db;
     }
 
-    public function getAll(?string $search = null, int $limit = 10, int $offset = 0): array {
+    public function getAll(array $data): array {
         $sql = "
             SELECT
                 c.id,
@@ -54,7 +54,8 @@ class ClientsRepository
                     ON col.municipio = m.id
                 LEFT JOIN estados e
                     ON m.estado = e.id
-            WHERE 1 = 1
+            WHERE c.empresa = :empresa
+                OR c.empresa IS NULL
         ";
 
         $params = [];
@@ -67,7 +68,7 @@ class ClientsRepository
         foreach ($fields as $i => $field) {
             $param = "search_$i";
             $conditions[] = "$field LIKE :$param";
-            $params[$param] = '%' . $search . '%';
+            $params[$param] = '%' . $data['search'] . '%';
         }
 
         $sql .= " AND (" . implode(' OR ', $conditions) . ")";
@@ -83,28 +84,32 @@ class ClientsRepository
             $stmt->bindValue(':' . $key, $value, PDO::PARAM_STR);
         }
 
-        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $data['limit'], PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $data['offset'], PDO::PARAM_INT);
 
         $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getClientId($uuid): ?int {
+    public function getClientId(array $data): ?int {
         $stmt = $this->db->prepare("
-            SELECT id
-            FROM clientes
-            WHERE uuid = :uuid
+            SELECT c.id
+            FROM clientes c
+            WHERE c.uuid = :uuid
+                AND (c.empresa = :empresa
+                OR c.empresa IS NULL)
             LIMIT 1");
-        $stmt->bindValue(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_LOB);
         $stmt->execute();
         $id = $stmt->fetchColumn();
 
         return $id !== false ? (int) $id : null;
     }
 
-    public function getClientName($uuid): ?string {
+    public function getClientName(array $data): ?string {
         $stmt = $this->db->prepare("
             SELECT 
                 TRIM(
@@ -116,8 +121,11 @@ class ClientsRepository
                 ) nombre
             FROM clientes c
             WHERE c.uuid = :uuid
+                AND (c.empresa = :empresa
+                OR c.empresa IS NULL)
             LIMIT 1");
-        $stmt->bindValue(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_INT);
         $stmt->execute();
         $name = $stmt->fetchColumn();
 

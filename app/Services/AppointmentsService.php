@@ -31,13 +31,18 @@ class AppointmentsService extends Service
     ) {
     }
 
-    public function getAvailableSlots(string $date, array $procedures): array {
+    public function getAvailableSlots(int $organization): array {
         $settingsService = new SettingsService($this->settingsRepository);
-        $interval = $settingsService->get('agenda_intervalo_minutos', 'P');
+        $interval = $settingsService->get('agenda_intervalo_minutos', $organization);
     }
 
     public function scheduleAppointment(array $data): string {
         $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+        $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+        $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
+
+        $settingsService = new SettingsService($this->settingsRepository);
+        $appointmentCodePrefix = $settingsService->get('codigo_cita', $organizationId);
 
         $date = $this->formatDateToSQL($data['appointment']['date'] ?? null);
         $appointmentStart = $this->timeToMinutes($data['appointment']['start']);
@@ -59,7 +64,11 @@ class AppointmentsService extends Service
         $cost = 0;
         $procedures_cost = array();
         foreach($procedures as $p) {
-            $procedures_cost[$p['procedure_id'].':'.$p['staff_id']] = $this->appointmentsRepository->getProcedureCost($this->uuidStringToBinary($p['procedure_id']), $this->uuidStringToBinary($p['staff_id']));
+            $procedures_cost[$p['procedure_id'].':'.$p['staff_id']] = $this->appointmentsRepository->getProcedureCost([
+                'organization'                      => $organizationId,
+                'procedureId'                       => $this->uuidStringToBinary($p['procedure_id']),
+                'staffId'                           => $this->uuidStringToBinary($p['staff_id'])
+                ]);
             $cost += $procedures_cost[$p['procedure_id'].':'.$p['staff_id']];
         }
 
@@ -68,7 +77,10 @@ class AppointmentsService extends Service
             'La seleccion del paciente es obligatorio.'
         );
 
-        $patientIdInt = $this->patientsRepository->getPatientId($this->uuidStringToBinary($patientId));
+        $patientIdInt = $this->patientsRepository->getPatientId([
+            'uuid'                          => $this->uuidStringToBinary($patientId),
+            'organization'                  => $organizationId
+        ]);
 
         $appointmentType = $this->normalizeRequiredInt(
             $data['appointment_type'] ?? null,
@@ -96,6 +108,7 @@ class AppointmentsService extends Service
             $appointmentUuid = $this->generateUuidBinary();
             $appointmentId = $this->appointmentsRepository->insertAppointment([
                     'uuid'                          => $appointmentUuid,
+                    'branch'                        => $branchId,
                     'patient'                       => $patientIdInt,
                     'appointment_type'              => $appointmentType,
                     'booking_channel'               => $bookingChannel,
@@ -115,8 +128,14 @@ class AppointmentsService extends Service
                 $block_end = $this->timeToMinutes($p['end']);
                 $block_duration = $block_end - $block_start;
 
-                $staffIdInt = $this->staffRepository->getStaffId($this->uuidStringToBinary($p['staff_id']));
-                $procedureIdInt = $this->proceduresRepository->getProcedureId($this->uuidStringToBinary($p['procedure_id']));
+                $staffIdInt = $this->staffRepository->getStaffId([
+                    'uuid'                          => $this->uuidStringToBinary($p['staff_id']),
+                    'organization'                  => $organizationId
+                ]);
+                $procedureIdInt = $this->proceduresRepository->getProcedureId([
+                    'uuid'                          => $this->uuidStringToBinary($p['procedure_id']),
+                    'organization'                  => $organizationId
+                ]);
 
                 $appointmentBlockUuid = $this->generateUuidBinary();
                 $this->appointmentsRepository->insertAppointmentBlock([
@@ -129,6 +148,17 @@ class AppointmentsService extends Service
                     'end'                           => $block_end,
                     'duration'                      => $block_duration,
                     'status'                        => $block_status
+                ]);
+
+                $appointmentConsecutive = $this->appointmentsRepository->getAppointmentConsecutive([
+                    'branch'                        => $branchId
+                ]);
+                $appointmentCode = $appointmentCodePrefix . '-' . str_pad((string)$appointmentConsecutive, 5, '0', STR_PAD_LEFT);
+
+                $this->appointmentsRepository->updateAppointmentConsecutive([
+                    'id'                            => $appointmentId,
+                    'consecutive'                   => $appointmentConsecutive,
+                    'folio'                         => $appointmentCode
                 ]);
 
                 $this->appointmentsRepository->insertAppointmentProcedure([
@@ -149,10 +179,14 @@ class AppointmentsService extends Service
         }
     }
 
-    public function getCalendarAppointments($start, $end): array {
+    public function getCalendarAppointments(array $data): array {
+        $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+        $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+        $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
+
         try {
-            $startDate = new \DateTimeImmutable($start);
-            $endDate   = new \DateTimeImmutable($end);
+            $startDate = new \DateTimeImmutable($data['start']);
+            $endDate   = new \DateTimeImmutable($data['end']);
         } catch (\Exception $e) {
             throw new InvalidArgumentException('Formato de fechas inválido');
         }
@@ -161,7 +195,13 @@ class AppointmentsService extends Service
             $start_date = $startDate->format('Y-m-d');
             $end_date   = $endDate->format('Y-m-d');
 
-            $data = $this->appointmentsRepository->getCalendarAppointments($start_date, $end_date);
+            $data = $this->appointmentsRepository->getCalendarAppointments([
+                'organization'                          => $organizationId,
+                'branch'                                => $branchId,
+                'start'                                 => $start_date,
+                'end'                                   => $end_date,
+                'uid'                                   => $uid
+            ]);
             $appointments = array();
 
             foreach($data as $d) {
@@ -195,13 +235,17 @@ class AppointmentsService extends Service
         }
     }
 
-    public function calculateAppointmentAvailability($date, $procedures): array {
+    public function calculateAppointmentAvailability(array $data): array {
+        $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+        $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+        $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
+
         $slots = [];
 
         $settingsService = new SettingsService($this->settingsRepository);
-        $interval = (int)$settingsService->get('agenda_intervalo_minutos');
+        $interval = (int)$settingsService->get('agenda_intervalo_minutos', $organizationId);
         
-        $date_sql = \DateTime::createFromFormat('d/m/Y', $date);
+        $date_sql = \DateTime::createFromFormat('d/m/Y', $data['date']);
 
         if ($interval <= 0) {
             $interval = 15;
@@ -211,7 +255,7 @@ class AppointmentsService extends Service
         $staffNames = [];
         $procedureCosts = [];
 
-        foreach ($procedures as $procedure) {
+        foreach ($data['procedures'] as $procedure) {
             // $staffId = (int)($procedure['staffId'] ?? 0);
             // $procedureId = (int)($procedure['procedureId'] ?? 0);
             $staffId = $this->uuidStringToBinary($procedure['staffId']);
@@ -225,19 +269,29 @@ class AppointmentsService extends Service
                 continue;
             }
 
-            $staffNames[$staffId] = $this->appointmentsRepository->getStaffName($staffId);
-            $procedureName = $this->appointmentsRepository->getProcedureName($procedureId);
+            $staffNames[$staffId] = $this->appointmentsRepository->getStaffName([
+                'organization'                      => $organizationId,
+                'staffId'                           => $staffId
+            ]);
+            $procedureName = $this->appointmentsRepository->getProcedureName([
+                'organization'                      => $organizationId,
+                'procedureId'                       => $procedureId
+            ]);
 
-            $procedureCosts[$procedureId] = $this->appointmentsRepository->getProcedureCost(
-                $procedureId,
-                $staffId
-            );
+            $procedureCosts[$procedureId] = $this->appointmentsRepository->getProcedureCost([
+                'organization'                      => $organizationId,
+                'procedureId'                       => $procedureId,
+                'staffId'                           => $staffId
+            ]);
 
-            $intervals = $this->appointmentsRepository->getStaffAvailability(
-                $staffId,
-                $date_sql->format('Y-m-d'),
-                $interval
-            );
+            $intervals = $this->appointmentsRepository->getStaffAvailability([
+                'organization'                      => $organizationId,
+                'branch'                            => $branchId,
+                'date'                              => $date_sql->format('Y-m-d'),
+                'staffId'                           => $staffId,
+                'interval'                          => $interval,
+                'uid'                               => $uid
+            ]);
 
             if (count($intervals) === 0) {
                 return [];
@@ -246,7 +300,7 @@ class AppointmentsService extends Service
             $staffAvailability[$staffId] = $intervals;
         }
 
-        $firstProcedure = $procedures[0];
+        $firstProcedure = $data['procedures'][0];
         // $firstStaffId = (int)$firstProcedure['staffId'];
         $firstStaffId = $this->uuidStringToBinary($firstProcedure['staffId']);
         $firstDuration = (int)$firstProcedure['duration'];
@@ -263,7 +317,7 @@ class AppointmentsService extends Service
                 $procedureBlocks = [];
                 $totalDuration = 0;
 
-                foreach ($procedures as $procedure) {
+                foreach ($data['procedures'] as $procedure) {
                     $procedureId = $this->uuidStringToBinary($procedure['procedureId']); 
                     $staffId = $this->uuidStringToBinary($procedure['staffId']);
                     $duration = (int)$procedure['duration'];
@@ -305,8 +359,7 @@ class AppointmentsService extends Service
         return $slots;
     }
 
-    private function fitsInIntervals(array $intervals, int $start, int $end): bool
-    {
+    private function fitsInIntervals(array $intervals, int $start, int $end): bool {
         foreach ($intervals as $interval) {
             if ($start >= (int)$interval['start'] && $end <= (int)$interval['end']) {
                 return true;
@@ -318,6 +371,8 @@ class AppointmentsService extends Service
 
     public function checkIn(array $data) {
         $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+        $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+        $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
 
         $appointment = $this->normalizeRequiredText(
             $data['appointment'] ?? null,
@@ -326,7 +381,10 @@ class AppointmentsService extends Service
 
         $appointmentId = $this->uuidStringToBinary($appointment);
 
-        if (!$this->appointmentsRepository->appointmentExistsByUuid($appointmentId)) {
+        if (!$this->appointmentsRepository->appointmentExistsByUuid([
+                'uuid'                      => $appointmentId,
+                'branch'                    => $branchId
+            ])) {
             throw new InvalidArgumentException('No se encontro informacion de la cita');
         }
 
@@ -348,7 +406,10 @@ class AppointmentsService extends Service
         $conn = $this->appointmentsRepository->getConnection();
         $conn->beginTransaction();
         try {
-            $actual_status = $this->appointmentsRepository->appointmentStatus($appointmentId);
+            $actual_status = $this->appointmentsRepository->appointmentStatus([
+                'uuid'                      => $appointmentId,
+                'branch'                    => $branchId
+            ]);
             
             if($actual_status != 'agendada')
                 throw new RuntimeException('La cita no esta en un estatus valido para hacer check-in.');
@@ -356,11 +417,13 @@ class AppointmentsService extends Service
             $appointmentBlockId = $this->appointmentsRepository->getFirstAppointmentBlock([
                 'appointment'                       => $appointmentId,
                 'status'                            => $blockScheduledStatus,
+                'branch'                            => $branchId,
             ]);
 
             $this->appointmentsRepository->changeAppointmentStatus([
                 'appointment'                       => $appointmentId,
                 'status'                            => $waitingStatus,
+                'branch'                            => $branchId,
             ]);
 
             $this->appointmentsRepository->changeAppointmentBlockStatus([
@@ -379,6 +442,8 @@ class AppointmentsService extends Service
 
     public function cancel(array $data) {
         $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+        $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+        $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
 
         $appointment = $this->normalizeRequiredText(
             $data['appointment'] ?? null,
@@ -387,7 +452,10 @@ class AppointmentsService extends Service
 
         $appointmentId = $this->uuidStringToBinary($appointment);
 
-        if (!$this->appointmentsRepository->appointmentExistsByUuid($appointmentId)) {
+        if (!$this->appointmentsRepository->appointmentExistsByUuid([
+                'uuid'                      => $appointmentId,
+                'branch'                    => $branchId
+            ])) {
             throw new InvalidArgumentException('No se encontro informacion de la cita');
         }
 
@@ -414,17 +482,22 @@ class AppointmentsService extends Service
         $conn = $this->appointmentsRepository->getConnection();
         $conn->beginTransaction();
         try {
-            $actual_status = $this->appointmentsRepository->appointmentStatus($appointmentId);
+            $actual_status = $this->appointmentsRepository->appointmentStatus([
+                'uuid'                      => $appointmentId,
+                'branch'                    => $branchId
+            ]);
             
             if($actual_status == 'cancelada' || 
                 $actual_status == 'rechazada' || 
                 $actual_status == 'no_presento' || 
-                $actual_status == 'finalizada')
+                $actual_status == 'finalizada' ||
+                $actual_status == null)
                 throw new RuntimeException('La cita no esta en un estatus válido para cancelarse.');
 
             $this->appointmentsRepository->changeAppointmentStatus([
                     'appointment'                   => $appointmentId,
                     'status'                        => $status,
+                    'branch'                            => $branchId,
                 ]);
 
             $this->appointmentsRepository->cancelAppointmentBlocks([

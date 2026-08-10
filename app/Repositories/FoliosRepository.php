@@ -11,36 +11,66 @@ class FoliosRepository {
     {
     }
 
-    public function getConsecutive($type, $year): ?int {
+    public function getConsecutive(array $data) {
         $stmt = $this->db->prepare("
             SELECT consecutivo
             FROM folios_consecutivos
-            WHERE tipo = :type
-            AND ejercicio = :year
+            WHERE tipo = :tipo
+            AND sucursal = :sucursal
+            AND ejercicio = :ejercicio
             FOR UPDATE
         ");
-
-        $stmt->bindValue(':type', $type);
-        $stmt->bindValue(':year', $year);
+        
+        $stmt->bindValue(':tipo', $data['type']);
+        $stmt->bindValue(':sucursal', $data['branch']);
+        $stmt->bindValue(':ejercicio', $data['year']);
         $stmt->execute();
 
         return $stmt->fetchColumn();
     }
     
-    public function updateConsecutive($type, $year, $consecutive) {
+    public function insertConsecutive(array $data) {
         try {
             $sql = "
-                UPDATE folios_consecutivos SET
-                    consecutivo = :consecutive
-                WHERE tipo = :type
-                AND ejercicio = :year
+                INSERT INTO folios_consecutivos(sucursal, tipo, ejercicio, consecutivo) 
+                    VALUES(:sucursal, :tipo, :ejercicio, :consecutivo)
             ";
 
             $stmt = $this->db->prepare($sql);
 
-            $stmt->bindValue(':consecutive', $consecutive);
-            $stmt->bindValue(':type', $type);
-            $stmt->bindValue(':year', $year);
+            $stmt->bindValue(':consecutivo', $data['consecutive']);
+            $stmt->bindValue(':tipo', $data['type']);
+            $stmt->bindValue(':sucursal', $data['branch']);
+            $stmt->bindValue(':ejercicio', $data['year']);
+
+            $stmt->execute();
+
+            if ($stmt->rowCount() === 0) {
+                return false;
+            }
+
+            return true;
+        } catch(Exception $ex) {
+            throw $ex;
+        }
+    }
+    
+    public function updateConsecutive(array $data) {
+        try {
+            $sql = "
+                UPDATE folios_consecutivos SET
+                    consecutivo = :consecutivo
+                WHERE tipo = :tipo
+                AND sucursal = :sucursal
+                AND ejercicio = :ejercicio
+            ";
+
+            $stmt = $this->db->prepare($sql);
+
+            $stmt->bindValue(':consecutivo', $data['consecutive']);
+            $stmt->bindValue(':tipo', $data['type']);
+            $stmt->bindValue(':sucursal', $data['branch']);
+            $stmt->bindValue(':ejercicio', $data['year']);
 
             $stmt->execute();
 

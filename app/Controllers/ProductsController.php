@@ -42,6 +42,16 @@ class ProductsController extends Controller
 
     public function index(Request $request, Response $response) {
         try {
+            $currentUserId = Auth::id();
+
+            if($currentUserId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
+            $organizationId = Auth::organizationId();
+
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron registros de su empresa.");
+            }
             $service = $this->getService();
 
             $search = trim((string)$this->request->query('search', ''));
@@ -52,10 +62,13 @@ class ProductsController extends Controller
             $limit = max(1, min($limit, 50));
             $offset = max(0, $offset);
 
-            $data = $service->getAll($search !== '' ? $search : null,
-                $limit,
-                $offset
-            );
+            $data = $service->getAll([
+                'organizationId'                    => $organizationId,
+                'search'                            => $search !== '' ? $search : null,
+                'limit'                             => $limit,
+                'offset'                            => $offset,
+                'uid'                               => $currentUserId,
+            ]);
 
             return $response->json([
                     'success' => true,
@@ -78,19 +91,32 @@ class ProductsController extends Controller
 
     public function categories(Request $request, Response $response) {
         try {
+            $currentUserId = Auth::id();
+
+            if($currentUserId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
+            $organizationId = Auth::organizationId();
+
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron registros de su empresa.");
+            }
             $service = $this->getService();
 
-            $categories = $service->getCategories();
+            $categories = $service->getCategories([
+                'organizationId'                        => $organizationId,
+                'uid'                                   => $currentUserId,
+            ]);
 
             return $response->json([
-                'status' => 'OK',
+                'success' => true,
                 'data' => [
                     'categories' => $categories
                 ]
             ]);
         } catch (Throwable $e) {
             return $response->json([
-                'status' => 'ERROR',
+                'success' => false,
                 'message' => $e->getMessage()
                 // 'message' => 'No fue posible obtener los servicios & procedimientos.'
             ], 500);
@@ -104,10 +130,15 @@ class ProductsController extends Controller
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
+            $organizationId = Auth::organizationId();
 
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron registros de su empresa.");
+            }
             $service = $this->getService();
 
             $product = $service->create([
+                'organizationId'            => $organizationId,
                 'code'                      => $request->input('code'),
                 'bar_code'                  => $request->input('bar_code'),
                 'category'                  => $request->input('category'),

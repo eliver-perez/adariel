@@ -63,24 +63,28 @@ class WhatsAppIntegrationController
         Response $response
     ): void {
         try {
-            $service = $this->getService();
-
             $currentUserId = Auth::id();
 
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
+            $organizationId = Auth::organizationId();
 
-            $companyId = Auth::organizationId();
-
-            if($companyId === null) {
-                throw new RuntimeException("Sin datos de empresa.");
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron registros de su empresa.");
             }
+            $organizationBranchId = Auth::organizationBranchId();
 
-            $result = $service->testConnection(
-                companyId: $companyId,
-                userId: $currentUserId
-            );
+            if($organizationBranchId === null) {
+                throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
+            $service = $this->getService();
+
+            $result = $service->testConnection([
+                'organizationId'                        => $organizationId,
+                'branchId'                              => $organizationBranchId,
+                'uid'                                   => $currentUserId
+            ]);
 
             if (!$result->success) {
                 $response->json([
@@ -114,21 +118,28 @@ class WhatsAppIntegrationController
 
     public function show(Request $request, Response $response): void {
         try {
-            $service = $this->getService();
-
             $currentUserId = Auth::id();
 
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
+            $organizationId = Auth::organizationId();
 
-            $companyId = Auth::organizationId();
-
-            if($companyId === null) {
-                throw new RuntimeException("Sin datos de empresa.");
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron registros de su empresa.");
             }
+            $organizationBranchId = Auth::organizationBranchId();
 
-            $integration = $service->findForSettings($companyId);
+            if($organizationBranchId === null) {
+                throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
+            $service = $this->getService();
+
+            $integration = $service->findForSettings([
+                'organizationId'                    => $organizationId,
+                'branchId'                          => $organizationBranchId,
+                'uid'                               => $currentUserId
+            ]);
 
             $response->json([
                 'success' => true,
@@ -144,19 +155,22 @@ class WhatsAppIntegrationController
 
     public function save(Request $request, Response $response): void {
         try {
-            $service = $this->getService();
-
             $currentUserId = Auth::id();
 
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
+            $organizationId = Auth::organizationId();
 
-            $companyId = Auth::organizationId();
-
-            if($companyId === null) {
-                throw new RuntimeException("Sin datos de empresa.");
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron registros de su empresa.");
             }
+            $organizationBranchId = Auth::organizationBranchId();
+
+            if($organizationBranchId === null) {
+                throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
+            $service = $this->getService();
 
             $data = $request->input();
 
@@ -170,12 +184,12 @@ class WhatsAppIntegrationController
                 );
             }
 
-            $integrationId = $service->saveConfiguration(
-                companyId: $companyId,
-                userId: $currentUserId,
-                provider: $provider,
-                data: $data
-            );
+            $integrationId = $service->saveConfiguration([
+                'organizationId'                    => $organizationId,
+                'provider'                          => $provider,
+                'data'                              => $data,
+                'uid'                               => $currentUserId
+            ]);
 
             $response->json([
                 'success' => true,

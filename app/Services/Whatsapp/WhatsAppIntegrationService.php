@@ -22,15 +22,12 @@ class WhatsAppIntegrationService extends Service
     ) {
     }
 
-    public function testConnection(
-        int $companyId,
-        int $userId
-    ): ConnectionTestResult {
+    public function testConnection(array $data): ConnectionTestResult {
         /*
         * No usamos findActiveByCompany porque también debe poder
         * probarse una integración guardada pero todavía inactiva.
         */
-        $integration = $this->repository->findByCompany($companyId);
+        $integration = $this->repository->findByCompany($data['organizationId']);
 
         if ($integration === null) {
             throw new RuntimeException(
@@ -58,47 +55,42 @@ class WhatsAppIntegrationService extends Service
             integrationId: $integration['id'],
             successful: $result->success,
             error: $result->error,
-            userId: $userId
+            userId: $data['uid']
         );
 
         return $result;
     }
 
-    public function saveConfiguration(
-        int $companyId,
-        int $userId,
-        string $provider,
-        array $data
-    ): int {
-        return match ($provider) {
+    public function saveConfiguration(array $data): int {
+        return match ($data['provider']) {
             'meta' => $this->saveMetaConfiguration(
-                companyId: $companyId,
+                organizationId: $data['organizationId'],
                 name: 'Meta WhatsApp Cloud API',
                 phoneNumberId: (string) (
-                    $data['configuration']['phone_number_id'] ?? ''
+                    $data['data']['configuration']['phone_number_id'] ?? ''
                 ),
                 businessAccountId: (string) (
-                    $data['configuration']['business_account_id'] ?? ''
+                    $data['data']['configuration']['business_account_id'] ?? ''
                 ),
                 apiVersion: 'v25.0',
                 accessToken: (string) (
-                    $data['credentials']['access_token'] ?? ''
+                    $data['data']['credentials']['access_token'] ?? ''
                 ),
                 active: filter_var(
-                    $data['active'] ?? false,
+                    $data['data']['active'] ?? false,
                     FILTER_VALIDATE_BOOL
                 ),
-                userId: $userId
+                userId: $data['uid']
             ),
 
             default => throw new InvalidArgumentException(
-                "El proveedor de WhatsApp '{$provider}' no está soportado."
+                "El proveedor de WhatsApp '{$data['provider']}' no es compatible."
             ),
         };
     }
 
     public function saveMetaConfiguration(
-        int $companyId,
+        int $organizationId,
         string $name,
         string $phoneNumberId,
         string $businessAccountId,
@@ -118,21 +110,19 @@ class WhatsAppIntegrationService extends Service
             );
         }
 
-        if ($accessToken === '') {
-            throw new RuntimeException(
-                'El access token es obligatorio.'
-            );
+        $credentials = '';
+        if ($accessToken !== '') {
+            $credentials = $this->encryptCredentials([
+                'access_token' => $accessToken,
+            ]);
         }
 
-        $credentials = $this->encryptCredentials([
-            'access_token' => $accessToken,
-        ]);
 
         $uuid = $this->generateUuidBinary();
 
         return $this->repository->save(
             uuid: $uuid,
-            companyId: $companyId,
+            organizationId: $organizationId,
             provider: 'meta',
             name: trim($name) ?: 'WhatsApp principal',
             configuration: [
@@ -146,9 +136,9 @@ class WhatsAppIntegrationService extends Service
         );
     }
 
-    public function findForSettings(int $companyId): ?array
+    public function findForSettings(array $data): ?array
     {
-        $integration = $this->repository->findByCompany($companyId);
+        $integration = $this->repository->findByCompany($data['organizationId']);
 
         if ($integration === null) {
             return null;
@@ -179,10 +169,10 @@ class WhatsAppIntegrationService extends Service
     }
 
     // public function createWhatsAppService(
-    //     int $companyId
+    //     int $organizationId
     // ): WhatsAppService {
     //     $integration = $this->repository
-    //         ->findActiveByCompany($companyId);
+    //         ->findActiveByCompany($organizationId);
 
     //     if ($integration === null) {
     //         throw new RuntimeException(
@@ -207,16 +197,16 @@ class WhatsAppIntegrationService extends Service
     //     return new WhatsAppService($provider);
     // }
     public function createWhatsAppService(
-        int $companyId
+        int $organizationId
     ): WhatsAppService {
-        $resolved = $this->resolveActiveIntegration($companyId);
+        $resolved = $this->resolveActiveIntegration($organizationId);
 
         return $resolved['service'];
     }
 
-    public function resolveActiveIntegration(int $companyId): array
+    public function resolveActiveIntegration(int $organizationId): array
     {
-        $integration = $this->repository->findActiveByCompany($companyId);
+        $integration = $this->repository->findActiveByCompany($organizationId);
 
         if ($integration === null) {
             throw new RuntimeException(

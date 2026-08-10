@@ -6,6 +6,9 @@ namespace App\Services;
 
 use App\Core\Service;
 use App\Repositories\StaffRepository;
+use App\Repositories\ScheduleRepository;
+use App\Repositories\ScheduleTemplatesRepository;
+use App\Repositories\UsersRepository;
 use App\Repositories\GenderRepository;
 use App\Repositories\LocationRepository;
 use App\Repositories\UserRoleRepository;
@@ -18,6 +21,9 @@ class StaffService extends Service
 {
     public function __construct(
         private StaffRepository $staffRepository,
+        private ScheduleRepository $scheduleRepository,
+        private ScheduleTemplatesRepository $scheduleTemplatesRepository,
+        private UsersRepository $usersRepository,
         private GenderRepository $genderRepository,
         private LocationRepository $locationRepository,
         private UserRoleRepository $userRoleRepository,
@@ -26,8 +32,43 @@ class StaffService extends Service
     ) {
     }
 
+    public function getAll(array $data): array {
+        try {
+            $data = $this->staffRepository->getAll([
+                'organizationId'                => $data['organizationId'],
+                'search'                        => $data['search'] !== '' ? $data['search'] : null,
+                'limit'                         => $data['limit'],
+                'offset'                        => $data['offset'],
+            ]);
+            $staff = array();
+
+            foreach($data as $d) {
+                array_push($staff, array(
+                    'id'                        => $this->uuidBinaryToString($d['uuid']),
+                    'name'                      => $d['nombre'],
+                    'address'                   => $d['domicilio'] ?? '',
+                    'dob'                       => $d['f_nacimiento'] ?? '',
+                    'phone'                     => $d['telefono'] ?? '',
+                    'mobile'                    => $d['movil'] ?? '',
+                    'email'                     => $d['email'] ?? '',
+                    'user'                      => $d['usuario'] ?? '',
+                    'status'                    => $d['estatus'] ?? '',
+                    'role'                      => $d['puesto'],
+                    'registered_by'             => $d['registro'],
+                    'registered_date'           => $d['f_registro'],
+                ));
+            }
+
+            return $staff;
+        } catch (\Throwable $e) {
+            throw $e;
+        }
+    }
+
     public function create(array $data): int {
         $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+        $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron registros de su empresa.');
+        $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron registros de su sucursal.');
 
         $firstName = $this->normalizeRequiredText(
             $data['first_name'] ?? null,
@@ -58,13 +99,7 @@ class StaffService extends Service
         $phone = $this->normalizeOptionalText($data['phone'] ?? null);
         $mobile = $this->normalizeOptionalText($data['mobile'] ?? null);
 
-        $username = $this->normalizeOptionalText($data['username'] ?? null);
-        $userRole = $this->normalizeOptionalInt($data['user_role'] ?? null);
-        $password = $this->normalizeOptionalText($data['password'] ?? null);
-        
-        if($password != null)
-            $password_hash = password_hash($password, PASSWORD_DEFAULT);
-
+        $user_uuid = $this->normalizeOptionalText($data['user_uuid'] ?? null);
         $role = $this->normalizeOptionalInt($data['role'] ?? null);
 
         $cedula = $this->normalizeOptionalText($data['cedula'] ?? null);
@@ -84,10 +119,6 @@ class StaffService extends Service
             throw new InvalidArgumentException('El puesto no existe.');
         }
 
-        if($userRole != null && !$this->userRoleRepository->existsById($userRole)) {
-            throw new InvalidArgumentException('El tipo de usuario no existe.');
-        }
-
         if($specialty != null && !$this->specialtyRepository->existsById($specialty)) {
             throw new InvalidArgumentException('La especialidad no existe.');
         }
@@ -105,9 +136,9 @@ class StaffService extends Service
                 throw new InvalidArgumentException('El correo electrónico no es válido.');
             }
 
-            if ($this->staffRepository->emailExists($email)) {
-                throw new RuntimeException('Ya existe un registro de personal con ese correo.');
-            }
+            // if ($this->staffRepository->emailExists($email)) {
+            //     throw new RuntimeException('Ya existe un registro de personal con ese correo.');
+            // }
         }
 
         $hasMedicalData =
@@ -125,31 +156,6 @@ class StaffService extends Service
             throw new InvalidArgumentException('El municipio de la universidad es obligatorio para registrar el perfil profesional.');
         }
 
-        $hasUserData =
-            $username !== null ||
-            $password !== null ||
-            $userRole !== null;
-
-        $createUser = $hasUserData;
-
-        if ($hasUserData) {
-            if ($username === null) {
-                throw new InvalidArgumentException('El nombre de usuario es obligatorio para crear la cuenta de acceso.');
-            }
-
-            if ($password === null) {
-                throw new InvalidArgumentException('La contraseña es obligatoria para crear la cuenta de acceso.');
-            }
-
-            if ($userRole === null) {
-                throw new InvalidArgumentException('El tipo de usuario es obligatorio para crear la cuenta de acceso.');
-            }
-
-            if($this->staffRepository->userExists($username)) {
-                throw new RuntimeException('Ya existe un registro con ese nombre de usuario.');
-            }
-        }
-
         $fullName = $firstName . ' ' . $lastName . ($lastName2 !== null ? ' ' . $lastName2 : '');
 
         $conn = $this->staffRepository->getConnection();
@@ -157,6 +163,7 @@ class StaffService extends Service
         try {
             $staffUuid = $this->generateUuidBinary();
             $staffId = $this->staffRepository->insertStaff([
+                    'organizationId'                => $organizationId,
                     'uuid'                          => $staffUuid,
                     'first_name'                    => $firstName,
                     'last_name'                     => $lastName,
@@ -173,6 +180,7 @@ class StaffService extends Service
                     'mobile'                        => $mobile,
                     'role'                          => $role,
                     'rfc'                           => $rfc,
+                    'uid'                           => $uid,
                 ]);
             
             $this->staffRepository->insertStaffRegistration($staffId, [
@@ -189,17 +197,17 @@ class StaffService extends Service
                     ]);
             }
 
-            if($createUser) {
-                $userUuid = $this->generateUuidBinary();
-                $userId = $this->staffRepository->insertUser([
-                            'uuid'                              => $userUuid,
-                            'name'                              => $fullName,
-                            'username'                          => $username,
-                            'password_hash'                     => $password_hash,
-                            'user_role'                         => $userRole,
-                        ]);
-                $this->staffRepository->insertStaffUser($staffId, $userId);
+            if($user_uuid != "N") {
+                $user_id = $this->usersRepository->getUserIdByUuid($this->uuidStringToBinary($user_uuid));
+                $this->staffRepository->insertStaffUser($staffId, $user_id);
             }
+
+            $staffBranchUuid = $this->generateUuidBinary();
+            $this->staffRepository->insertStaffOrganizationBranch([
+                'uuid'                                      => $staffBranchUuid,
+                'staffId'                                   => $staffId,
+                'branchId'                                  => $branchId,
+            ]);
 
             if($salary) {
                 $this->staffRepository->insertStaffSalary($staffId, [
@@ -207,6 +215,37 @@ class StaffService extends Service
                     'uid'                                       => $uid,
                     'salary_since'                              => date('Y-m-d')
                 ]);
+            }
+
+            $scheduleTemplateData = $this->scheduleTemplatesRepository->getScheduleTemplateData([
+                'organization'                      => $organizationId
+            ]);
+
+            if($scheduleTemplateData != null) {
+                $scheduleTemplateDetails = $this->scheduleTemplatesRepository->getScheduleTemplateDetails([
+                    'template'                      => $scheduleTemplateData['id'],
+                    'organization'                  => $organizationId,
+                ]);
+
+                $scheduleUuid = $this->generateUuidBinary();
+                $scheduleId = $this->scheduleRepository->insertSchedule([
+                    'uuid'                          => $scheduleUuid,
+                    'branch'                        => $branchId,
+                    'staff'                         => $staffId,
+                    'template'                      => $scheduleTemplateData['id'],
+                    'uid'                           => $uid
+                ]);
+
+                foreach($scheduleTemplateDetails as $std) {
+                    $scheduleDetailsUuid = $this->generateUuidBinary();
+                    $scheduleDetailsId = $this->scheduleRepository->insertScheduleDetails([
+                        'uuid'                          => $scheduleDetailsUuid,
+                        'schedule'                      => $scheduleId,
+                        'day_week'                      => $std['dia_semana'],
+                        'time_start'                    => $std['hora_inicio'],
+                        'time_end'                      => $std['hora_fin']
+                    ]);
+                }
             }
             $conn->commit();
             return $staffId;

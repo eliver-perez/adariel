@@ -14,7 +14,7 @@ class ConsentTemplatesRepository {
         return $this->db;
     }
 
-    public function getAll(): array
+    public function getAll(array $data): array
     {
         $stmt = $this->db->prepare("
             SELECT 
@@ -31,15 +31,16 @@ class ConsentTemplatesRepository {
                     ON cp.estatus = pe.id
                 INNER JOIN usuarios u
                     ON cp.registro = u.id
+            WHERE cp.empresa = :empresa
             ORDER BY cp.f_registro ASC
         ");
-
+        $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_INT);
         $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getTemplate($uuid): ?array {
+    public function getTemplate(array $data): ?array {
         $stmt = $this->db->prepare("
             SELECT
                 cp.codigo,
@@ -47,7 +48,6 @@ class ConsentTemplatesRepository {
                 cp.version,
                 pe.codigo estatus_codigo,
                 pe.estatus,
-                cp.logo,
                 cp.logo_width,
                 cp.interlineado,
                 cp.font_size,
@@ -56,6 +56,8 @@ class ConsentTemplatesRepository {
                     THEN cp.delta_borrador
                     ELSE cp.delta_json
                 END delta,
+                a.uuid logoId,
+                a.nombre_original,
                 COALESCE(DATE_FORMAT(cp.f_registro, '%d/%m/%Y %r'), '') f_registro,
                 COALESCE(DATE_FORMAT(cp.f_actualizacion, '%d/%m/%Y %r'), '') f_actualizacion
             FROM consentimientos_plantillas cp
@@ -63,11 +65,15 @@ class ConsentTemplatesRepository {
                     ON cp.estatus = pe.id
                 INNER JOIN usuarios u
                     ON cp.registro = u.id
+                LEFT JOIN archivos a
+                    ON cp.uuid = a.referencia
             WHERE cp.uuid = :uuid
+                AND cp.empresa = :empresa
             LIMIT 1
         ");
 
-        $stmt->bindValue(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_LOB);
         $stmt->execute();
 
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -75,7 +81,7 @@ class ConsentTemplatesRepository {
         return $row ?: null;
     }
 
-    public function getTemplateStatus($uuid): ?array {
+    public function getTemplateStatus(array $data): ?array {
         $stmt = $this->db->prepare("
             SELECT
                 pe.codigo,
@@ -84,10 +90,12 @@ class ConsentTemplatesRepository {
                 INNER JOIN plantillas_estatus pe
                     ON cp.estatus = pe.id
             WHERE cp.uuid = :uuid
+                AND cp.empresa = :empresa
             LIMIT 1
         ");
 
-        $stmt->bindValue(':uuid', $uuid, PDO::PARAM_LOB);
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_LOB);
         $stmt->execute();
 
         return $stmt->fetch(PDO::FETCH_ASSOC);
@@ -109,18 +117,19 @@ class ConsentTemplatesRepository {
         return (bool) $stmt->fetchColumn();
     }
 
-    public function existsByCode(string $code): bool
+    public function existsByCode(array $data): bool
     {
         $stmt = $this->db->prepare("
             SELECT 1
             FROM consentimientos_plantillas
             WHERE codigo = :code
+                AND empresa = :empresa
             LIMIT 1
         ");
 
-        $stmt->execute([
-            'code' => $code
-        ]);
+        $stmt->bindValue(':code', $data['code'], PDO::PARAM_STR);
+        $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_INT);
+        $stmt->execute();
 
         return (bool) $stmt->fetchColumn();
     }
@@ -157,20 +166,30 @@ class ConsentTemplatesRepository {
         $stmt = $this->db->prepare("
             INSERT INTO consentimientos_plantillas (
                 uuid,
+                empresa,
                 codigo,
                 nombre,
                 version,
                 plantilla,
+                delta_borrador,
+                documento_borrador,
+                delta_json,
+                contenido_html,
                 estatus,
                 registro,
                 f_registro,
                 f_actualizacion
             ) VALUES (
                 :uuid,
+                :empresa,
                 :codigo,
                 :nombre,
                 0,
                 1,
+                '[]',
+                '',
+                '[]',
+                '',
                 :estatus,
                 :registro,
                 NOW(),
@@ -178,13 +197,13 @@ class ConsentTemplatesRepository {
             );
         ");
 
-        $stmt->execute([
-            'uuid'                  => $data['uuid'],
-            'codigo'                => $data['code'],
-            'nombre'                => $data['template_name'],
-            'estatus'               => $data['status'],
-            'registro'              => $data['uid'],
-        ]);
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_INT);
+        $stmt->bindValue(':codigo', $data['code'], PDO::PARAM_STR);
+        $stmt->bindValue(':nombre', $data['template_name'], PDO::PARAM_STR);
+        $stmt->bindValue(':estatus', $data['status'], PDO::PARAM_STR);
+        $stmt->bindValue(':registro', $data['uid'], PDO::PARAM_STR);
+        $stmt->execute();
 
         return (int) $this->db->lastInsertId();
     }
@@ -215,20 +234,23 @@ class ConsentTemplatesRepository {
         $stmt->execute();
     }
 
-    public function getClinicName(): string {
-        $stmt = $this->db->prepare("SELECT valor FROM ajustes WHERE id = 'clinica'");
+    public function getClinicName(array $data): string {
+        $stmt = $this->db->prepare("SELECT valor FROM ajustes_empresas WHERE ajuste = 'clinica' AND empresa = :empresa");
+        $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_LOB);
         $stmt->execute();
         return (string)$stmt->fetchColumn();
     }
 
     public function getTemplateLogo($data) {
         $stmt = $this->db->prepare("
-            SELECT logo, logo_checksum
-                    FROM consentimientos_plantillas
-                    WHERE uuid = :uuid
+            SELECT cp.logo, cp.logo_checksum
+                    FROM consentimientos_plantillas cp
+                    WHERE cp.uuid = :uuid
+                        AND cp.empresa = :empresa
                     LIMIT 1
         ");
         $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
@@ -238,11 +260,12 @@ class ConsentTemplatesRepository {
             UPDATE consentimientos_plantillas
                 SET estatus = :inactive
                 WHERE estatus = :active
+                    AND empresa = :empresa
         ");
-        $stmt->execute([
-            'inactive'              => $data['inactive_id'],
-            'active'                => $data['active_id'],
-        ]);
+        $stmt->bindValue(':inactive', $data['inactive_id'], PDO::PARAM_INT);
+        $stmt->bindValue(':active', $data['active_id'], PDO::PARAM_INT);
+        $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_INT);
+        $stmt->execute();
     }
 
     public function activate($data) {
@@ -252,10 +275,11 @@ class ConsentTemplatesRepository {
                     contenido_html = documento_borrador,
                     estatus = :active
                 WHERE uuid = :uuid
+                    AND empresa = :empresa
         ");
-        $stmt->execute([
-            'active'                => $data['active_id'],
-            'uuid'                  => $data['uuid'],
-        ]);
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':active', $data['active_id'], PDO::PARAM_INT);
+        $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_INT);
+        $stmt->execute();
     }
 }

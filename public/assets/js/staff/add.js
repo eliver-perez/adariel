@@ -10,7 +10,7 @@ var dobDatePicker;
 function InitializeValues(home) {
 	homeURL = home;
     dobDatePicker = initDatePicker('field-fecha-nacimiento');
-    GetUsersRoles();
+    GetUsers();
     GetStaffRoles();
     GetGenders();
     GetSpecialties();
@@ -24,17 +24,21 @@ function InitializeValues(home) {
 
 var registrando = false;
 
-function GetUsersRoles() {
+function GetUsers() {
 	try {
 		$.ajax({
-				url: `${homeURL}/api/users-roles`,
+				url: `${homeURL}/api/my-users`,
 				type: 'get',
+                data: {
+                    active: 1,
+                },
                 dataType: "json",
 				success: function(response) {
-					$.each(response.data.roles, function(k, v) {
-                        $('#select-usuario-tipo').append($('<option>', {
+                    console.log(response)
+					$.each(response.data.users, function(k, v) {
+                        $('#select-usuario').append($('<option>', {
                             value: v.id,
-                            text: v.tipo
+                            text: v.name
                         }));
                     });
 				},
@@ -296,7 +300,14 @@ function RegisterStaff() {
         contentType: false,
         dataType: "json",
         success: function(response) {
-            console.log('Success!', response);
+            if(response.success) {
+                ShowToastMessage(response.message, 'success');
+                ShowSweetAlertConfirmCallback('info', 'Registrado', 'Personal registrado con éxito.', 'Entendido', () => {
+                    window.open(`${homeURL}/staff`, '_self');
+                })
+            } else {
+                ShowToastMessage(response.message, 'error');
+            }
         },
         error: function(XMLHttpRequest, textStatus, errorThrown) { 
             console.log('STATUS:', textStatus);

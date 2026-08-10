@@ -4,6 +4,8 @@
     use App\Core\Security\EncryptionService;
 
     define('APP_PATH', dirname(__DIR__));
+    define('PUBLIC_PATH', APP_PATH . '/../public');
+    define('STORAGE_PATH', APP_PATH . '/../storage');
 
 	require_once __DIR__ . '/../../vendor/autoload.php';
     require_once __DIR__ . '/../Support/helpers.php';

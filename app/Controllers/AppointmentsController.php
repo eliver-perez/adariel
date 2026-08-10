@@ -56,6 +56,21 @@ class AppointmentsController extends Controller
 
     public function index(Request $request, Response $response) {
         try {
+            $currentUserId = Auth::id();
+
+            if($currentUserId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
+            $organizationId = Auth::organizationId();
+
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron registros de su empresa.");
+            }
+            $organizationBranchId = Auth::organizationBranchId();
+
+            if($organizationBranchId === null) {
+                throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
             $repository = $this->getRepository();
 
             $search = trim((string)$this->request->query('search', ''));
@@ -65,7 +80,7 @@ class AppointmentsController extends Controller
             return $response->json([
                     'status' => 'OK',
                     'data' => [
-                        'patients' => $data
+                        'appointments' => $data
                     ]
                 ], 200);
         } catch (InvalidArgumentException | RuntimeException $e) {
@@ -84,6 +99,21 @@ class AppointmentsController extends Controller
 
     public function availableSlots(Request $request, Response $response) {
         try {
+            $currentUserId = Auth::id();
+
+            if($currentUserId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
+            $organizationId = Auth::organizationId();
+
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron registros de su empresa.");
+            }
+            $organizationBranchId = Auth::organizationBranchId();
+
+            if($organizationBranchId === null) {
+                throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
             $service = $this->getService();
 
             $date = trim((string)$this->request->input('date', ''));
@@ -97,7 +127,13 @@ class AppointmentsController extends Controller
                 ], 400);
             }
 
-            $slots = $service->calculateAppointmentAvailability($date, $procedures);
+            $slots = $service->calculateAppointmentAvailability([
+                'organizationId'                        => $organizationId,
+                'branchId'                              => $organizationBranchId,
+                'date'                                  => $date,
+                'procedures'                            => $procedures,
+                'uid'                                   => $currentUserId
+            ]);
 
             return $response->json([
                 'status' => 'OK',
@@ -123,6 +159,21 @@ class AppointmentsController extends Controller
 
     public function calendar(Request $request, Response $response) {
         try {
+            $currentUserId = Auth::id();
+
+            if($currentUserId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
+            $organizationId = Auth::organizationId();
+
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron registros de su empresa.");
+            }
+            $organizationBranchId = Auth::organizationBranchId();
+
+            if($organizationBranchId === null) {
+                throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
             $service = $this->getService();
             
             $start = trim((string)$this->request->query('start', ''));
@@ -135,7 +186,13 @@ class AppointmentsController extends Controller
                 ], 400);
             }
 
-            $appointments = $service->getCalendarAppointments($start, $end);
+            $appointments = $service->getCalendarAppointments([
+                'organizationId'                        => $organizationId,
+                'branchId'                              => $organizationBranchId,
+                'start'                                 => $start,
+                'end'                                   => $end,
+                'uid'                                   => $currentUserId
+            ]);
 
             return $response->json([
                 'status' => 'OK',
@@ -164,7 +221,16 @@ class AppointmentsController extends Controller
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
+            $organizationId = Auth::organizationId();
 
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron registros de su empresa.");
+            }
+            $organizationBranchId = Auth::organizationBranchId();
+
+            if($organizationBranchId === null) {
+                throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
             $service = $this->getService();
 
             $patient = $request->input('patient', '');
@@ -182,12 +248,14 @@ class AppointmentsController extends Controller
             }
 
             $appointmentId = $service->scheduleAppointment([
-                    'patient'           => $patient,
-                    'appointment_type'  => $appointment_type,
-                    'booking_channel'   => $booking_channel,
-                    'appointment'       => $appointment,
-                    'chief_complaint'   => $chief_complaint,
-                    'uid'               => $currentUserId
+                    'organizationId'            => $organizationId,
+                    'branchId'                  => $organizationBranchId,
+                    'patient'                   => $patient,
+                    'appointment_type'          => $appointment_type,
+                    'booking_channel'           => $booking_channel,
+                    'appointment'               => $appointment,
+                    'chief_complaint'           => $chief_complaint,
+                    'uid'                       => $currentUserId
                 ]);
 
             return $response->json([
@@ -218,12 +286,23 @@ class AppointmentsController extends Controller
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
+            $organizationId = Auth::organizationId();
 
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron registros de su empresa.");
+            }
+            $organizationBranchId = Auth::organizationBranchId();
+
+            if($organizationBranchId === null) {
+                throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
             $service = $this->getService();
             $appointment = $request->input('appointment', '');
             $service->checkIn([
-                    'appointment'           => $appointment,
-                    'uid'                   => $currentUserId
+                    'organizationId'            => $organizationId,
+                    'branchId'                  => $organizationBranchId,
+                    'appointment'               => $appointment,
+                    'uid'                       => $currentUserId
                 ]);
 
             return $response->json([
@@ -255,12 +334,24 @@ class AppointmentsController extends Controller
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
+            $organizationId = Auth::organizationId();
+
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron registros de su empresa.");
+            }
+            $organizationBranchId = Auth::organizationBranchId();
+
+            if($organizationBranchId === null) {
+                throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
 
             $service = $this->getService();
             $appointment = $request->input('appointment', '');
             $service->cancel([
-                    'appointment'           => $appointment,
-                    'uid'                   => $currentUserId
+                    'organizationId'            => $organizationId,
+                    'branchId'                  => $organizationBranchId,
+                    'appointment'               => $appointment,
+                    'uid'                       => $currentUserId
                 ]);
 
             return $response->json([
