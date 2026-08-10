@@ -257,6 +257,7 @@ function RegisterProduct() {
 			if(response.success) {
 				ShowToastMessage('Producto registrado con éxito.', 'success');
 				CancelProduct();
+				GetProducts();
 			}
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 

@@ -61,6 +61,12 @@
    <!-- Icons -->
    <!-- <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css"> -->
    <link rel="stylesheet" href="<?= base_url('template/assets/theme_assets/css/line.css'); ?>">
+
+   <style>
+      .toast-container-top {
+         z-index: 99999 !important;
+      }
+   </style>
 </head>
 
 <body class=" bg-white [&.dark]:bg-main-dark font-jost relative text-[15px] font-normal leading-[1.5] m-0 p-0">

@@ -289,6 +289,14 @@ class ProceduresService extends Service
             'organization'                          => $organizationId
         ]);
 
+        $procedureStaffExists = $this->proceduresRepository->verifyProcedureStaffExists([
+            'staff'                                 => $staffId,
+            'procedure'                             => $procedureId
+        ]);
+
+        if($procedureStaffExists) 
+            throw new RuntimeException("El personal seleccionado ya esta asociado al servicio/procedimiento.");
+
         try {
             $procedureStaffUuid = $this->generateUuidBinary();
             $procedureId = $this->proceduresRepository->insertProcedureStaff([

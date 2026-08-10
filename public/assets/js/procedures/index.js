@@ -198,7 +198,7 @@ function SelectProcedure(id) {
 
 					var staffRows = '';
 					$.each(response.data.staff, function(k, v) {
-						staffRows += `<tr onclick="SelectProcedure('${v.id}')" class="transition duration-300 ease-in-out border-b hover:bg-neutral-100 dark:border-neutral-500 dark:hover:bg-neutral-600 cursor-pointer">
+						staffRows += `<tr class="transition duration-300 ease-in-out border-b hover:bg-neutral-100 dark:border-neutral-500 dark:hover:bg-neutral-600 cursor-pointer">
 									<td class="px-4 py-2.5 font-normal last:text-end capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
 										<span class="font-medium capitalize text-dark dark:text-title-dark text-15">${v.name}</span>
 									</td>
@@ -265,6 +265,7 @@ function RegisterProcedure() {
 					if(response.success) {
 						CancelProcedure();
 						ShowToastMessage(response.message, 'success');
+						GetProcedures();
 					} else {
 						ShowToastMessage(response.message, 'error');
 					}
@@ -300,6 +301,7 @@ function RegisterProcedure() {
 						if(response.success) {
 							CancelProcedure();
 							ShowToastMessage(response.message, 'success');
+							GetProcedures();
 						} else {
 							ShowToastMessage(response.message, 'error');
 						}

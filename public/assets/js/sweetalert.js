@@ -42,10 +42,15 @@
 				icon: type,
 				title: message,
 				animation: true,
-				position: 'top-right',
+				position: 'top-end',
 				showConfirmButton: false,
 				timer: 3000,
 				timerProgressBar: true,
+
+				customClass: {
+					container: 'toast-container-top'
+				},
+
 				didOpen: (toast) => {
 				  toast.addEventListener('mouseenter', Swal.stopTimer)
 				  toast.addEventListener('mouseleave', Swal.resumeTimer)

@@ -282,6 +282,22 @@ class ProceduresRepository
 
         $stmt->execute();
     }
+
+    public function verifyProcedureStaffExists(array $data): ?bool {
+        $stmt = $this->db->prepare("
+            SELECT id
+            FROM personal_servicios
+            WHERE personal = :personal
+                AND servicio = :servicio
+                AND f_baja IS NULL
+            LIMIT 1");
+        $stmt->bindValue(':personal', $data['staff'], PDO::PARAM_INT);
+        $stmt->bindValue(':servicio', $data['procedure'], PDO::PARAM_INT);
+        $stmt->execute();
+        $id = $stmt->fetchColumn();
+
+        return $id !== false ? true : false;
+    }
     
     public function insertProcedureStaff(array $data): int {
         $stmt = $this->db->prepare("
