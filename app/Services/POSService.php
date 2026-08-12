@@ -531,7 +531,7 @@ class POSService extends Service
                     $client_id = isset($_SESSION['cart']['client']) ? $this->clientsRepository->getClientId([
                         'uuid'                                      => $this->uuidStringtoBinary($_SESSION['cart']['client']),
                         'organization'                              => $organizationId
-                    ]) : null;
+                    ]) : $this->clientesRepository->getDefaultClientId();
                     $patient_id = isset($_SESSION['cart']['patient']) ? $this->patientsRepository->getPatientId([
                         'uuid'                                      => $this->uuidStringtoBinary($_SESSION['cart']['patient']),
                         'organization'                              => $organizationId
