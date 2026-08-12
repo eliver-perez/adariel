@@ -4,7 +4,7 @@
     id="modal-schedule-appointment"
     tabindex="-1"
     aria-hidden="true"
-    style="z-index: 99999;">
+    style="z-index: 1000;">
     <div class="flex min-h-screen items-center justify-center p-4">
         <div 
             data-te-modal-dialog-ref 
