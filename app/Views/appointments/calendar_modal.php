@@ -2,8 +2,7 @@
      id="e-info-modal"
      tabindex="-1"
      aria-hidden="true"
-     class="fixed inset-0 z-[1055] hidden h-full w-full overflow-y-auto overflow-x-hidden outline-none"
-     style="z-index: 99999;">
+     class="fixed inset-0 z-[1055] hidden h-full w-full overflow-y-auto overflow-x-hidden outline-none">
 
      <div class="flex min-h-screen items-center justify-center p-4">
 
