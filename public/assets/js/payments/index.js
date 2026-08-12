@@ -13,7 +13,15 @@ function InitializeValues(home) {
 		$('#receipt-preview').attr('src', '');
 		generated_report_id = '';
 	});
+	$('#btn-print-receipt').on('click', PrintReceipt);
 	GetPayments();
+}
+
+function PrintReceipt() {
+	const iframe = document.getElementById('receipt-preview');
+
+	iframe.contentWindow.focus();
+	iframe.contentWindow.print();
 }
 
 function GetPayments() {

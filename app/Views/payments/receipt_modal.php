@@ -27,7 +27,7 @@
                         style="margin: 0 auto; height: 85vh;"></iframe>
 
                 <div class="flex flex-wrap items-center justify-end flex-shrink-0 gap-2 p-4 border-t-2 border-b border-opacity-100 rounded-b-md border-regular dark:border-box-dark-up">
-                    <button class="print-btn capitalize border-1 border-regular bg-regular dark:bg-white text-light dark:text-dark bg-transparent text-[14px] font-semibold leading-[22px] inline-flex items-center justify-center rounded-[10px] px-[30px] h-[38px] transition duration-300 ease-in-out gap-[7px] dark:pointer-events-none" data-te-ripple-init data-te-ripple-color="dark">
+                    <button id="btn-print-receipt" class="capitalize border-1 border-regular bg-regular dark:bg-white text-light dark:text-dark bg-transparent text-[14px] font-semibold leading-[22px] inline-flex items-center justify-center rounded-[10px] px-[30px] h-[38px] transition duration-300 ease-in-out gap-[7px] dark:pointer-events-none" data-te-ripple-init data-te-ripple-color="dark">
                         <i class="uil uil-print text-light dark:text-dark "></i>
                         Imprimir
                     </button>
