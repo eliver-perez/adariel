@@ -179,6 +179,207 @@ class AppointmentsService extends Service
         }
     }
 
+    public function scheduleAppointmentQuick(array $data): string {
+        $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+        $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+        $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
+
+        $patientUuid = $this->normalizeRequiredText(
+            $data['patient'] ?? null,
+            'Es necesario seleccionar un paciente.'
+        );
+        $appointment_type = $this->normalizeRequiredInt(
+            $data['appointment_type'] ?? null,
+            'Es necesario seleccionar el tipo de cita.'
+        );
+        $booking_channel = $this->normalizeRequiredInt(
+            $data['booking_channel'] ?? null,
+            'Es necesario seleccionar como se agendo la cita.'
+        );
+        $staffUuid = $this->normalizeRequiredText(
+            $data['staff'] ?? null,
+            'Es necesario seleccionar quien atiende la cita.'
+        );
+        $procedureUuid = $this->normalizeRequiredText(
+            $data['procedure'] ?? null,
+            'Es necesario seleccionar el procedimiento.'
+        );
+        $date = $this->normalizeRequiredText(
+            $data['date'] ?? null,
+            'Es necesario capturar la fecha de la cita.'
+        );
+        $time = $this->normalizeRequiredText(
+            $data['time'] ?? null,
+            'Es necesario capturar la hora de la cita.'
+        );
+        $chiefComplaint = $this->normalizeOptionalText($data['chief_complaint'] ?? null);
+
+        $settingsService = new SettingsService($this->settingsRepository);
+        $appointmentCodePrefix = $settingsService->get('codigo_cita', $organizationId);
+
+        $patientId = $this->patientsRepository->getPatientId([
+            'uuid'                                  => $this->uuidStringToBinary($patientUuid),
+            'organization'                          => $organizationId
+        ]);
+
+        $staffId = $this->staffRepository->getStaffId([
+            'uuid'                                  => $this->uuidStringToBinary($staffUuid),
+            'organization'                          => $organizationId
+        ]);
+
+        $procedureId = $this->proceduresRepository->getProcedureId([
+            'uuid'                          => $this->uuidStringToBinary($procedureUuid),
+            'organization'                  => $organizationId
+        ]);
+
+        $procedure_data = $this->proceduresRepository->getProcedureStaffData([
+            'staff'                                 => $this->uuidStringToBinary($staffUuid),
+            'procedure'                             => $this->uuidStringToBinary($procedureUuid),
+            'organization'                          => $organizationId
+        ]);
+        if($procedure_data == null) 
+            $procedure_data = $this->proceduresRepository->getProcedureData([
+                'uuid'                              => $this->uuidStringToBinary($procedureUuid),
+                'organization'                      => $organizationId
+            ]);
+
+        if($procedure_data == null)
+            throw new RuntimeException("No se encontro información del procedimiento");
+
+        $duration = $procedure_data['duracion_min'];
+        $appointmentStart = $this->timeToMinutes($time);
+        $appointmentEnd = $this->timeToMinutes($time) + $duration;
+
+        $cost = $procedure_data['costo'] ?? $procedure_data['costo_base'];
+
+        $status = $this->appointmentsStatusRepository->getIdByCode('en_espera');
+        $block_status = $this->appointmentsStatusRepository->getBlockIdByCode('en_espera');
+
+        if (!$this->appointmentsTypesRepository->existsById($appointment_type)) {
+            throw new InvalidArgumentException('El tipo de cita no existe.');
+        }
+
+        if (!$this->bookingChannelRepository->existsById($booking_channel)) {
+            throw new InvalidArgumentException('El metodo como se agendo la cita no existe.');
+        }
+
+        $conn = $this->appointmentsRepository->getConnection();
+        $conn->beginTransaction();
+        try {
+            $appointmentUuid = $this->generateUuidBinary();
+            $appointmentId = $this->appointmentsRepository->insertAppointment([
+                    'uuid'                          => $appointmentUuid,
+                    'branch'                        => $branchId,
+                    'patient'                       => $patientId,
+                    'appointment_type'              => $appointment_type,
+                    'booking_channel'               => $booking_channel,
+                    'chief_complaint'               => $chiefComplaint,
+                    'appointment_date'              => $date,
+                    'appointment_start'             => $appointmentStart,
+                    'appointment_duration'          => $duration,
+                    'appointment_end'               => $appointmentEnd,
+                    'uid'                           => $uid,
+                    'appointment_cost'              => $cost,
+                    'status'                        => $status
+                ]);
+
+            $appointmentBlockUuid = $this->generateUuidBinary();
+            $this->appointmentsRepository->insertAppointmentBlock([
+                'uuid'                          => $appointmentBlockUuid,
+                'appointment'                   => $appointmentId,
+                'staff'                         => $staffId,
+                'procedure'                     => $procedureId,
+                'order'                         => 1,
+                'start'                         => $appointmentStart,
+                'end'                           => $appointmentEnd,
+                'duration'                      => $duration,
+                'status'                        => $block_status
+            ]);
+            $appointmentConsecutive = $this->appointmentsRepository->getAppointmentConsecutive([
+                'branch'                        => $branchId
+            ]);
+            $appointmentCode = $appointmentCodePrefix . '-' . str_pad((string)$appointmentConsecutive, 5, '0', STR_PAD_LEFT);
+
+            $this->appointmentsRepository->updateAppointmentConsecutive([
+                'id'                            => $appointmentId,
+                'consecutive'                   => $appointmentConsecutive,
+                'folio'                         => $appointmentCode
+            ]);
+
+            $this->appointmentsRepository->insertAppointmentProcedure([
+                'appointment'                   => $appointmentId,
+                'procedure'                     => $procedureId,
+                'staff'                         => $staffId,
+                'cost'                          => $cost
+            ]);
+
+            $conn->commit();
+            return $this->uuidBinaryToString($appointmentUuid);
+        } catch (\Throwable $e) {
+            if ($conn->inTransaction()) {
+                $conn->rollBack();
+            }
+            throw $e;
+        }
+    }
+
+    public function getAppointmentAssignment(array $data): array {
+        $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+        $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+        $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
+
+        $uuid = $this->normalizeRequiredText(
+            $data['uuid'] ?? null,
+            'No se recibio identificador de cita.'
+        );
+
+        try {
+            $appointmentBlock = $this->appointmentsRepository->getFirstReadyAppointmentBlock([
+                'appointment'                           => $this->uuidStringToBinary($uuid),
+                'branch'                                => $branchId
+            ]);
+
+            $status = $this->appointmentsRepository->appointmentStatus([
+                'uuid'                                  => $this->uuidStringToBinary($uuid),
+                'branch'                                => $branchId
+            ]);
+
+            $assigned = $this->appointmentsRepository->getAppointmentAssignment([
+                'branch'                                => $branchId,
+                'uuid'                                  => $this->uuidStringToBinary($uuid),
+                'staff'                                 => $uid
+            ]);
+
+            $html_block = '';
+            if($assigned && ($status == 'en_espera' || $status == 'en_proceso')) {
+                $text = "";
+                $onclick = "window.open('/consultations/".$this->uuidBinaryToString($appointmentBlock['uuid'])."?callBack=calendar', '_self')";
+                if($status == 'en_espera') {
+                    $text = "Iniciar Consulta";
+                } else if($status == 'en_proceso') {
+                    $text = "Continuar Consulta";
+                }
+                $html_block = '<button type="button"
+                                    id="btn-appointment-start-consultation"
+                                    onclick="'.$onclick.'"
+                                    class="px-[30px] h-[34px] mb-[10px] text-white bg-primary border-primary hover:bg-primary-hbr font-medium rounded-4 text-xs xs:w-auto text-center inline-flex items-center justify-center capitalize transition-all duration-300 ease-linear"
+                                    data-te-ripple-init=""
+                                    data-te-ripple-color="light">
+                                        '.$text.'
+                                    </button>';
+            }
+
+            return [
+                'uuid'                  => $uuid,
+                'status'                => $status,
+                'assigned'              => $assigned,
+                'start'                 => $html_block
+            ];
+        } catch (\Throwable $e) {
+            throw $e;
+        }
+    }
+
     public function getCalendarAppointments(array $data): array {
         $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
         $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
@@ -423,7 +624,7 @@ class AppointmentsService extends Service
             ]);
 
             $this->appointmentsRepository->changeAppointmentBlockStatus([
-                'block'                             => $appointmentBlockId,
+                'block'                             => $appointmentBlockId['id'],
                 'status'                            => $blockWaitingStatus,
             ]);
 

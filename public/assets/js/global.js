@@ -45,7 +45,7 @@ Datepicker.locales.es = {
   weekStart: 0 // 0 = domingo, 1 = lunes
 };
 
-function initDatePicker(id, onChangeCallback) {
+function initDatePicker(id, onChangeCallback, selectToday = false) {
   const elem = document.getElementById(id);
   if (!elem) return null;
 
@@ -53,11 +53,23 @@ function initDatePicker(id, onChangeCallback) {
     return elem.datepicker;
   }
 
+  let hoy = null;
+  if(selectToday) {
+    hoy = new Date();
+
+    const dd = String(hoy.getDate()).padStart(2, '0');
+    const mm = String(hoy.getMonth() + 1).padStart(2, '0'); // Enero es 0
+    const yyyy = hoy.getFullYear();
+    elem.value = `${dd}/${mm}/${yyyy}`;
+  }
+
   const dp = new Datepicker(elem, {
     language: 'es',
     format: 'dd/mm/yyyy',
     nextArrow: '<i class="uil uil-angle-right-b"></i>',
-    prevArrow: '<i class="uil uil-angle-left-b"></i>'
+    prevArrow: '<i class="uil uil-angle-left-b"></i>',
+    
+    defaultViewDate: hoy
   });
 
   // Escuchar el evento de selección de fecha
@@ -69,6 +81,30 @@ function initDatePicker(id, onChangeCallback) {
   });
 
   return dp;
+}
+
+function clearDatePicker(dp) {
+    dp.setDate({ clear: true });
+
+    dp.pickerElement.classList.add('datepicker-empty');
+}
+
+function datePickerFormattedDate(dp) {
+  // 1. Obtenemos el objeto Date nativo que tiene seleccionado el datepicker
+  const fecha = dp.getDate();
+
+  // Si no hay ninguna fecha seleccionada, retornamos null o vacío
+  if (!fecha) return null;
+
+  // 2. Extraemos el año, el mes y el día
+  const yyyy = fecha.getFullYear();
+  
+  // Agregamos un cero a la izquierda si el mes o el día son menores a 10
+  const mm = String(fecha.getMonth() + 1).padStart(2, '0'); // getMonth() va de 0 a 11
+  const dd = String(fecha.getDate()).padStart(2, '0');
+
+  // 3. Unimos las piezas con guiones
+  return `${yyyy}-${mm}-${dd}`;
 }
 
 function refreshSelectOption(id) {

@@ -4,6 +4,7 @@
 
     require_once __DIR__.'/../layout/title.php';
     require_once __DIR__.'/calendar_modal.php';
+    require_once __DIR__.'/modal_scheduleappointment.php';
 ?>
 
 <style>
@@ -66,7 +67,7 @@
                Agendar Cita
             </button>
             <!-- Mini calendar -->
-            <div class="mb-[25px]">
+            <div class="agenda-datepicker mb-[25px]">
                <div class="mini-datepicker [&>div]:w-full max-4xl:border-1 max-4xl:border-regular max-4xl:dark:border-box-dark-up max-4xl:rounded-6" id="mini-calendario" data-date="<?php echo date('d/m/Y'); ?>"></div>
             </div>
             <!-- Calendar Events -->
@@ -83,8 +84,8 @@
          </div>
       </div>
       <div class="4xl:w-[75%] w-full px-[15px] mb-[30px]">
-         <div class="fc-wrapper" style="isolation: isolate;">
-            <div id='calendario-agenda' class='full-calendar relative bg-white main-calendar dark:bg-box-dark rounded-10 p-[25px] overflow-x-auto scrollbar'>
+         <div>
+            <div id='calendario-agenda' class='full-calendar w-full relative bg-white main-calendar dark:bg-box-dark rounded-10 p-[25px] overflow-x-auto scrollbar'>
             </div>
          </div>
       </div>

@@ -70,7 +70,7 @@ class OrganizationsController extends Controller
             $limit = (int)$this->request->query('limit', 10);
             $offset = (int)$this->request->query('offset', 0);
 
-            $limit = max(1, min($limit, 50));
+            $limit = max(1, min($limit, 5000000));
             $offset = max(0, $offset);
 
             $data = $service->getAll($search !== '' ? $search : null,
@@ -79,19 +79,19 @@ class OrganizationsController extends Controller
             );
 
             return $response->json([
-                    'status' => 'OK',
+                    'success' => true,
                     'data' => [
                         'organizations' => $data
                     ]
                 ], 200);
         } catch (InvalidArgumentException | RuntimeException $e) {
             return $response->json([
-                'status' => 'ERROR',
+                'success' => false,
                 'message' => $e->getMessage()
             ], 400);
         } catch (Throwable $e) {
             return $response->json([
-                'status' => 'ERROR',
+                'success' => false,
                 'message' => 'No fue posible obtener los paciente.'
                 // 'message' => $e->getMessage()
             ], 500);
@@ -179,6 +179,41 @@ class OrganizationsController extends Controller
         }
     }
 
+    public function indexBranches(Request $request, Response $response, string $id) {
+        try {
+            $currentUserId = Auth::id();
+
+            if($currentUserId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
+            $organizationId = Auth::organizationId();
+            $service = $this->getService();
+
+            $branches = $service->getOrganizationBranches([
+                'uuid'                                  => $id,
+                'organizationId'                        => $organizationId,
+                'uid'                                   => $currentUserId
+            ]);
+
+            return $response->json([
+                    'success' => true,
+                    'data' => [
+                        'branches' => $branches
+                    ]
+                ], 200);
+        } catch (InvalidArgumentException | RuntimeException $e) {
+            return $response->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        } catch (Throwable $e) {
+            return $response->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function myUsers(Request $request, Response $response) {
         try {
             $currentUserId = Auth::id();
@@ -203,19 +238,19 @@ class OrganizationsController extends Controller
             ]);
 
             return $response->json([
-                    'status' => 'OK',
+                    'success' => true,
                     'data' => [
                         'users' => $data
                     ]
                 ], 200);
         } catch (InvalidArgumentException | RuntimeException $e) {
             return $response->json([
-                'status' => 'ERROR',
+                'success' => false,
                 'message' => $e->getMessage()
             ], 400);
         } catch (Throwable $e) {
             return $response->json([
-                'status' => 'ERROR',
+                'success' => false,
                 'message' => 'No fue posible obtener los paciente.'
                 // 'message' => $e->getMessage()
             ], 500);

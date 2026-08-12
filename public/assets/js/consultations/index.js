@@ -33,11 +33,13 @@ function GetAppointmentsStatus() {
         	refreshSelectOption('select-filtro-consulta-estatus');
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
-			console.log('STATUS:', textStatus);
-			console.log('ERROR:', errorThrown);
-			console.log('RESPONSE TEXT:', XMLHttpRequest.responseText);
-
-			alert(XMLHttpRequest.responseText);
+			try {
+				var response = JSON.parse(XMLHttpRequest.responseText);
+				ShowToastMessage(response.message, 'error');
+				
+			} catch (e) {
+				ShowToastMessage(XMLHttpRequest.responseText, 'error');
+			}
 		}  
 	});
 }
@@ -97,11 +99,13 @@ function GetConsultations() {
 			}
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
-			console.log('STATUS:', textStatus);
-			console.log('ERROR:', errorThrown);
-			console.log('RESPONSE TEXT:', XMLHttpRequest.responseText);
-
-			alert(XMLHttpRequest.responseText);
+			try {
+				var response = JSON.parse(XMLHttpRequest.responseText);
+				ShowToastMessage(response.message, 'error');
+				
+			} catch (e) {
+				ShowToastMessage(XMLHttpRequest.responseText, 'error');
+			}
 		}  
 	});
 }
@@ -158,11 +162,13 @@ function SelectConsultation(id) {
 				}
 			},
 			error: function(XMLHttpRequest, textStatus, errorThrown) { 
-				console.log('STATUS:', textStatus);
-				console.log('ERROR:', errorThrown);
-				console.log('RESPONSE TEXT:', XMLHttpRequest.responseText);
-
-				alert(XMLHttpRequest.responseText);
+				try {
+					var response = JSON.parse(XMLHttpRequest.responseText);
+					ShowToastMessage(response.message, 'error');
+					
+				} catch (e) {
+					ShowToastMessage(XMLHttpRequest.responseText, 'error');
+				}
 			}  
 		});
 	}

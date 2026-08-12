@@ -195,7 +195,7 @@ class CashReconciliationController extends Controller
 
             return $response->json([
                 'success' => true,
-                'message' => 'Corte registrado correctamente.',
+                'message' => 'Corte iniciado.',
                 'data' => [
                     'cash_reconciliation_id' => $cash_reconciliation
                 ]

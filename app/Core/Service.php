@@ -262,4 +262,11 @@ abstract class Service
                 $value
             ) === 1;
     }
+
+    protected function encrypt_hash(string $plain) {
+        $options = [
+            'cost' => 11
+        ];
+        return password_hash($plain, PASSWORD_BCRYPT, $options);
+    }
 }

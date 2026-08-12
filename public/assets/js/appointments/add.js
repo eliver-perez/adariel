@@ -168,12 +168,16 @@ function GetBookingChannels() {
 		contentType: false,
 		dataType: "json",
 		success: function(response) {
+			var selectId = 1;
 			$.each(response.data.booking_types, function(k, v) {
 				$('#select-como-agendo').append($('<option>', {
 					value: v.id,
 					text: v.forma
 				}));
+				if(v.codigo == 'presencial')
+					selectId = v.id;
 			});
+			$('#select-como-agendo').val(selectId);
         	refreshSelectOption('select-como-agendo');
         	$('#select-como-agendo').trigger('change');
 		},
@@ -494,6 +498,7 @@ function RegisterAppointment() {
 		return;
 	}
     var formData = new FormData();
+	formData.append('booking_mode', 'slots');
 	formData.append('appointment_type', $('#select-tipo-cita').val());
 	formData.append('booking_channel', $('#select-como-agendo').val());
 	formData.append('patient', selected_patient);
@@ -507,16 +512,20 @@ function RegisterAppointment() {
 		contentType: false,
 		dataType: "json",
 		success: function(response) {
-			if(response.status == 'OK') {
+			if(response.success) {
 				window.location.href = `${homeURL}/appointments?action=schedule-success?appointment=${response.data.id}`
+			} else {
+				ShowToastMessage(response.message, 'error');
 			}
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
-			console.log('STATUS:', textStatus);
-			console.log('ERROR:', errorThrown);
-			console.log('RESPONSE TEXT:', XMLHttpRequest.responseText);
-
-			alert(XMLHttpRequest.responseText);
+			try {
+				var response = JSON.parse(XMLHttpRequest.responseText);
+				ShowToastMessage(response.message, 'error');
+				
+			} catch (e) {
+				ShowToastMessage(XMLHttpRequest.responseText, 'error');
+			}
 		}  
 	});
 }

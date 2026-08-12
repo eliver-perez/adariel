@@ -76,9 +76,10 @@ class AppointmentsRepository
         $stmt->execute();
     }
 
-    public function getFirstAppointmentBlock(array $data): int {
+    public function getFirstAppointmentBlock(array $data): ?array {
         $stmt = $this->db->prepare("
-            SELECT cb.id
+            SELECT cb.id,
+                cb.uuid
             FROM citas_bloques cb
                 INNER JOIN citas c
                     ON cb.cita = c.id
@@ -92,13 +93,37 @@ class AppointmentsRepository
         $stmt->bindParam(':status', $data['status']);
         $stmt->bindParam(':sucursal', $data['branch'], PDO::PARAM_INT);
         $stmt->execute();
-        $appointmentBlock = $stmt->fetchColumn();
+        $appointmentBlock = $stmt->fetch();
 
         if ($appointmentBlock === false) {
             throw new \RuntimeException('No hay bloques de citas pendientes.');
         }
 
-        return (int)$appointmentBlock;
+        return $appointmentBlock;
+    }
+
+    public function getFirstReadyAppointmentBlock(array $data): ?array {
+        $stmt = $this->db->prepare("
+            SELECT cb.id,
+                cb.uuid
+            FROM citas_bloques cb
+                INNER JOIN citas c
+                    ON cb.cita = c.id
+                INNER JOIN citas_bloques_estatus cbe
+                    ON cb.estatus = cbe.id
+            WHERE c.uuid = :appointment
+                AND (cbe.codigo = 'en_espera'
+                    OR cbe.codigo = 'en_proceso')
+                AND c.sucursal = :sucursal
+            ORDER BY cb.h_inicio ASC
+            LIMIT 1
+        ");
+        $stmt->bindParam(':appointment', $data['appointment'], PDO::PARAM_LOB);
+        $stmt->bindParam(':sucursal', $data['branch'], PDO::PARAM_INT);
+        $stmt->execute();
+        $appointmentBlock = $stmt->fetch();
+
+        return $appointmentBlock != null ? $appointmentBlock : [];
     }
 
     public function changeAppointmentBlockStatus(array $data) {
@@ -168,6 +193,31 @@ class AppointmentsRepository
         $data = $stmt->fetch(PDO::FETCH_ASSOC);
 
         return $data != null ? $data['id'] : 0;
+    }
+
+    public function getAppointmentAssignment(array $data): ?bool {
+        $stmt = $this->db->prepare("
+            SELECT
+            cb.id
+            FROM citas_bloques cb
+                INNER JOIN citas c
+                    ON cb.cita = c.id
+                INNER JOIN personal p
+                    ON p.id = cb.personal
+                INNER JOIN personal_usuarios pu
+                    ON pu.personal = p.id
+            WHERE c.uuid = :uuid
+                AND c.sucursal = :sucursal
+                AND pu.usuario = :personal
+        ");
+        
+        $stmt->bindParam(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindParam(':sucursal', $data['branch'], PDO::PARAM_INT);
+        $stmt->bindParam(':personal', $data['staff'], PDO::PARAM_INT);
+        $stmt->execute();
+        $stmt_data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $stmt_data != null ? true : false;
     }
 
     public function getAppointmentBlockId(array $data): ?int {

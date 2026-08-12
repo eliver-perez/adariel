@@ -258,4 +258,5 @@
 <script>
     var currentLink = '<?= base_url('consultations'); ?>';
     var consultation_id = '<?= $id; ?>';
+    var callBack = '<?= isset($_GET['callBack']) ? $_GET['callBack'] : ''; ?>';
 </script>

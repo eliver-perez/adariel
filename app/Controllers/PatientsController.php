@@ -95,19 +95,19 @@ class PatientsController extends Controller
             ]);
 
             return $response->json([
-                    'status' => 'OK',
+                    'success' => true,
                     'data' => [
                         'patients' => $data
                     ]
                 ], 200);
         } catch (InvalidArgumentException | RuntimeException $e) {
             return $response->json([
-                'status' => 'ERROR',
+                'success' => false,
                 'message' => $e->getMessage()
             ], 400);
         } catch (Throwable $e) {
             return $response->json([
-                'status' => 'ERROR',
+                'success' => false,
                 'message' => 'No fue posible obtener los paciente.'
                 // 'message' => $e->getMessage()
             ], 500);
@@ -135,54 +135,51 @@ class PatientsController extends Controller
                 'last_name'                 => $request->input('paterno'),
                 'last_name_2'               => $request->input('materno'),
                 'dob'                       => $request->input('fecha_nacimiento'),
-                'gender'                    => $request->input('genero'),
-                'curp'                      => $request->input('curp'),
+                'gender'                    => $request->input('genero', 'N'),
+                'curp'                      => $request->input('curp', null),
 
-                'street'                    => $request->input('calle'),
-                'ext_no'                    => $request->input('no_exterior'),
-                'int_no'                    => $request->input('no_interior'),
-                'locality'                  => $request->input('colonia'),
+                'street'                    => $request->input('calle', null),
+                'ext_no'                    => $request->input('no_exterior', null),
+                'int_no'                    => $request->input('no_interior', null),
+                'locality'                  => $request->input('colonia', null),
 
-                'email'                     => $request->input('email'),
-                'phone'                     => $request->input('telefono'),
-                'mobile'                    => $request->input('telefono_movil'),
+                'email'                     => $request->input('email', null),
+                'phone'                     => $request->input('telefono', null),
+                'mobile'                    => $request->input('telefono_movil', null),
 
-                'general_observations'      => $request->input('observaciones'),
-                'current_medications'       => $request->input('medicamentos'),
-                'supplements'               => $request->input('suplementos'),
-                'family_medical_history'    => $request->input('antecedentes_familiares'),
+                'general_observations'      => $request->input('observaciones', null),
+                'current_medications'       => $request->input('medicamentos', null),
+                'supplements'               => $request->input('suplementos', null),
+                'family_medical_history'    => $request->input('antecedentes_familiares', null),
                 
-                'add_billing'               => $request->input('agregar_facturacion') ?? 'off',
-                'billing_rfc'               => $request->input('facturacion_rfc'),
-                'billing_name'              => $request->input('facturacion_razon_social'),
-                'billing_regimen'           => $request->input('facturacion_regimen'),
-                'billing_zip_code'          => $request->input('facturacion_codigo_postal'),
-                'billing_street'            => $request->input('facturacion_calle'),
-                'billing_ext_no'            => $request->input('facturacion_no_exterior'),
-                'billing_int_no'            => $request->input('facturacion_no_interior'),
-                'billing_locality'          => $request->input('facturacion_colonia'),
-                'billing_email'             => $request->input('facturacion_email'),
-                'billing_phone'             => $request->input('facturacion_telefono'),
+                'add_billing'               => $request->input('agregar_facturacion', 'off'),
+                'billing_rfc'               => $request->input('facturacion_rfc', null),
+                'billing_name'              => $request->input('facturacion_razon_social', null),
+                'billing_regimen'           => $request->input('facturacion_regimen', null),
+                'billing_zip_code'          => $request->input('facturacion_codigo_postal', null),
+                'billing_street'            => $request->input('facturacion_calle', null),
+                'billing_ext_no'            => $request->input('facturacion_no_exterior', null),
+                'billing_int_no'            => $request->input('facturacion_no_interior', null),
+                'billing_locality'          => $request->input('facturacion_colonia', null),
+                'billing_email'             => $request->input('facturacion_email', null),
+                'billing_phone'             => $request->input('facturacion_telefono', null),
 
                 'uid'                       => $currentUserId,
             ]);
 
             return $response->json([
-                'status' => 'OK',
+                'success' => true,
                 'message' => 'Paciente registrado correctamente.',
-                'data' => [
-                    'pid' => $patient['id'],
-                    'puid' => $patient['uuid'],
-                ]
+                'data' => $patient
             ], 201);
         } catch (InvalidArgumentException | RuntimeException $e) {
             return $response->json([
-                'status' => 'ERROR',
+                'success' => false,
                 'message' => $e->getMessage()
             ], 400);
         } catch (Throwable $e) {
             return $response->json([
-                'status' => 'ERROR',
+                'success' => false,
                 // 'message' => 'No fue posible registrar el personal.'
                 'message' => $e->getMessage()
             ], 500);

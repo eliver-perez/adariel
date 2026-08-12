@@ -47,12 +47,12 @@ class PatientsService extends Service
                     'id'                        => $this->uuidBinaryToString($d['uuid']),
                     'code'                      => $d['clave'],
                     'name'                      => $d['nombre'],
-                    'dob'                       => $d['f_nacimiento'],
-                    'gender'                    => $d['genero'],
-                    'phone'                     => $d['telefono'],
-                    'mobile'                    => $d['movil'],
-                    'registered_date'           => $d['f_registro'],
-                    'last_visit_date'           => $d['f_ultima_visita'],
+                    'dob'                       => $d['f_nacimiento'] ?? '',
+                    'gender'                    => $d['genero'] ?? '',
+                    'phone'                     => $d['telefono'] ?? '',
+                    'mobile'                    => $d['movil'] ?? '',
+                    'registered_date'           => $d['f_registro'] ?? '',
+                    'last_visit_date'           => $d['f_ultima_visita'] ?? '',
                 ));
             }
 
@@ -235,8 +235,9 @@ class PatientsService extends Service
             $conn->commit();
 
             return [
-                'id' => $patientId,
-                'uuid' => $this->uuidBinaryToString($patientUuid),
+                'id'                => $this->uuidBinaryToString($patientUuid),
+                'code'              => $patientCode,
+                'name'              => $fullName
             ];
         } catch (\Throwable $e) {
             if ($conn->inTransaction()) {

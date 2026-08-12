@@ -20,13 +20,15 @@
         <div class="p-[25px] pt-0">
         <div class="max-h-[320px] scrollbar overflow-y-auto">
             <div data-te-tab-active class="hidden opacity-100 transition-opacity duration-150 ease-linear data-[te-tab-active]:block">
-                <table class="min-w-full text-sm font-light text-left whitespace-nowrap" id="table-staff">
+                <table class="min-w-full text-sm font-light text-left whitespace-nowrap" id="table-users">
                     <thead>
                         <tr>
                             <th class="bg-regularBG dark:bg-box-dark-up px-4 py-2.5 text-start text-light dark:text-title-dark text-[12px] font-medium border-none before:hidden rounded-s-[4px]">
-                                USUARIO</th>
+                                EMAIL</th>
                             <th class="bg-regularBG dark:bg-box-dark-up px-4 py-2.5 text-light dark:text-title-dark text-[12px] font-medium border-none before:hidden">
                                 NOMBRE</th>
+                            <th class="bg-regularBG dark:bg-box-dark-up px-4 py-2.5 text-light dark:text-title-dark text-[12px] font-medium border-none before:hidden">
+                                EMPRESA</th>
                             <th class="bg-regularBG dark:bg-box-dark-up px-4 py-2.5 text-light dark:text-title-dark text-[12px] font-medium border-none before:hidden">
                                 TIPO DE USUARIO</th>
                             <th class="bg-regularBG dark:bg-box-dark-up px-4 py-2.5 text-light dark:text-title-dark text-[12px] font-medium border-none before:hidden">

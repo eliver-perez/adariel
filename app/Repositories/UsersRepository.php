@@ -16,31 +16,34 @@ class UsersRepository
         return $this->db;
     }
 
-    public function getAll(?string $search = null): array
+    public function getAll(array $data): array
     {
         $sql = "
             SELECT
                 u.id,
                 u.uuid,
                 u.email,
-                u.usuario,
                 u.nombre,
+                e.empresa,
                 ut.tipo,
                 u.activo,
                 COALESCE(DATE_FORMAT(u.f_registro, '%d/%m/%Y %r'), '') f_registro,
                 COALESCE(DATE_FORMAT(u.f_ultima_conexion, '%d/%m/%Y %r'), '') f_ultima_conexion
             FROM usuarios u
-                LEFT JOIN usuarios_empresas_roles uer
-                    ON u.id = uer.usuario
+                LEFT JOIN empresas e
+                    ON u.empresa = e.id
+                LEFT JOIN usuarios_sucursales_roles usr
+                    ON usr.sucursal = e.id
+                        AND usr.usuario = u.id
                 LEFT JOIN usuarios_tipos ut
-                    ON uer.tipo_usuario = ut.id
+                    ON ut.id = usr.tipo_usuario
         ";
 
         $params = [];
 
-        if ($search !== null && $search !== '') {
+        if ($data['search'] !== null && $data['search'] !== '') {
             $sql .= " AND usuario LIKE :search";
-            $params['search'] = '%' . $search . '%';
+            $params['search'] = '%' . $data['search'] . '%';
         }
 
         $sql .= " ORDER BY usuario ASC";
@@ -62,6 +65,20 @@ class UsersRepository
         $id = $stmt->fetchColumn();
 
         return $id !== false ? (int) $id : null;
+    }
+
+    public function getUserTypeCodeById(int $id): ?string {
+        $stmt = $this->db->prepare("
+            SELECT ut.codigo
+            FROM usuarios u
+                INNER JOIN usuarios_tipos ut
+                    ON u.tipo_usuario = ut.id
+            WHERE u.id = :id
+            LIMIT 1");
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchColumn();
     }
 
     public function findById(int $id): ?array {
@@ -101,16 +118,16 @@ class UsersRepository
         return $row ?: null;
     }
 
-    public function userExists(string $username): bool {
+    public function userExists(string $email): bool {
         $stmt = $this->db->prepare("
             SELECT 1
             FROM usuarios
-            WHERE usuario = :usuario
+            WHERE email = :email
             LIMIT 1
         ");
 
         $stmt->execute([
-            'usuario' => $username
+            'email' => $email
         ]);
 
         return (bool) $stmt->fetchColumn();
@@ -125,8 +142,8 @@ class UsersRepository
                 nombre,
                 password_hash,
                 tipo_usuario,
-                registro,
                 activo,
+                registro,
                 f_registro
             ) VALUES (
                 :uuid,
@@ -135,8 +152,8 @@ class UsersRepository
                 :nombre,
                 :password_hash,
                 :tipo_usuario,
-                :registro,
                 1,
+                :registro,
                 NOW()
             )
         ");
@@ -170,9 +187,9 @@ class UsersRepository
                 NOW()
             )
         ");
-        $stmt->bindParam('usuario', $data['user'], PDO::PARAM_LOB);
-        $stmt->bindParam('sucursal', $data['branch'], PDO::PARAM_STR);
-        $stmt->bindParam('tipo_usuario', $data['user_type'], PDO::PARAM_STR);
+        $stmt->bindParam('usuario', $data['user'], PDO::PARAM_INT);
+        $stmt->bindParam('sucursal', $data['branch'], PDO::PARAM_INT);
+        $stmt->bindParam('tipo_usuario', $data['user_type'], PDO::PARAM_INT);
         $stmt->execute();
         return (int) $this->db->lastInsertId();
     }

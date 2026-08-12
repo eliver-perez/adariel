@@ -108,8 +108,8 @@
                                             <div class="w-[328px] rounded-4 border-normal border-1 dark:bg-box-dark-up dark:border-box-dark-up px-[15px] py-[12px] min-h-[22px] flex items-center gap-3 flex-reverse">
                                                 <input
                                                     type="text"
-                                                    id="field-busqueda-paciente"
-                                                    name="busqueda_paciente"
+                                                    id="field-schedule-search-patient"
+                                                    name="schedule-search-patient"
                                                     class="w-full bg-transparent outline-none text-body dark:text-subtitle-dark"
                                                     placeholder="Busqueda..."
                                                     value=""
@@ -341,5 +341,5 @@
 <script src="<?= asset('js/appointments/add.js'); ?>"></script>
 
 <script>
-    var currentLink = '<?= base_url('appointments'); ?>';
+    var currentLink = '<?= base_url('appointments/add'); ?>';
 </script>

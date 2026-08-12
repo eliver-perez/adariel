@@ -91,8 +91,10 @@
                         </button>
                     </div>
 
-                    <div class="flex flex-row-reverse items-center sec-check-in">
-                        <button type="button" id="btn-appointment-check-in" class="px-[30px] h-[34px] mb-[10px] text-white bg-primary border-primary hover:bg-primary-hbr font-medium rounded-4 text-xs xs:w-auto text-center inline-flex items-center justify-center capitalize transition-all duration-300 ease-linear" data-te-ripple-init="" data-te-ripple-color="light">Check-In</button>
+                    <div id="sec-appointment-bottom-right-side" class="flex flex-row-reverse items-center">
+                        <div class="flex flex-row-reverse items-center sec-check-in">
+                            <button type="button" id="btn-appointment-check-in" class="px-[30px] h-[34px] mb-[10px] text-white bg-primary border-primary hover:bg-primary-hbr font-medium rounded-4 text-xs xs:w-auto text-center inline-flex items-center justify-center capitalize transition-all duration-300 ease-linear" data-te-ripple-init="" data-te-ripple-color="light">Check-In</button>
+                        </div>
                     </div>
                 </div>
 

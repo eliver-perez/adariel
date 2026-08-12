@@ -78,21 +78,66 @@ class AppointmentsController extends Controller
             $data = $repository->getAll($search !== '' ? $search : null);
 
             return $response->json([
-                    'status' => 'OK',
+                    'success' => true,
                     'data' => [
                         'appointments' => $data
                     ]
                 ], 200);
         } catch (InvalidArgumentException | RuntimeException $e) {
             return $response->json([
-                'status' => 'ERROR',
+                'success' => false,
                 'message' => $e->getMessage()
             ], 400);
         } catch (Throwable $e) {
             return $response->json([
-                'status' => 'ERROR',
+                'success' => false,
                 'message' => 'No fue posible obtener los paciente.'
                 // 'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getAppointmentAssignment(Request $request, Response $response, string $id) {
+        try {
+            $currentUserId = Auth::id();
+
+            if($currentUserId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
+            $organizationId = Auth::organizationId();
+
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron registros de su empresa.");
+            }
+            $organizationBranchId = Auth::organizationBranchId();
+
+            if($organizationBranchId === null) {
+                throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
+            $service = $this->getService();
+
+            $assigned = $service->getAppointmentAssignment([
+                'organizationId'                        => $organizationId,
+                'branchId'                              => $organizationBranchId,
+                'uuid'                                  => $id,
+                'uid'                                   => $currentUserId
+            ]);
+
+            return $response->json([
+                'success' => true,
+                'data' => $assigned
+            ], 200);
+
+        } catch (InvalidArgumentException $e) {
+            return $response->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+
+        } catch (Throwable $e) {
+            return $response->json([
+                'success' => false,
+                'message' => $e->getMessage()
             ], 500);
         }
     }
@@ -122,7 +167,7 @@ class AppointmentsController extends Controller
 
             if ($date === '' || !is_array($procedures) || count($procedures) === 0) {
                 return $response->json([
-                    'status' => 'ERROR',
+                    'success' => false,
                     'message' => 'Información Incompleta'
                 ], 400);
             }
@@ -136,7 +181,7 @@ class AppointmentsController extends Controller
             ]);
 
             return $response->json([
-                'status' => 'OK',
+                'success' => true,
                 'data' => [
                     'date' => $date,
                     'slots' => $slots
@@ -145,13 +190,13 @@ class AppointmentsController extends Controller
 
         } catch (InvalidArgumentException $e) {
             return $response->json([
-                'status' => 'ERROR',
+                'success' => false,
                 'message' => $e->getMessage()
             ], 400);
 
         } catch (Throwable $e) {
             return $response->json([
-                'status' => 'ERROR',
+                'success' => false,
                 'message' => $e->getMessage()
             ], 500);
         }
@@ -181,7 +226,7 @@ class AppointmentsController extends Controller
 
             if ($start === '' || $end === '') {
                 return $response->json([
-                    'status' => 'ERROR',
+                    'success' => false,
                     'message' => 'Información Incompleta'
                 ], 400);
             }
@@ -195,20 +240,20 @@ class AppointmentsController extends Controller
             ]);
 
             return $response->json([
-                'status' => 'OK',
+                'success' => true,
                 'data' => [
                     'appointments' => $appointments
                 ]
             ]);
         } catch (InvalidArgumentException $e) {
             return $response->json([
-                'status' => 'ERROR',
+                'success' => false,
                 'message' => $e->getMessage()
             ], 400);
 
         } catch (Throwable $e) {
             return $response->json([
-                'status' => 'ERROR',
+                'success' => false,
                 'message' => $e->getMessage()
             ], 500);
         }
@@ -236,30 +281,73 @@ class AppointmentsController extends Controller
             $patient = $request->input('patient', '');
             $appointment_type = (int)$request->input('appointment_type', 0);
             $booking_channel = (int)$request->input('booking_channel', 0);
-            $appointmentRaw = $request->input('appointment', '[]');
-            $appointment = json_decode((string)$appointmentRaw, true);
             $chief_complaint = trim((string)$this->request->input('chief_complaint', ''));
 
-            if (!is_array($appointment) || count($appointment) === 0 || $patient === 0 || $appointment_type === 0 || $booking_channel === 0) {
-                return $response->json([
-                    'status' => 'ERROR',
-                    'message' => 'Información Incompleta'
-                ], 400);
+            switch($request->input('booking_mode')) {
+                case 'quick':
+                    $staff = $request->input('staff', '');
+                    $procedure = $request->input('procedure', '');
+                    $date = $request->input('date', '');
+                    $time = $request->input('time', '');
+
+                    if ($patient === ''
+                        || $appointment_type === 0
+                        || $booking_channel === 0
+                        || $staff == ''
+                        || $procedure == ''
+                        || $date == ''
+                        || $time == '') {
+                        return $response->json([
+                            'success' => false,
+                            'message' => 'Información Incompleta'
+                        ], 400);
+                    }
+
+                    $appointmentId = $service->scheduleAppointmentQuick([
+                        'organizationId'            => $organizationId,
+                        'branchId'                  => $organizationBranchId,
+                        'patient'                   => $patient,
+                        'appointment_type'          => $appointment_type,
+                        'booking_channel'           => $booking_channel,
+                        'staff'                     => $staff,
+                        'procedure'                 => $procedure,
+                        'date'                      => $date,
+                        'time'                      => $time,
+                        'chief_complaint'           => $chief_complaint,
+                        'uid'                       => $currentUserId
+                    ]);
+                    break;
+                case 'slots':
+                    $appointmentRaw = $request->input('appointment', '[]');
+                    $appointment = json_decode((string)$appointmentRaw, true);
+
+                    if (!is_array($appointment)
+                        || count($appointment) === 0
+                        || $patient === ''
+                        || $appointment_type === 0
+                        || $booking_channel === 0) {
+                        return $response->json([
+                            'success' => false,
+                            'message' => 'Información Incompleta'
+                        ], 400);
+                    }
+
+                    $appointmentId = $service->scheduleAppointment([
+                        'organizationId'            => $organizationId,
+                        'branchId'                  => $organizationBranchId,
+                        'patient'                   => $patient,
+                        'appointment_type'          => $appointment_type,
+                        'booking_channel'           => $booking_channel,
+                        'appointment'               => $appointment,
+                        'chief_complaint'           => $chief_complaint,
+                        'uid'                       => $currentUserId
+                    ]);
+                    break;
             }
 
-            $appointmentId = $service->scheduleAppointment([
-                    'organizationId'            => $organizationId,
-                    'branchId'                  => $organizationBranchId,
-                    'patient'                   => $patient,
-                    'appointment_type'          => $appointment_type,
-                    'booking_channel'           => $booking_channel,
-                    'appointment'               => $appointment,
-                    'chief_complaint'           => $chief_complaint,
-                    'uid'                       => $currentUserId
-                ]);
-
             return $response->json([
-                'status' => 'OK',
+                'success' => true,
+                'message' => 'Cita agendada',
                 'data' => [
                     'id' => $appointmentId
                 ]
@@ -267,13 +355,13 @@ class AppointmentsController extends Controller
 
         } catch (InvalidArgumentException $e) {
             return $response->json([
-                'status' => 'ERROR',
+                'success' => false,
                 'message' => $e->getMessage()
             ], 400);
 
         } catch (Throwable $e) {
             return $response->json([
-                'status' => 'ERROR',
+                'success' => false,
                 'message' => $e->getMessage()
             ], 500);
         }

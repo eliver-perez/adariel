@@ -42,7 +42,19 @@ class PatientsRepository
 
         $params = [];
 
-        $fields = ['p.clave', 'p.nombre', 'p.paterno', 'p.materno', 'p.telefono', 'p.movil'];
+        $fields = ['p.clave',
+                    "TRIM(
+                        CONCAT(
+                            p.nombre, ' ',
+                            COALESCE(p.paterno, ''), ' ',
+                            COALESCE(p.materno, '')
+                        )
+                    )",
+                    'p.nombre',
+                    'p.paterno',
+                    'p.materno',
+                    'p.telefono',
+                    'p.movil'];
 
         $conditions = [];
         $params = [];

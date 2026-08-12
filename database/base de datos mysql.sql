@@ -147,9 +147,7 @@ INSERT INTO usuarios_tipos(codigo, tipo) VALUES('superadmin', 'Super Administrad
                                                     ('administrador', 'Administrador'),
                                                     ('gerente', 'Gerente'),
                                                     ('supervisor', 'Supervisor'),
-                                                    ('podologo', 'Podologo'),
                                                     ('finanzas', 'Finanzas'),
-                                                    ('enfermero', 'Enfermero'),
                                                     ('caja', 'Caja');
 
 CREATE TABLE puestos (

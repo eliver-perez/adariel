@@ -132,7 +132,7 @@ class ProceduresRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getProcedureStaffData(array $data): array {
+    public function getProcedureStaffData(array $data): ?array {
         $stmt = $this->db->prepare("
            SELECT ps.id,
                     p.id personal_id,

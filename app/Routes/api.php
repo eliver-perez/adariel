@@ -51,6 +51,7 @@ $router->get('/api/auth/me', [AuthController::class, 'me']);                    
 
 $router->get('/api/organizations', [OrganizationsController::class, 'index']);                                                                              // ✅
 $router->get('/api/organizations/{id}', [OrganizationsController::class, 'show']);                                                                          // ✅
+$router->get('/api/organizations/{id}/branches', [OrganizationsController::class, 'indexBranches']);                                                        // ✅
 $router->post('/api/organizations', [OrganizationsController::class, 'store']);                                                                             // ✅
 
 $router->get('/api/my-users', [OrganizationsController::class, 'myUsers']);                                                                                 // ✅
@@ -66,8 +67,9 @@ $router->post('/api/staff', [StaffController::class, 'store']);                 
  * USERS ROUTES
  */
 $router->get('/api/users', [UsersController::class, 'index']);
-$router->get('/api/users/types', [UsersTypesController::class, 'index']);
-$router->get('/api/users/roles', [UserRoleController::class, 'roles']);
+$router->post('/api/users', [UsersController::class, 'store']);
+$router->get('/api/users-types', [UsersTypesController::class, 'index']);                                                                                   // ✅
+$router->get('/api/users/roles', [UserRoleController::class, 'roles']);                                                                                     // ✅
 $router->get('/api/users/types/{id}/roles', [UserRoleController::class, 'userTypeRoles']);
 $router->get('/api/users/{id}/roles', [UserRoleController::class, 'userRoles']);
 $router->post('/api/users/{id}/permissions', [UserRoleController::class, 'addUserPermission']);
@@ -82,11 +84,12 @@ $router->post('/api/user-types/{id}/permissions', [UserRoleController::class, 'a
  * APPOINTMENTS ROUTES
  */
 $router->get('/api/appointments/calendar', [AppointmentsController::class, 'calendar']);                                                                    // ✅
-$router->get('/api/appointments/status', [AppointmentsStatusController::class, 'index']);
+$router->get('/api/appointments/status', [AppointmentsStatusController::class, 'index']);                                                                   // ✅
 $router->post('/api/appointments', [AppointmentsController::class, 'schedule']);                                                                            // ✅
 $router->post('/api/appointments/available-slots', [AppointmentsController::class, 'availableSlots']);                                                      // ✅
 $router->post('/api/appointments/check-in', [AppointmentsController::class, 'checkIn']);                                                                    // ✅
 $router->post('/api/appointments/cancel', [AppointmentsController::class, 'cancel']);                                                                       // ✅
+$router->get('/api/appointments/{id}/assignment', [AppointmentsController::class, 'getAppointmentAssignment']);                                       // ✅
 
 /**
  * BILLING ROUTES

@@ -19,7 +19,7 @@ class BookingChannelsRepository {
                 codigo,
                 forma
             FROM citas_formas
-            ORDER BY id ASC
+            ORDER BY forma ASC
         ");
 
         $stmt->execute();

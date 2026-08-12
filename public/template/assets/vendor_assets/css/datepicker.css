@@ -15,10 +15,53 @@
     padding-top: 0;
 }
 
-/* input[type="text"] ~ .datepicker-picker,
-.datepicker-dropdown .datepicker-picker {
-    width: max-content !important;
+
+
+/* .agenda-datepicker .datepicker .days-of-week,
+.agenda-datepicker .datepicker .days .datepicker-grid {
+    display: grid !important;
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+    width: 100% !important;
+}
+
+.agenda-datepicker .datepicker .days .datepicker-grid {
+    grid-auto-rows: 42px !important;
+}
+
+.agenda-datepicker .datepicker .dow,
+.agenda-datepicker .datepicker .days .datepicker-cell {
+    width: auto !important;
+    min-width: 0 !important;
+    height: 42px !important;
+    line-height: 42px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+    flex-basis: auto !important;
+}
+
+.agenda-datepicker .datepicker-picker {
+    width: 100% !important;
+    min-width: 0 !important;
+}
+
+.agenda-datepicker .datepicker-inline .datepicker-picker {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+}
+
+.agenda-datepicker .datepicker-inline .datepicker-view,
+.agenda-datepicker .datepicker-inline .days {
+    width: 100% !important;
+    max-width: 100% !important;
 } */
+
+
+
+
+
 
 .datepicker-picker {
     /* width: max-content !important; */
@@ -203,6 +246,10 @@
     color: #fff;
     font-weight: 600;
 }
+.datepicker-empty .datepicker-cell.focused:not(.selected) {
+    background-color: transparent;
+    color: #000;
+}
 .datepicker-cell.disabled {
     color: #dcdcdc;
 }
@@ -286,4 +333,44 @@
   justify-content: center !important;
   box-sizing: border-box !important;
   flex-basis: auto !important;
+}
+
+/* =========================================================
+   Calendario inline
+   ========================================================= */
+
+.agenda-datepicker .datepicker-inline .datepicker-picker {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+}
+
+.agenda-datepicker .datepicker-inline .datepicker-view,
+.agenda-datepicker .datepicker-inline .days {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+.agenda-datepicker .datepicker .days-of-week,
+.agenda-datepicker .datepicker .days .datepicker-grid {
+    display: grid !important;
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+    width: 100% !important;
+}
+
+.agenda-datepicker .datepicker .days .datepicker-grid {
+    grid-auto-rows: 42px !important;
+}
+
+.agenda-datepicker .datepicker .dow,
+.agenda-datepicker .datepicker .days .datepicker-cell {
+    width: auto !important;
+    min-width: 0 !important;
+    height: 42px !important;
+    line-height: 42px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+    flex-basis: auto !important;
 }

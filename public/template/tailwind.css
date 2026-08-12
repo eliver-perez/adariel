@@ -16368,6 +16368,10 @@ body {
     max-width: 500px;
   }
 
+  .appointment-modal {
+    min-width: 576px;
+  }
+
   .min-\[576px\]\:max-w-\[620px\] {
     max-width: 620px;
   }
@@ -16389,6 +16393,10 @@ body {
 
   .min-\[980px\]\:max-w-\[920px\] {
     max-width: 920px;
+  }
+
+  .appointment-modal {
+    min-width: 860px;
   }
 
   .min-\[980px\]\:max-w-\[620px\] {

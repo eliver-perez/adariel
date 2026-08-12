@@ -61,6 +61,52 @@ class OrganizationsService extends Service
         }
     }
 
+    public function GetOrganizationBranches(array $data): array {
+        try {
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+            $organizationId = $this->normalizeOptionalInt($data['organizationId'] ?? null);
+
+            $user_type = $this->usersRepository->getUserTypeCodeById($uid);
+            if($user_type == null)
+                throw new RuntimeException("Error al obtener tipo de usuario actual.");
+
+            if($user_type == 'superadmin') {
+                $branches_data = $this->organizationsRepository->GetAllOrganizationBranches([
+                    'uuid'                          => $this->uuidStringToBinary($data['uuid'])
+                ]);
+            } else {
+                if($organizationId == null)
+                    throw new RuntimeException("No se encontraron datos de empresa.");
+
+                $branches_data = $this->organizationsRepository->GetOrganizationBranches([
+                    'uuid'                          => $this->uuidStringToBinary($data['uuid']),
+                    'organization'                  => $organizationId
+                ]);
+            }
+            $branches = array();
+
+            foreach($branches_data as $d) {
+                array_push($branches, array(
+                    'id'                        => $this->uuidBinaryToString($d['uuid']),
+                    'code'                      => $d['clave'],
+                    'branch'                    => $d['sucursal'],
+                    'address'                   => $d['domicilio'] ?? '',
+                    'phone'                     => $d['telefono'] ?? '',
+                    'mobile'                    => $d['movil'] ?? '',
+                    'email'                     => $d['email'] ?? '',
+                    'manager'                   => $d['encargado'] ?? '',
+                    'active'                    => $d['activo'],
+                    'registered_by'             => $d['registro'],
+                    'registered_date'           => $d['f_registro'],
+                ));
+            }
+
+            return $branches;
+        } catch (\Throwable $e) {
+            throw $e;
+        }
+    }
+
     public function getOrganizationData(array $data): ?array {
         try {
             $organizationData = $this->organizationsRepository->getOrganizationData($this->uuidStringToBinary($data['uuid']));
@@ -217,10 +263,11 @@ class OrganizationsService extends Service
                 'code'                              => $sucursalCode,
             ]);
 
-            $options = [
-                'cost' => 11
-            ];
-            $password_hash = password_hash($password, PASSWORD_BCRYPT, $options);
+            // $options = [
+            //     'cost' => 11
+            // ];
+            // $password_hash = password_hash($password, PASSWORD_BCRYPT, $options);
+            $password_hash = $this->encrypt_hash($password);
             // throw new RuntimeException($password.'   -   '.$password_hash);
             $userUuid = $this->generateUuidBinary();
             $userId = $this->usersRepository->insertUser([

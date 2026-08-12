@@ -23,6 +23,7 @@ class UsersTypesRepository
                 ut.codigo,
                 ut.tipo
             FROM usuarios_tipos ut
+            WHERE ut.codigo != 'superadmin'
             ORDER BY ut.tipo
         ";
 

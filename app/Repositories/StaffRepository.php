@@ -340,16 +340,16 @@ class StaffRepository
         ]);
     }
 
-    public function userExists(string $username): bool {
+    public function userExists(string $email): bool {
         $stmt = $this->db->prepare("
             SELECT 1
             FROM usuarios
-            WHERE usuario = :usuario
+            WHERE email = :email
             LIMIT 1
         ");
 
         $stmt->execute([
-            'usuario' => $username
+            'email' => $email
         ]);
 
         return (bool) $stmt->fetchColumn();

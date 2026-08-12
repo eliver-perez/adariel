@@ -45,11 +45,13 @@ function GetRegimenes() {
                     });
 				},
 				error: function(XMLHttpRequest, textStatus, errorThrown) { 
-					console.log('STATUS:', textStatus);
-					console.log('ERROR:', errorThrown);
-					console.log('RESPONSE TEXT:', XMLHttpRequest.responseText);
-
-					alert(XMLHttpRequest.responseText);
+                    try {
+                        var response = JSON.parse(XMLHttpRequest.responseText);
+                        ShowToastMessage(response.message, 'error');
+                        
+                    } catch (e) {
+                        ShowToastMessage(XMLHttpRequest.responseText, 'error');
+                    }
 				}  
 		});
 	} catch(E) {
@@ -72,11 +74,13 @@ function GetGenders() {
                     });
 				},
 				error: function(XMLHttpRequest, textStatus, errorThrown) { 
-					console.log('STATUS:', textStatus);
-					console.log('ERROR:', errorThrown);
-					console.log('RESPONSE TEXT:', XMLHttpRequest.responseText);
-
-					alert(XMLHttpRequest.responseText);
+                    try {
+                        var response = JSON.parse(XMLHttpRequest.responseText);
+                        ShowToastMessage(response.message, 'error');
+                        
+                    } catch (e) {
+                        ShowToastMessage(XMLHttpRequest.responseText, 'error');
+                    }
 				}  
 		});
 	} catch(E) {
@@ -111,12 +115,14 @@ function GetCountries() {
                 $('#select-facturacion-pais').trigger('change');
             },
             error: function(XMLHttpRequest, textStatus, errorThrown) { 
-                console.log('STATUS:', textStatus);
-                console.log('ERROR:', errorThrown);
-                console.log('RESPONSE TEXT:', XMLHttpRequest.responseText);
-
-                alert(XMLHttpRequest.responseText);
                 loadingCountries = false;
+				try {
+					var response = JSON.parse(XMLHttpRequest.responseText);
+					ShowToastMessage(response.message, 'error');
+					
+				} catch (e) {
+					ShowToastMessage(XMLHttpRequest.responseText, 'error');
+				}
             }  
     });
 }
@@ -153,12 +159,14 @@ function GetStates(object) {
                     $(`#${state_select}`).trigger('change');
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) { 
-                    console.log('STATUS:', textStatus);
-                    console.log('ERROR:', errorThrown);
-                    console.log('RESPONSE TEXT:', XMLHttpRequest.responseText);
-
-                    alert(XMLHttpRequest.responseText);
                     loadingStates = false;
+                    try {
+                        var response = JSON.parse(XMLHttpRequest.responseText);
+                        ShowToastMessage(response.message, 'error');
+                        
+                    } catch (e) {
+                        ShowToastMessage(XMLHttpRequest.responseText, 'error');
+                    }
                 }  
         });
     }
@@ -195,12 +203,14 @@ function GetMunicipalities(object) {
                     $(`#${municipality_select}`).trigger('change');
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) { 
-                    console.log('STATUS:', textStatus);
-                    console.log('ERROR:', errorThrown);
-                    console.log('RESPONSE TEXT:', XMLHttpRequest.responseText);
-
-                    alert(XMLHttpRequest.responseText);
                     loadingMunicipalities = false;
+                    try {
+                        var response = JSON.parse(XMLHttpRequest.responseText);
+                        ShowToastMessage(response.message, 'error');
+                        
+                    } catch (e) {
+                        ShowToastMessage(XMLHttpRequest.responseText, 'error');
+                    }
                 }  
         });
     }
@@ -237,12 +247,14 @@ function GetLocalities(object) {
                     $(`#${locality_select}`).trigger('change');
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) { 
-                    console.log('STATUS:', textStatus);
-                    console.log('ERROR:', errorThrown);
-                    console.log('RESPONSE TEXT:', XMLHttpRequest.responseText);
-
-                    alert(XMLHttpRequest.responseText);
                     loadingLocalities = false;
+                    try {
+                        var response = JSON.parse(XMLHttpRequest.responseText);
+                        ShowToastMessage(response.message, 'error');
+                        
+                    } catch (e) {
+                        ShowToastMessage(XMLHttpRequest.responseText, 'error');
+                    }
                 }  
         });
     }
@@ -260,22 +272,27 @@ function RegisterPatient() {
         contentType: false,
         dataType: "json",
         success: function(response) {
-            console.log('Success!', response);
-            ShowSweetAlertConfirmCallback('success', 'Paciente Registrado', '', 'Entendido', (result) => {
-                if(result.isConfirmed) {
-                    if(callbackRequest == 'schedule')
-                        window.location.href = `${homeURL}/appointments/add?pid=${response.data.puid}`
-                    else
-                        window.location.href = `${homeURL}/patients`
-                }
-            });
+            if(response.success) {
+                ShowSweetAlertConfirmCallback('success', 'Paciente Registrado', '', 'Entendido', (result) => {
+                    if(result.isConfirmed) {
+                        if(callbackRequest == 'schedule')
+                            window.location.href = `${homeURL}/appointments/add?pid=${response.data.puid}`
+                        else
+                            window.location.href = `${homeURL}/patients`
+                    }
+                });
+            } else {
+                ShowToastMessage(response.message, 'error');
+            }
         },
         error: function(XMLHttpRequest, textStatus, errorThrown) { 
-            console.log('STATUS:', textStatus);
-            console.log('ERROR:', errorThrown);
-            console.log('RESPONSE TEXT:', XMLHttpRequest.responseText);
-
-            alert(XMLHttpRequest.responseText);
+            try {
+                var response = JSON.parse(XMLHttpRequest.responseText);
+                ShowToastMessage(response.message, 'error');
+                
+            } catch (e) {
+                ShowToastMessage(XMLHttpRequest.responseText, 'error');
+            }
         } 
     });
 }

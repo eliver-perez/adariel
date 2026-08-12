@@ -1697,12 +1697,23 @@ function saveEndConsultation() {
 				console.log(response);
 				if(response.success) {
 					ShowToastMessage('Cita finalizada con exito.', 'success');
+					let url = `${homeURL}/consultations/`;
+					if(callBack !== undefined != callBack != '') {
+						switch(callBack) {
+							case 'calendar':
+								url = `${homeURL}/appointments/`;
+								break;
+							default:
+								url = `${homeURL}/consultations/`;
+								break;
+						}
+					}
 					ShowSweetAlertConfirmCallback('success',
 													'Cita Finalizada',
 													'La cita ha sido finalizada exitosamente',
 													'Entendido',
 													(result) => {
-														window.open(`${homeURL}/consultations/`, '_self');
+														window.open(url, '_self');
 													});
 				}
 			},
