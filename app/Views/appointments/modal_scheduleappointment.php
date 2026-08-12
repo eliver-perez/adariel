@@ -3,7 +3,8 @@
     class="fixed inset-0 z-[1055] hidden overflow-y-auto overflow-x-hidden outline-none"
     id="modal-schedule-appointment"
     tabindex="-1"
-    aria-hidden="true">
+    aria-hidden="true"
+    style="z-index: 99999;">
     <div class="flex min-h-screen items-center justify-center p-4">
         <div 
             data-te-modal-dialog-ref 
