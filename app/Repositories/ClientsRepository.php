@@ -93,6 +93,18 @@ class ClientsRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function getDefaultClientId(): ?int {
+        $stmt = $this->db->prepare("
+            SELECT c.id
+            FROM clientes c
+            WHERE c.empresa IS NULL
+            LIMIT 1");
+        $stmt->execute();
+        $id = $stmt->fetchColumn();
+
+        return $id !== false ? (int) $id : null;
+    }
+
     public function getClientId(array $data): ?int {
         $stmt = $this->db->prepare("
             SELECT c.id

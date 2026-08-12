@@ -468,10 +468,15 @@ class POSService extends Service
                 $pending_sale_status_id = $this->salesStatusRepository->getIdByCode('pendiente');
                 $paid_sale_status_id = $this->salesStatusRepository->getIdByCode('pagado');
 
-                $client_id = $this->clientsRepository->getClientId([
-                    'uuid'                                      => $this->uuidStringtoBinary($_SESSION['cart']['client']),
-                    'organization'                              => $organizationId
-                ]);
+
+                if($_SESSION['cart']['client'] != null) {
+                    $client_id = $this->clientsRepository->getClientId([
+                        'uuid'                                      => $this->uuidStringtoBinary($_SESSION['cart']['client']),
+                        'organization'                              => $organizationId
+                    ]);
+                } else {
+                    $client_id = $this->clientsRepository->getDefaultClientId();
+                }
                 $cash_reconciliation_id = $this->cashReconciliationRepository->getCashReconciliationId([
                     'uuid'                                      => $this->uuidStringtoBinary($_SESSION['cash_reconciliation']['id']),
                     'branch'                                    => $branchId
