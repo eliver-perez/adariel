@@ -1,6 +1,6 @@
 <div 
     data-te-modal-init
-    class="fixed inset-0 z-[9999] hidden overflow-y-auto overflow-x-hidden outline-none"
+    class="fixed inset-0 z-[1055] hidden overflow-y-auto overflow-x-hidden outline-none"
     id="modal-schedule-appointment"
     tabindex="-1"
     aria-hidden="true">
@@ -35,8 +35,7 @@
                                             data-te-class-select-input="py-[11px] px-[20px] text-[14px] capitalize [&~span]:top-[18px] [&~span]:w-[12px] w-full [&~span]:h-[15px] [&~span]:text-body dark:[&~span]:text-white text-dark dark:text-subtitle-dark border-normal dark:border-box-dark-up border-1 rounded-6 dark:bg-box-dark-up focus:border-primary outline-none ltr:[&~span]:right-[3px] rtl:[&~span]:left-[3px] rtl:[&~span]:right-auto"
                                             data-te-class-notch-leading="!border-0 !shadow-none group-data-[te-input-focused]:shadow-none group-data-[te-input-focused]:border-none"
                                             data-te-class-notch-middle="!border-0 !shadow-none !outline-none"
-                                            data-te-class-notch-trailing="!border-0 !shadow-none !outline-none"
-                                            data-te-class-select-dropdown-container="z-[100000]">
+                                            data-te-class-notch-trailing="!border-0 !shadow-none !outline-none">
                                         </select>
                                     </div>
                                 </div>
@@ -53,8 +52,7 @@
                                             data-te-class-select-input="py-[11px] px-[20px] text-[14px] capitalize [&~span]:top-[18px] [&~span]:w-[12px] w-full [&~span]:h-[15px] [&~span]:text-body dark:[&~span]:text-white text-dark dark:text-subtitle-dark border-normal dark:border-box-dark-up border-1 rounded-6 dark:bg-box-dark-up focus:border-primary outline-none ltr:[&~span]:right-[3px] rtl:[&~span]:left-[3px] rtl:[&~span]:right-auto"
                                             data-te-class-notch-leading="!border-0 !shadow-none group-data-[te-input-focused]:shadow-none group-data-[te-input-focused]:border-none"
                                             data-te-class-notch-middle="!border-0 !shadow-none !outline-none"
-                                            data-te-class-notch-trailing="!border-0 !shadow-none !outline-none"
-                                            data-te-class-select-dropdown-container="z-[100000]">
+                                            data-te-class-notch-trailing="!border-0 !shadow-none !outline-none">
                                         </select>
                                     </div>
                                 </div>
@@ -182,8 +180,7 @@
                                                         data-te-class-select-input="py-[11px] px-[20px] text-[14px] capitalize [&~span]:top-[18px] [&~span]:w-[12px] w-full [&~span]:h-[15px] [&~span]:text-body dark:[&~span]:text-white text-dark dark:text-subtitle-dark border-normal dark:border-box-dark-up border-1 rounded-6 dark:bg-box-dark-up focus:border-primary outline-none ltr:[&~span]:right-[3px] rtl:[&~span]:left-[3px] rtl:[&~span]:right-auto"
                                                         data-te-class-notch-leading="!border-0 !shadow-none group-data-[te-input-focused]:shadow-none group-data-[te-input-focused]:border-none"
                                                         data-te-class-notch-middle="!border-0 !shadow-none !outline-none"
-                                                        data-te-class-notch-trailing="!border-0 !shadow-none !outline-none"
-                                                        data-te-class-select-dropdown-container="z-[100000]">
+                                                        data-te-class-notch-trailing="!border-0 !shadow-none !outline-none">
                                                     </select>
                                                 </div>
                                             </div>
@@ -283,8 +280,7 @@
                                             data-te-class-select-input="py-[11px] px-[20px] text-[14px] capitalize [&~span]:top-[18px] [&~span]:w-[12px] w-full [&~span]:h-[15px] [&~span]:text-body dark:[&~span]:text-white text-dark dark:text-subtitle-dark border-normal dark:border-box-dark-up border-1 rounded-6 dark:bg-box-dark-up focus:border-primary outline-none ltr:[&~span]:right-[3px] rtl:[&~span]:left-[3px] rtl:[&~span]:right-auto"
                                             data-te-class-notch-leading="!border-0 !shadow-none group-data-[te-input-focused]:shadow-none group-data-[te-input-focused]:border-none"
                                             data-te-class-notch-middle="!border-0 !shadow-none !outline-none"
-                                            data-te-class-notch-trailing="!border-0 !shadow-none !outline-none"
-                                            data-te-class-select-dropdown-container="z-[100000]">
+                                            data-te-class-notch-trailing="!border-0 !shadow-none !outline-none">
                                         </select>
                                     </div>
                                 </div>
@@ -301,8 +297,7 @@
                                             data-te-class-select-input="py-[11px] px-[20px] text-[14px] capitalize [&~span]:top-[18px] [&~span]:w-[12px] w-full [&~span]:h-[15px] [&~span]:text-body dark:[&~span]:text-white text-dark dark:text-subtitle-dark border-normal dark:border-box-dark-up border-1 rounded-6 dark:bg-box-dark-up focus:border-primary outline-none ltr:[&~span]:right-[3px] rtl:[&~span]:left-[3px] rtl:[&~span]:right-auto"
                                             data-te-class-notch-leading="!border-0 !shadow-none group-data-[te-input-focused]:shadow-none group-data-[te-input-focused]:border-none"
                                             data-te-class-notch-middle="!border-0 !shadow-none !outline-none"
-                                            data-te-class-notch-trailing="!border-0 !shadow-none !outline-none"
-                                            data-te-class-select-dropdown-container="z-[100000]">
+                                            data-te-class-notch-trailing="!border-0 !shadow-none !outline-none">
                                         </select>
                                     </div>
                                 </div>
