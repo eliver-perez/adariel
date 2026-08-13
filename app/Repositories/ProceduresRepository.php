@@ -247,7 +247,7 @@ class ProceduresRepository
         ");
 
         $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
-        $stmt->bindValue(':empresa', $data['organizationId'], PDO::PARAM_INT);
+        $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_INT);
         $stmt->execute();
 
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
