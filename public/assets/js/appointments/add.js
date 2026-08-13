@@ -29,9 +29,9 @@ function InitializeValues(home) {
 	});
 	$('.available-appointments').hide();
 	$('.not-available-appointments').show();
-	$('#field-busqueda-paciente').on('keyup', function(e) {
-		if($('#field-busqueda-paciente').val() != searchValue) {
-			searchValue = $('#field-busqueda-paciente').val();
+	$('#field-schedule-search-patient').on('keyup', function(e) {
+		if($('#field-schedule-search-patient').val() != searchValue) {
+			searchValue = $('#field-schedule-search-patient').val();
 			clearTimeout(searchTimer);
 			searchTimer = setTimeout(function () {
 				SearchPatients();
@@ -257,7 +257,7 @@ function SearchPatients() {
         url: `${homeURL}/api/patients`,
 		type: 'get',
 		data: {
-			search: $('#field-busqueda-paciente').val(),
+			search: $('#field-schedule-search-patient').val(),
 			limit: 5,
 			offset: 0
 		},
