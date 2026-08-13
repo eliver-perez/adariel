@@ -231,7 +231,7 @@ class ProceduresRepository
         return (int) $this->db->lastInsertId();
     }
 
-    public function getProcedureData(array $data): array {
+    public function getProcedureData(array $data): ?array {
         $stmt = $this->db->prepare("
            SELECT s.uuid,
                 s.servicio,
