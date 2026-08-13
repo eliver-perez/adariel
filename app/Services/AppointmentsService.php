@@ -237,7 +237,8 @@ class AppointmentsService extends Service
             'procedure'                             => $this->uuidStringToBinary($procedureUuid),
             'organization'                          => $organizationId
         ]);
-        if($procedure_data == null) 
+        if($procedure_data == null)
+            die($procedureUuid);
             $procedure_data = $this->proceduresRepository->getProcedureData([
                 'uuid'                              => $this->uuidStringToBinary($procedureUuid),
                 'organization'                      => $organizationId
