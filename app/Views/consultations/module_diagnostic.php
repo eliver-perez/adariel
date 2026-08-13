@@ -2,14 +2,28 @@
     <div class="lg:col-span-4">
         <label for="select-diagnostico" class="inline-flex items-center w-[178px] mb-2 text-md font-normal text-dark dark:text-title-dark">Diagnostico</label>
         <div class="w-full">
-            <select id="select-diagnostico" name="diagnostico" data-te-select-init data-te-select-filter="true" data-te-select-init data-te-class-select-input="py-[11px] px-[20px] text-[14px] capitalize [&~span]:top-[18px] [&~span]:w-[12px] w-full [&~span]:h-[15px] [&~span]:text-body dark:[&~span]:text-white text-dark dark:text-subtitle-dark border-normal dark:border-box-dark-up border-1 rounded-6 dark:bg-box-dark-up focus:border-primary outline-none ltr:[&~span]:right-[3px] rtl:[&~span]:left-[3px] rtl:[&~span]:right-auto" data-te-class-notch-leading="!border-0 !shadow-none group-data-[te-input-focused]:shadow-none group-data-[te-input-focused]:border-none" data-te-class-notch-middle="!border-0 !shadow-none !outline-none" data-te-class-notch-trailing="!border-0 !shadow-none !outline-none" required>
+            <select id="select-diagnostico"
+                name="diagnostico"
+                data-te-select-init
+                data-te-class-select-input="py-[11px] px-[20px] text-[14px] capitalize [&~span]:top-[18px] [&~span]:w-[12px] w-full [&~span]:h-[15px] [&~span]:text-body dark:[&~span]:text-white text-dark dark:text-subtitle-dark border-normal dark:border-box-dark-up border-1 rounded-6 dark:bg-box-dark-up focus:border-primary outline-none ltr:[&~span]:right-[3px] rtl:[&~span]:left-[3px] rtl:[&~span]:right-auto"
+                data-te-class-notch-leading="!border-0 !shadow-none group-data-[te-input-focused]:shadow-none group-data-[te-input-focused]:border-none"
+                data-te-class-notch-middle="!border-0 !shadow-none !outline-none"
+                data-te-class-notch-trailing="!border-0 !shadow-none !outline-none"
+                required>
             </select>
         </div>
     </div>
     <div class="lg:col-span-4">
         <label for="select-diagnostico-tipo" class="inline-flex items-center w-[178px] mb-2 text-md font-normal text-dark dark:text-title-dark">Tipo de Diagnostico</label>
         <div class="w-full">
-            <select id="select-diagnostico-tipo" name="tipo_diagnostico" data-te-select-init data-te-select-filter="true" data-te-select-init data-te-class-select-input="py-[11px] px-[20px] text-[14px] capitalize [&~span]:top-[18px] [&~span]:w-[12px] w-full [&~span]:h-[15px] [&~span]:text-body dark:[&~span]:text-white text-dark dark:text-subtitle-dark border-normal dark:border-box-dark-up border-1 rounded-6 dark:bg-box-dark-up focus:border-primary outline-none ltr:[&~span]:right-[3px] rtl:[&~span]:left-[3px] rtl:[&~span]:right-auto" data-te-class-notch-leading="!border-0 !shadow-none group-data-[te-input-focused]:shadow-none group-data-[te-input-focused]:border-none" data-te-class-notch-middle="!border-0 !shadow-none !outline-none" data-te-class-notch-trailing="!border-0 !shadow-none !outline-none" required>
+            <select id="select-diagnostico-tipo"
+                name="tipo_diagnostico"
+                data-te-select-init
+                data-te-class-select-input="py-[11px] px-[20px] text-[14px] capitalize [&~span]:top-[18px] [&~span]:w-[12px] w-full [&~span]:h-[15px] [&~span]:text-body dark:[&~span]:text-white text-dark dark:text-subtitle-dark border-normal dark:border-box-dark-up border-1 rounded-6 dark:bg-box-dark-up focus:border-primary outline-none ltr:[&~span]:right-[3px] rtl:[&~span]:left-[3px] rtl:[&~span]:right-auto"
+                data-te-class-notch-leading="!border-0 !shadow-none group-data-[te-input-focused]:shadow-none group-data-[te-input-focused]:border-none"
+                data-te-class-notch-middle="!border-0 !shadow-none !outline-none"
+                data-te-class-notch-trailing="!border-0 !shadow-none !outline-none"
+                required>
             </select>
         </div>
     </div>
