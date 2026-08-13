@@ -167,9 +167,9 @@ class ProceduresRepository
         $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_INT);
         $stmt->execute();
         
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        // $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        return $row ?? null;
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
     public function existsById(string $id): bool
