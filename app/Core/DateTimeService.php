@@ -69,7 +69,7 @@ class DateTimeService
 
     public function fromUtcFormatted(
         string $datetime,
-        string $format = 'd/m/Y H:i A'
+        string $format = 'd/m/Y h:i A'
     ): string {
         return $this->fromUtc($datetime)->format($format);
     }
