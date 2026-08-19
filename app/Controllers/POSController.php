@@ -182,10 +182,11 @@ class POSController extends Controller
             $cart = json_decode(trim((string)$this->request->input('cart', '')));
 
             $cart = $service->checkout([
-                'organizationId'            => $organizationId,
-                'branchId'                  => $organizationBranchId,
-                'cart'                      => $cart,
-                'uid'                       => $currentUserId,
+                'organizationId'                    => $organizationId,
+                'branchId'                          => $organizationBranchId,
+                'cart'                              => $cart,
+                'timezone'                          => $currentTimezone ?? env('TIMEZONE'),
+                'uid'                               => $currentUserId,
             ]);
 
             return $response->json([
