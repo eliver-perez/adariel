@@ -61,19 +61,20 @@ class PatientsController extends Controller
     public function index(Request $request, Response $response) {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
             $organizationId = Auth::organizationId();
-
             if($organizationId === null) {
                 throw new RuntimeException("No se encontraron datos para la empresa.");
             }
             $organizationBranchId = Auth::organizationBranchId();
-
             if($organizationBranchId === null) {
                 throw new RuntimeException("No se encontraron datos para la sucursal.");
+            }
+            $currentTimezone = Auth::organizationBranchTimeZone();
+            if($currentTimezone === null) {
+                $currentTimezone = Auth::organizationTimeZone();
             }
             $service = $this->getService();
 
@@ -91,6 +92,7 @@ class PatientsController extends Controller
                 'search'                            => $search !== '' ? $search : null,
                 'limit'                             => $limit,
                 'offset'                            => $offset,
+                'timezone'                          => $currentTimezone ?? env('TIMEZONE'),
                 'uid'                               => $currentUserId,
             ]);
 
@@ -108,8 +110,7 @@ class PatientsController extends Controller
         } catch (Throwable $e) {
             return $response->json([
                 'success' => false,
-                'message' => 'No fue posible obtener los paciente.'
-                // 'message' => $e->getMessage()
+                'message' => $e->getMessage()
             ], 500);
         }
     }

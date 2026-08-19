@@ -16,6 +16,10 @@ class RoleController extends Controller
     public function index(Request $request, Response $response)
     {
         try {
+            $currentUserId = Auth::id();
+            if($currentUserId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
             $database = new Database();
             $conn = $database->getConnection();
 

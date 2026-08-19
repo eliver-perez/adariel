@@ -54,7 +54,7 @@ class UserRoleRepository
                 p.permiso,
                 p.descripcion,
                 put.uuid,
-                COALESCE(DATE_FORMAT(put.f_actualizacion, '%d/%m/%Y %r'), '') f_actualizacion
+                COALESCE(DATE_FORMAT(put.f_actualizacion, '%Y-%m-%d %H:%i:%s'), '') f_actualizacion
             FROM permisos p
                 INNER JOIN permisos_usuarios_tipo put
                     ON p.id = put.permiso
@@ -76,7 +76,7 @@ class UserRoleRepository
                 p.permiso,
                 p.descripcion,
                 pu.uuid,
-                COALESCE(DATE_FORMAT(pu.f_actualizacion, '%d/%m/%Y %r'), '') f_actualizacion
+                COALESCE(DATE_FORMAT(pu.f_actualizacion, '%Y-%m-%d %H:%i:%s'), '') f_actualizacion
             FROM permisos p
                 INNER JOIN permisos_usuarios pu
                     ON p.id = pu.permiso

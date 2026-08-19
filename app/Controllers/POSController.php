@@ -162,19 +162,20 @@ class POSController extends Controller
     public function checkout(Request $request, Response $response) {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
             $organizationId = Auth::organizationId();
-
             if($organizationId === null) {
                 throw new RuntimeException("No se encontraron registros de su empresa.");
             }
             $organizationBranchId = Auth::organizationBranchId();
-
             if($organizationBranchId === null) {
                 throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
+            $currentTimezone = Auth::organizationBranchTimeZone();
+            if($currentTimezone === null) {
+                $currentTimezone = Auth::organizationTimeZone();
             }
             $service = $this->getService();
 

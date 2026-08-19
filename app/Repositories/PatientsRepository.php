@@ -32,8 +32,8 @@ class PatientsRepository
                 g.genero,
                 p.telefono,
                 p.movil,
-                COALESCE(DATE_FORMAT(p.f_registro, '%d/%m/%Y %r'), '') f_registro,
-                COALESCE(DATE_FORMAT(p.f_ultima_visita, '%d/%m/%Y %r'), '') f_ultima_visita
+                COALESCE(DATE_FORMAT(p.f_registro, '%Y-%m-%d %H:%i:%s'), '') f_registro,
+                COALESCE(DATE_FORMAT(p.f_ultima_visita, '%Y-%m-%d %H:%i:%s'), '') f_ultima_visita
             FROM pacientes p
                 LEFT JOIN generos g
                     ON p.genero = g.id

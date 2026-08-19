@@ -43,14 +43,16 @@ class ProductsController extends Controller
     public function index(Request $request, Response $response) {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
             $organizationId = Auth::organizationId();
-
             if($organizationId === null) {
                 throw new RuntimeException("No se encontraron registros de su empresa.");
+            }
+            $currentTimezone = Auth::organizationBranchTimeZone();
+            if($currentTimezone === null) {
+                $currentTimezone = Auth::organizationTimeZone();
             }
             $service = $this->getService();
 
@@ -67,6 +69,7 @@ class ProductsController extends Controller
                 'search'                            => $search !== '' ? $search : null,
                 'limit'                             => $limit,
                 'offset'                            => $offset,
+                'timezone'                          => $currentTimezone ?? env('TIMEZONE'),
                 'uid'                               => $currentUserId,
             ]);
 
@@ -92,20 +95,23 @@ class ProductsController extends Controller
     public function show(Request $request, Response $response, string $id) {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
             $organizationId = Auth::organizationId();
-
             if($organizationId === null) {
                 throw new RuntimeException("No se encontraron registros de su empresa.");
+            }
+            $currentTimezone = Auth::organizationBranchTimeZone();
+            if($currentTimezone === null) {
+                $currentTimezone = Auth::organizationTimeZone();
             }
             $service = $this->getService();
 
             $product = $service->getProduct([
                 'uuid'                          => $id,
                 'organizationId'                => $organizationId,
+                'timezone'                      => $currentTimezone ?? env('TIMEZONE'),
                 'uid'                           => $currentUserId,
             ]);
 

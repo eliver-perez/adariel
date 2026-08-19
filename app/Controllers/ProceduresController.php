@@ -47,21 +47,23 @@ class ProceduresController extends Controller
     {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
             $organizationId = Auth::organizationId();
-
             if($organizationId === null) {
                 throw new RuntimeException("Sin información de empresa.");
             }
-
+            $currentTimezone = Auth::organizationBranchTimeZone();
+            if($currentTimezone === null) {
+                $currentTimezone = Auth::organizationTimeZone();
+            }
             $service = $this->getService();
 
             $procedures = $service->getAll([
-                'organization'  => $organizationId,
-                'uid'           => $currentUserId,
+                'organization'              => $organizationId,
+                'timezone'                  => $currentTimezone ?? env('TIMEZONE'),
+                'uid'                       => $currentUserId,
             ]);
 
             return $response->json([
@@ -129,21 +131,23 @@ class ProceduresController extends Controller
     public function show(Request $request, Response $response, string $id) {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
             $organizationId = Auth::organizationId();
-
             if($organizationId === null) {
                 throw new RuntimeException("No se encontraron datos para la empresa.");
             }
-
+            $currentTimezone = Auth::organizationBranchTimeZone();
+            if($currentTimezone === null) {
+                $currentTimezone = Auth::organizationTimeZone();
+            }
             $service = $this->getService();
 
             $procedure = $service->getProcedureData([
                 'uuid'                      => $id,
                 'organizationId'            => $organizationId,
+                'timezone'                  => $currentTimezone ?? env('TIMEZONE'),
                 'uid'                       => $currentUserId,
             ]);
 
@@ -168,17 +172,14 @@ class ProceduresController extends Controller
     public function update(Request $request, Response $response, string $id) {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
             $organizationId = Auth::organizationId();
-
             if($organizationId === null) {
                 throw new RuntimeException("No se encontraron datos para la empresa.");
             }
             $service = $this->getService();
-
             $service->update([
                 'uuid'                      => $id,
                 'procedure'                 => $request->input('procedure'),
@@ -214,12 +215,10 @@ class ProceduresController extends Controller
     public function staff(Request $request, Response $response, string $procedure) {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
             $organizationId = Auth::organizationId();
-
             if($organizationId === null) {
                 throw new RuntimeException("No se encontraron datos para la empresa.");
             }
@@ -256,12 +255,10 @@ class ProceduresController extends Controller
     public function procedureStaffData(Request $request, Response $response, string $procedure, string $staff) {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
             $organizationId = Auth::organizationId();
-
             if($organizationId === null) {
                 throw new RuntimeException("No se encontraron datos para la empresa.");
             }
@@ -301,12 +298,10 @@ class ProceduresController extends Controller
     public function insertProcedureStaff(Request $request, Response $response, string $procedure, string $staff) {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
             $organizationId = Auth::organizationId();
-
             if($organizationId === null) {
                 throw new RuntimeException("No se encontraron datos para la empresa.");
             }

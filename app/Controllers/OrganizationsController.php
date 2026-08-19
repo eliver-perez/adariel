@@ -63,6 +63,14 @@ class OrganizationsController extends Controller
 
     public function index(Request $request, Response $response) {
         try {
+            $currentUserId = Auth::id();
+            if($currentUserId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
+            $currentTimezone = Auth::organizationBranchTimeZone();
+            if($currentTimezone === null) {
+                $currentTimezone = Auth::organizationTimeZone();
+            }
             $service = $this->getService();
 
             $search = trim((string)$this->request->query('search', ''));
@@ -73,10 +81,13 @@ class OrganizationsController extends Controller
             $limit = max(1, min($limit, 5000000));
             $offset = max(0, $offset);
 
-            $data = $service->getAll($search !== '' ? $search : null,
-                $limit,
-                $offset
-            );
+            $data = $service->getAll([
+                'search'                            => $search !== '' ? $search : null,
+                'limit'                             => $limit,
+                'offset'                            => $offset,
+                'timezone'                          => $currentTimezone ?? env('TIMEZONE'),
+                'uid'                               => $currentUserId,
+            ]);
 
             return $response->json([
                     'success' => true,
@@ -92,8 +103,7 @@ class OrganizationsController extends Controller
         } catch (Throwable $e) {
             return $response->json([
                 'success' => false,
-                'message' => 'No fue posible obtener los paciente.'
-                // 'message' => $e->getMessage()
+                'message' => $e->getMessage()
             ], 500);
         }
     }
@@ -101,11 +111,13 @@ class OrganizationsController extends Controller
     public function store(Request $request, Response $response) {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
-
+            $currentTimezone = Auth::organizationBranchTimeZone();
+            if($currentTimezone === null) {
+                $currentTimezone = Auth::organizationTimeZone();
+            }
             $service = $this->getService();
 
             $organization = $service->create([
@@ -119,10 +131,11 @@ class OrganizationsController extends Controller
                 'phone'                     => $request->input('phone'),
                 'mobile'                    => $request->input('mobile'),
                 'email'                     => $request->input('email'),
-                'password'                     => $request->input('password'),
+                'password'                  => $request->input('password'),
 
                 'manager'                   => $request->input('manager'),
 
+                'timezone'                  => $currentTimezone ?? env('TIMEZONE'),
                 'uid'                       => $currentUserId,
             ]);
 
@@ -149,16 +162,21 @@ class OrganizationsController extends Controller
     public function show(Request $request, Response $response, string $id) {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
-
+            $currentTimezone = Auth::organizationBranchTimeZone();
+            if($currentTimezone === null) {
+                $currentTimezone = Auth::organizationTimeZone();
+            }
+            $organizationId = Auth::organizationId();
             $service = $this->getService();
 
             $organization = $service->getOrganizationData([
-                'uuid'                      => $id,
-                'uid'                       => $currentUserId,
+                'uuid'                                  => $id,
+                'organizationId'                        => $organizationId,
+                'timezone'                              => $currentTimezone ?? env('TIMEZONE'),
+                'uid'                                   => $currentUserId,
             ]);
 
             return $response->json([
@@ -217,15 +235,16 @@ class OrganizationsController extends Controller
     public function myUsers(Request $request, Response $response) {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
-
             $organizationId = Auth::organizationId();
-
             if($organizationId === null) {
                 throw new RuntimeException("Sin datos de empresa registrada.");
+            }
+            $currentTimezone = Auth::organizationBranchTimeZone();
+            if($currentTimezone === null) {
+                $currentTimezone = Auth::organizationTimeZone();
             }
             $active = (int)$this->request->query('active', 1);
 
@@ -234,6 +253,7 @@ class OrganizationsController extends Controller
             $data = $service->getMyUsers([
                 'organizationId'                => $organizationId,
                 'active'                        => $active,
+                'timezone'                      => $currentTimezone ?? env('TIMEZONE'),
                 'uid'                           => $currentUserId,
             ]);
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Service;
+use App\Core\DateTimeService;
 use App\Repositories\AppointmentsRepository;
 use App\Repositories\AppointmentsTypesRepository;
 use App\Repositories\BookingChannelsRepository;
@@ -40,6 +41,8 @@ class AppointmentsService extends Service
         $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
         $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
         $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
+
+        $datetimeService = new DateTimeService($data['timezone']);
 
         $settingsService = new SettingsService($this->settingsRepository);
         $appointmentCodePrefix = $settingsService->get('codigo_cita', $organizationId);
@@ -238,7 +241,6 @@ class AppointmentsService extends Service
             'organization'                          => $organizationId
         ]);
         if($procedure_data == null)
-            // die($procedureUuid.' | '.$organizationId);
             $procedure_data = $this->proceduresRepository->getProcedureData([
                 'uuid'                              => $this->uuidStringToBinary($procedureUuid),
                 'organization'                      => $organizationId
@@ -247,6 +249,7 @@ class AppointmentsService extends Service
         if($procedure_data == null)
             throw new RuntimeException("No se encontro información del procedimiento");
 
+        // $date = $this->formatDateToSQL($data['date'] ?? null);
         $duration = $procedure_data['duracion_min'];
         $appointmentStart = $this->timeToMinutes($time);
         $appointmentEnd = $this->timeToMinutes($time) + $duration;

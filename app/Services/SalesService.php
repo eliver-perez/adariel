@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Service;
+use App\Core\DateTimeService;
 use App\Repositories\SalesRepository;
 use App\Repositories\SalesStatusRepository;
 use App\Repositories\AppointmentsRepository;
@@ -35,11 +36,13 @@ class SalesService extends Service
     ) {
     }
 
-    public function getAll(array $data, ?string $search = null, int $limit = 10, int $offset = 0): array {
+    public function getAll(array $data): array {
         try {
             $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
             $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
             $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
+
+            $datetimeService = new DateTimeService($data['timezone']);
 
             if($data['status'] != '')
                 $status_id = $this->salesStatusRepository->getIdByCode($data['status']);
@@ -72,9 +75,9 @@ class SalesService extends Service
                     'registered_by'             => $d['registro'],
                     'status_code'               => $d['estatus_codigo'],
                     'status'                    => $d['estatus'],
-                    'sale_date'                 => $d['f_venta'],
-                    'registered_date'           => $d['f_registro'],
-                    'last_visit_date'           => $d['f_ultima_visita'],
+                    'sale_date'                 => $datetimeService->fromUtcFormatted($d['f_venta']),
+                    'registered_date'           => $datetimeService->fromUtcFormatted($d['f_registro']),
+                    'last_visit_date'           => $datetimeService->fromUtcFormatted($d['f_ultima_visita']),
                 ));
             }
 
@@ -89,6 +92,8 @@ class SalesService extends Service
             $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
             $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
             $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
+
+            $datetimeService = new DateTimeService($data['timezone']);
 
             $uuid = $this->normalizeRequiredText(
                 $data['uuid'] ?? null,
@@ -138,9 +143,9 @@ class SalesService extends Service
                 'status_code'                       => $sale_data['estatus_codigo'],
                 'status'                            => $sale_data['estatus'],
                 'observations'                      => $sale_data['observaciones'],
-                'sale_date'                         => $sale_data['f_venta'],
-                'registered_date'                   => $sale_data['f_registro'],
-                'update_date'                       => $sale_data['f_actualizacion'],
+                'sale_date'                         => $datetimeService->fromUtcFormatted($sale_data['f_venta']),
+                'registered_date'                   => $datetimeService->fromUtcFormatted($sale_data['f_registro']),
+                'update_date'                       => $datetimeService->fromUtcFormatted($sale_data['f_actualizacion']),
                 'details'                           => $sale_details,
             ];
         } catch (\Throwable $e) {

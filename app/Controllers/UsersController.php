@@ -46,9 +46,12 @@ class UsersController extends Controller
     public function index(Request $request, Response $response) {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
+            }
+            $currentTimezone = Auth::organizationBranchTimeZone();
+            if($currentTimezone === null) {
+                $currentTimezone = Auth::organizationTimeZone();
             }
             $service = $this->getService();
 
@@ -65,6 +68,7 @@ class UsersController extends Controller
                 'limit'                                 => $limit,
                 'offset'                                => $offset,
                 'status'                                => '',
+                'timezone'                              => $currentTimezone ?? env('TIMEZONE'),
                 'uid'                                   => $currentUserId
             ]);
 

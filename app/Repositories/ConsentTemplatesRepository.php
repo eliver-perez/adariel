@@ -25,7 +25,7 @@ class ConsentTemplatesRepository {
                 pe.codigo estatus_codigo,
                 pe.estatus,
                 u.nombre registro,
-                COALESCE(DATE_FORMAT(cp.f_registro, '%d/%m/%Y %r'), '') f_registro
+                COALESCE(DATE_FORMAT(cp.f_registro, '%Y-%m-%d %H:%i:%s'), '') f_registro
             FROM consentimientos_plantillas cp
                 INNER JOIN plantillas_estatus pe
                     ON cp.estatus = pe.id
@@ -58,8 +58,8 @@ class ConsentTemplatesRepository {
                 END delta,
                 a.uuid logoId,
                 a.nombre_original,
-                COALESCE(DATE_FORMAT(cp.f_registro, '%d/%m/%Y %r'), '') f_registro,
-                COALESCE(DATE_FORMAT(cp.f_actualizacion, '%d/%m/%Y %r'), '') f_actualizacion
+                COALESCE(DATE_FORMAT(cp.f_registro, '%Y-%m-%d %H:%i:%s'), '') f_registro,
+                COALESCE(DATE_FORMAT(cp.f_actualizacion, '%Y-%m-%d %H:%i:%s'), '') f_actualizacion
             FROM consentimientos_plantillas cp
                 INNER JOIN plantillas_estatus pe
                     ON cp.estatus = pe.id

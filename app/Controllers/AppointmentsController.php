@@ -91,8 +91,7 @@ class AppointmentsController extends Controller
         } catch (Throwable $e) {
             return $response->json([
                 'success' => false,
-                'message' => 'No fue posible obtener los paciente.'
-                // 'message' => $e->getMessage()
+                'message' => $e->getMessage()
             ], 500);
         }
     }
@@ -262,19 +261,20 @@ class AppointmentsController extends Controller
     public function schedule(Request $request, Response $response) {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
             $organizationId = Auth::organizationId();
-
             if($organizationId === null) {
                 throw new RuntimeException("No se encontraron registros de su empresa.");
             }
             $organizationBranchId = Auth::organizationBranchId();
-
             if($organizationBranchId === null) {
                 throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
+            $currentTimezone = Auth::organizationBranchTimeZone();
+            if($currentTimezone === null) {
+                $currentTimezone = Auth::organizationTimeZone();
             }
             $service = $this->getService();
 
@@ -304,17 +304,18 @@ class AppointmentsController extends Controller
                     }
 
                     $appointmentId = $service->scheduleAppointmentQuick([
-                        'organizationId'            => $organizationId,
-                        'branchId'                  => $organizationBranchId,
-                        'patient'                   => $patient,
-                        'appointment_type'          => $appointment_type,
-                        'booking_channel'           => $booking_channel,
-                        'staff'                     => $staff,
-                        'procedure'                 => $procedure,
-                        'date'                      => $date,
-                        'time'                      => $time,
-                        'chief_complaint'           => $chief_complaint,
-                        'uid'                       => $currentUserId
+                        'organizationId'                    => $organizationId,
+                        'branchId'                          => $organizationBranchId,
+                        'patient'                           => $patient,
+                        'appointment_type'                  => $appointment_type,
+                        'booking_channel'                   => $booking_channel,
+                        'staff'                             => $staff,
+                        'procedure'                         => $procedure,
+                        'date'                              => $date,
+                        'time'                              => $time,
+                        'chief_complaint'                   => $chief_complaint,
+                        'timezone'                          => $currentTimezone ?? env('TIMEZONE'),
+                        'uid'                               => $currentUserId
                     ]);
                     break;
                 case 'slots':
@@ -333,14 +334,15 @@ class AppointmentsController extends Controller
                     }
 
                     $appointmentId = $service->scheduleAppointment([
-                        'organizationId'            => $organizationId,
-                        'branchId'                  => $organizationBranchId,
-                        'patient'                   => $patient,
-                        'appointment_type'          => $appointment_type,
-                        'booking_channel'           => $booking_channel,
-                        'appointment'               => $appointment,
-                        'chief_complaint'           => $chief_complaint,
-                        'uid'                       => $currentUserId
+                        'organizationId'                    => $organizationId,
+                        'branchId'                          => $organizationBranchId,
+                        'patient'                           => $patient,
+                        'appointment_type'                  => $appointment_type,
+                        'booking_channel'                   => $booking_channel,
+                        'appointment'                       => $appointment,
+                        'chief_complaint'                   => $chief_complaint,
+                        'timezone'                          => $currentTimezone ?? env('TIMEZONE'),
+                        'uid'                               => $currentUserId
                     ]);
                     break;
             }

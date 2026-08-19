@@ -79,21 +79,21 @@ class ConsultationsController extends Controller
     public function index(Request $request, Response $response) {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
             $organizationId = Auth::organizationId();
-
             if($organizationId === null) {
                 throw new RuntimeException("No se encontraron registros de su empresa.");
             }
             $organizationBranchId = Auth::organizationBranchId();
-
             if($organizationBranchId === null) {
                 throw new RuntimeException("No se encontraron registros de su sucursal.");
             }
-
+            $currentTimezone = Auth::organizationBranchTimeZone();
+            if($currentTimezone === null) {
+                $currentTimezone = Auth::organizationTimeZone();
+            }
             $service = $this->getService();
 
             $search = trim((string)$this->request->query('search', ''));
@@ -107,13 +107,14 @@ class ConsultationsController extends Controller
             $offset = max(0, $offset);
 
             $data = $service->getAll([
-                'organizationId'        => $organizationId,
-                'branchId'              => $organizationBranchId,
-                'status'                => $appointment_status,
-                'search'                => $search !== '' ? $search : null,
-                'limit'                 => $limit,
-                'offset'                => $offset,
-                'uid'                   => $currentUserId,
+                'organizationId'                => $organizationId,
+                'branchId'                      => $organizationBranchId,
+                'status'                        => $appointment_status,
+                'search'                        => $search !== '' ? $search : null,
+                'limit'                         => $limit,
+                'offset'                        => $offset,
+                'timezone'                      => $currentTimezone ?? env('TIMEZONE'),
+                'uid'                           => $currentUserId,
             ]);
 
             return $response->json([
@@ -139,21 +140,21 @@ class ConsultationsController extends Controller
     public function show(Request $request, Response $response, string $id) {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
             $organizationId = Auth::organizationId();
-
             if($organizationId === null) {
                 throw new RuntimeException("No se encontraron registros de su empresa.");
             }
             $organizationBranchId = Auth::organizationBranchId();
-
             if($organizationBranchId === null) {
                 throw new RuntimeException("No se encontraron registros de su sucursal.");
             }
-
+            $currentTimezone = Auth::organizationBranchTimeZone();
+            if($currentTimezone === null) {
+                $currentTimezone = Auth::organizationTimeZone();
+            }
             $service = $this->getService();
 
             $consultation = $service->getConsultation([
@@ -161,6 +162,7 @@ class ConsultationsController extends Controller
                 'branchId'                      => $organizationBranchId,
                 'uuid'                          => $id,
                 'uid'                           => $currentUserId,
+                'timezone'                      => $currentTimezone ?? env('TIMEZONE'),
                 'start'                         => 0
             ]);
 
@@ -185,21 +187,21 @@ class ConsultationsController extends Controller
     public function view(string $id, int $start = 0) {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
             $organizationId = Auth::organizationId();
-
             if($organizationId === null) {
                 throw new RuntimeException("No se encontraron registros de su empresa.");
             }
             $organizationBranchId = Auth::organizationBranchId();
-
             if($organizationBranchId === null) {
                 throw new RuntimeException("No se encontraron registros de su sucursal.");
             }
-
+            $currentTimezone = Auth::organizationBranchTimeZone();
+            if($currentTimezone === null) {
+                $currentTimezone = Auth::organizationTimeZone();
+            }
             $service = $this->getService();
 
             $consultation = $service->getConsultation([
@@ -207,6 +209,7 @@ class ConsultationsController extends Controller
                 'branchId'                      => $organizationBranchId,
                 'uuid'                          => $id,
                 'uid'                           => $currentUserId,
+                'timezone'                      => $currentTimezone ?? env('TIMEZONE'),
                 'start'                         => $start
             ]);
 
@@ -230,21 +233,17 @@ class ConsultationsController extends Controller
     public function update_consultation_observations(Request $request, Response $response, string $id) {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
             $organizationId = Auth::organizationId();
-
             if($organizationId === null) {
                 throw new RuntimeException("No se encontraron registros de su empresa.");
             }
             $organizationBranchId = Auth::organizationBranchId();
-
             if($organizationBranchId === null) {
                 throw new RuntimeException("No se encontraron registros de su sucursal.");
             }
-
             $service = $this->getService();
 
             $observations = $service->updateConsultationInitialObservations([
@@ -276,21 +275,17 @@ class ConsultationsController extends Controller
     public function update_consultation_podiatric_exploration(Request $request, Response $response, string $id) {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
             $organizationId = Auth::organizationId();
-
             if($organizationId === null) {
                 throw new RuntimeException("No se encontraron registros de su empresa.");
             }
             $organizationBranchId = Auth::organizationBranchId();
-
             if($organizationBranchId === null) {
                 throw new RuntimeException("No se encontraron registros de su sucursal.");
             }
-
             $service = $this->getService();
 
             $observations = $service->updateConsultationPodiatricExploration([
@@ -332,21 +327,17 @@ class ConsultationsController extends Controller
     public function get_consultation_procedures(Request $request, Response $response, string $uuid) {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
             $organizationId = Auth::organizationId();
-
             if($organizationId === null) {
                 throw new RuntimeException("No se encontraron registros de su empresa.");
             }
             $organizationBranchId = Auth::organizationBranchId();
-
             if($organizationBranchId === null) {
                 throw new RuntimeException("No se encontraron registros de su sucursal.");
             }
-
             $service = $this->getService();
 
             $procedures = $service->getConsultationProcedures([
@@ -379,21 +370,17 @@ class ConsultationsController extends Controller
     public function get_consultation_podiatric_exploration(Request $request, Response $response, string $uuid) {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
             $organizationId = Auth::organizationId();
-
             if($organizationId === null) {
                 throw new RuntimeException("No se encontraron registros de su empresa.");
             }
             $organizationBranchId = Auth::organizationBranchId();
-
             if($organizationBranchId === null) {
                 throw new RuntimeException("No se encontraron registros de su sucursal.");
             }
-
             $service = $this->getService();
 
             $podiatricExploration = $service->getConsultationPodiatricExploration([
@@ -424,21 +411,17 @@ class ConsultationsController extends Controller
     public function get_procedure_data(Request $request, Response $response, string $consultation_id, string $procedure_id) {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
             $organizationId = Auth::organizationId();
-
             if($organizationId === null) {
                 throw new RuntimeException("No se encontraron registros de su empresa.");
             }
             $organizationBranchId = Auth::organizationBranchId();
-
             if($organizationBranchId === null) {
                 throw new RuntimeException("No se encontraron registros de su sucursal.");
             }
-
             $service = $this->getService();
 
             $procedure = $service->getProcedureData([
@@ -470,21 +453,17 @@ class ConsultationsController extends Controller
     public function update_consultation_procedures(Request $request, Response $response, string $id) {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
             $organizationId = Auth::organizationId();
-
             if($organizationId === null) {
                 throw new RuntimeException("No se encontraron registros de su empresa.");
             }
             $organizationBranchId = Auth::organizationBranchId();
-
             if($organizationBranchId === null) {
                 throw new RuntimeException("No se encontraron registros de su sucursal.");
             }
-
             $service = $this->getService();
 
             $procedure = $service->updateConsultationsProcedures([
@@ -516,21 +495,17 @@ class ConsultationsController extends Controller
     public function update_consultation_evidence_upload(Request $request, Response $response, string $id) {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
             $organizationId = Auth::organizationId();
-
             if($organizationId === null) {
                 throw new RuntimeException("No se encontraron registros de su empresa.");
             }
             $organizationBranchId = Auth::organizationBranchId();
-
             if($organizationBranchId === null) {
                 throw new RuntimeException("No se encontraron registros de su sucursal.");
             }
-
             $service = $this->getService();
 
             $evidence = $service->updateConsultationEvidenceUpload([
@@ -563,21 +538,17 @@ class ConsultationsController extends Controller
     public function get_consultation_diagnostics(Request $request, Response $response, string $uuid) {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
             $organizationId = Auth::organizationId();
-
             if($organizationId === null) {
                 throw new RuntimeException("No se encontraron registros de su empresa.");
             }
             $organizationBranchId = Auth::organizationBranchId();
-
             if($organizationBranchId === null) {
                 throw new RuntimeException("No se encontraron registros de su sucursal.");
             }
-
             $service = $this->getService();
 
             $diagnostics = $service->getConsultationDiagnostics([
@@ -608,21 +579,17 @@ class ConsultationsController extends Controller
     public function get_diagnostic_data(Request $request, Response $response, string $consultation_id, string $diagnostic_id) {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
             $organizationId = Auth::organizationId();
-
             if($organizationId === null) {
                 throw new RuntimeException("No se encontraron registros de su empresa.");
             }
             $organizationBranchId = Auth::organizationBranchId();
-
             if($organizationBranchId === null) {
                 throw new RuntimeException("No se encontraron registros de su sucursal.");
             }
-
             $service = $this->getService();
 
             $diagnostic = $service->getDiagnosticData([
@@ -654,21 +621,17 @@ class ConsultationsController extends Controller
     public function update_consultation_diagnostics(Request $request, Response $response, string $id) {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
             $organizationId = Auth::organizationId();
-
             if($organizationId === null) {
                 throw new RuntimeException("No se encontraron registros de su empresa.");
             }
             $organizationBranchId = Auth::organizationBranchId();
-
             if($organizationBranchId === null) {
                 throw new RuntimeException("No se encontraron registros de su sucursal.");
             }
-
             $service = $this->getService();
 
             $diagnostics = $service->updateConsultationsDiagnostics([
@@ -701,21 +664,17 @@ class ConsultationsController extends Controller
     public function get_consultation_sores(Request $request, Response $response, string $uuid) {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
             $organizationId = Auth::organizationId();
-
             if($organizationId === null) {
                 throw new RuntimeException("No se encontraron registros de su empresa.");
             }
             $organizationBranchId = Auth::organizationBranchId();
-
             if($organizationBranchId === null) {
                 throw new RuntimeException("No se encontraron registros de su sucursal.");
             }
-
             $service = $this->getService();
 
             $sores = $service->getConsultationSores([
@@ -748,21 +707,17 @@ class ConsultationsController extends Controller
     public function update_consultation_sores(Request $request, Response $response, string $id) {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
             $organizationId = Auth::organizationId();
-
             if($organizationId === null) {
                 throw new RuntimeException("No se encontraron registros de su empresa.");
             }
             $organizationBranchId = Auth::organizationBranchId();
-
             if($organizationBranchId === null) {
                 throw new RuntimeException("No se encontraron registros de su sucursal.");
             }
-
             $service = $this->getService();
 
             $sores = $service->updateConsultationsSores([
@@ -794,21 +749,17 @@ class ConsultationsController extends Controller
     public function update_consultation_indications(Request $request, Response $response, string $id) {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
             $organizationId = Auth::organizationId();
-
             if($organizationId === null) {
                 throw new RuntimeException("No se encontraron registros de su empresa.");
             }
             $organizationBranchId = Auth::organizationBranchId();
-
             if($organizationBranchId === null) {
                 throw new RuntimeException("No se encontraron registros de su sucursal.");
             }
-
             $service = $this->getService();
 
             $indications = $service->updateConsultationIndications([
@@ -840,27 +791,29 @@ class ConsultationsController extends Controller
     public function finish_consultation(Request $request, Response $response, string $id) {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
             $organizationId = Auth::organizationId();
-
             if($organizationId === null) {
                 throw new RuntimeException("No se encontraron registros de su empresa.");
             }
             $organizationBranchId = Auth::organizationBranchId();
-
             if($organizationBranchId === null) {
                 throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
+            $currentTimezone = Auth::organizationBranchTimeZone();
+            if($currentTimezone === null) {
+                $currentTimezone = Auth::organizationTimeZone();
             }
             $service = $this->getService();
 
             $finish = $service->finishConsultation([
-                'organizationId'                => $organizationId,
-                'branchId'                      => $organizationBranchId,
-                'uuid'                          => $id,
-                'uid'                           => $currentUserId,
+                'organizationId'                    => $organizationId,
+                'branchId'                          => $organizationBranchId,
+                'uuid'                              => $id,
+                'timezone'                          => $currentTimezone ?? env('TIMEZONE'),
+                'uid'                               => $currentUserId,
             ]);
 
             return $response->json([

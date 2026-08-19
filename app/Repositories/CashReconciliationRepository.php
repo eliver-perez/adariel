@@ -20,8 +20,8 @@ class CashReconciliationRepository
             SELECT c.uuid,
                 c.folio,
                 u.nombre abierto_por,
-                COALESCE(DATE_FORMAT(c.f_abierta, '%d/%m/%Y %r'), '') f_abierta,
-                COALESCE(DATE_FORMAT(c.f_cierre, '%d/%m/%Y %r'), '') f_cierre,
+                COALESCE(DATE_FORMAT(c.f_abierta, '%Y-%m-%d %H:%i:%s'), '') f_abierta,
+                COALESCE(DATE_FORMAT(c.f_cierre, '%Y-%m-%d %H:%i:%s'), '') f_cierre,
                 c.total_venta
             FROM cortes c
                 LEFT JOIN usuarios u
@@ -117,11 +117,11 @@ class CashReconciliationRepository
                 c.folio,
                 opened.uuid opened_by_id,
                 opened.nombre opened_by_name,
-                COALESCE(DATE_FORMAT(c.f_abierta, '%d/%m/%Y %r'), '') opened_date,
+                COALESCE(DATE_FORMAT(c.f_abierta, '%Y-%m-%d %H:%i:%s'), '') opened_date,
                 c.monto_apertura opened_amount,
                 closed.uuid closed_by_id,
                 closed.nombre closed_by_name,
-                COALESCE(DATE_FORMAT(c.f_cierre, '%d/%m/%Y %r'), '') closed_date,
+                COALESCE(DATE_FORMAT(c.f_cierre, '%Y-%m-%d %H:%i:%s'), '') closed_date,
                 c.monto_cierre closed_amount,
                 c.otros_medios other_payment_methods,
                 c.efectivo cash,
@@ -134,7 +134,7 @@ class CashReconciliationRepository
                 ce.codigo status_code,
                 ce.estatus status,
                 c.observaciones,
-                COALESCE(DATE_FORMAT(c.f_registro, '%d/%m/%Y %r'), '') registered_date
+                COALESCE(DATE_FORMAT(c.f_registro, '%Y-%m-%d %H:%i:%s'), '') registered_date
             FROM cortes c
                 LEFT JOIN cajas ca
                     ON c.caja = ca.id
@@ -174,11 +174,11 @@ class CashReconciliationRepository
                 ca.caja,
                 opened.uuid opened_by_id,
                 opened.nombre opened_by_name,
-                COALESCE(DATE_FORMAT(c.f_abierta, '%d/%m/%Y %r'), '') opened_date,
+                COALESCE(DATE_FORMAT(c.f_abierta, '%Y-%m-%d %H:%i:%s'), '') opened_date,
                 c.monto_apertura opened_amount,
                 closed.uuid closed_by_id,
                 closed.nombre closed_by_name,
-                COALESCE(DATE_FORMAT(c.f_cierre, '%d/%m/%Y %r'), '') closed_date,
+                COALESCE(DATE_FORMAT(c.f_cierre, '%Y-%m-%d %H:%i:%s'), '') closed_date,
                 c.monto_cierre closed_amount,
                 c.efectivo_esperado expected_cash,
                 c.retiros cash_withdrawals,
@@ -187,7 +187,7 @@ class CashReconciliationRepository
                 ce.codigo status_code,
                 ce.estatus status,
                 c.observaciones,
-                COALESCE(DATE_FORMAT(c.f_registro, '%d/%m/%Y %r'), '') registered_date
+                COALESCE(DATE_FORMAT(c.f_registro, '%Y-%m-%d %H:%i:%s'), '') registered_date
             FROM cortes c
                 LEFT JOIN cajas ca
                     ON c.caja = ca.id

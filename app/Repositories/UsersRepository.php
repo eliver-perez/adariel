@@ -27,8 +27,8 @@ class UsersRepository
                 e.empresa,
                 ut.tipo,
                 u.activo,
-                COALESCE(DATE_FORMAT(u.f_registro, '%d/%m/%Y %r'), '') f_registro,
-                COALESCE(DATE_FORMAT(u.f_ultima_conexion, '%d/%m/%Y %r'), '') f_ultima_conexion
+                COALESCE(DATE_FORMAT(u.f_registro, '%Y-%m-%d %H:%i:%s'), '') f_registro,
+                COALESCE(DATE_FORMAT(u.f_ultima_conexion, '%Y-%m-%d %H:%i:%s'), '') f_ultima_conexion
             FROM usuarios u
                 LEFT JOIN empresas e
                     ON u.empresa = e.id

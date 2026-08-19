@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Service;
+use App\Core\DateTimeService;
 use App\Repositories\CashReconciliationRepository;
 use App\Repositories\CashReconciliationStatusRepository;
 use App\Repositories\CashRegisterRepository;
@@ -33,6 +34,8 @@ class CashReconciliationService extends Service
             $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
             $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
 
+            $datetimeService = new DateTimeService($data['timezone']);
+
             $data = $this->cashReconciliationRepository->getAll([
                 'search_by'                     => 'branch',
                 'organization'                  => $organizationId,
@@ -49,8 +52,8 @@ class CashReconciliationService extends Service
                     'id'                        => $this->uuidBinaryToString($d['uuid']),
                     'folio'                     => $d['folio'] ?? 'S/F',
                     'opened_by'                 => $d['abierto_por'] ?? '',
-                    'opened_date'               => $d['f_abierta'] ?? '',
-                    'closed_date'               => $d['f_cierre'] ?? '',
+                    'opened_date'               => $d['f_abierta'] != null ? $datetimeService->fromUtcFormatted($d['f_abierta']) : '',
+                    'closed_date'               => $d['f_cierre'] != null ? $datetimeService->fromUtcFormatted($d['f_cierre']) : '',
                     'total'                     => $d['total_venta'] ?? 0,
                 ));
             }
@@ -66,6 +69,8 @@ class CashReconciliationService extends Service
             $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
             $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
             $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
+
+            $datetimeService = new DateTimeService($data['timezone']);
 
             $uuid = $this->normalizeRequiredText(
                 $data['uuid'] ?? null,
@@ -99,9 +104,9 @@ class CashReconciliationService extends Service
                     'amount'                        => $p['monto_pago'],
                     'registered_by'                 => $p['registro'],
                     'status'                        => $p['estatus'],
-                    'payment_date'                  => $p['f_pago'],
-                    'registered_date'               => $p['f_registro'],
-                    'update_date'                   => $p['f_actualizacion']
+                    'payment_date'                  => $datetimeService->fromUtcFormatted($p['f_pago']),
+                    'registered_date'               => $datetimeService->fromUtcFormatted($p['f_registro']),
+                    'update_date'                   => $datetimeService->fromUtcFormatted($p['f_actualizacion']),
                 ));
             }
             
@@ -111,11 +116,11 @@ class CashReconciliationService extends Service
                 'registrar'                         => $cash_reconciliation_data['caja'],
                 'opened_by_id'                      => $cash_reconciliation_data['opened_by_id'] != null ? $this->uuidBinarytoString($cash_reconciliation_data['opened_by_id']) : '',
                 'opened_by_name'                    => $cash_reconciliation_data['opened_by_name'],
-                'opened_date'                       => $cash_reconciliation_data['opened_date'],
+                'opened_date'                       => $cash_reconciliation_data['opened_date'] != null ? $datetimeService->fromUtcFormatted($cash_reconciliation_data['opened_date']) : '',
                 'opened_amount'                     => $cash_reconciliation_data['opened_amount'],
                 'closed_by_id'                      => $cash_reconciliation_data['closed_by_id'] != null ? $this->uuidBinarytoString($cash_reconciliation_data['closed_by_id']) : '',
                 'closed_by_name'                    => $cash_reconciliation_data['closed_by_name'],
-                'closed_date'                       => $cash_reconciliation_data['closed_date'],
+                'closed_date'                       => $cash_reconciliation_data['closed_date'] != null ? $datetimeService->fromUtcFormatted($cash_reconciliation_data['closed_date']) : '',
                 'closed_amount'                     => $cash_reconciliation_data['closed_amount'],
                 'other_payment_methods'             => $cash_reconciliation_data['other_payment_methods'],
                 'cash'                              => $cash_reconciliation_data['cash'],
@@ -128,7 +133,7 @@ class CashReconciliationService extends Service
                 'status_code'                       => $cash_reconciliation_data['status_code'],
                 'status'                            => $cash_reconciliation_data['status'],
                 'observations'                      => $cash_reconciliation_data['observaciones'],
-                'registered_date'                   => $cash_reconciliation_data['registered_date'],
+                'registered_date'                   => $datetimeService->fromUtcFormatted($cash_reconciliation_data['registered_date']),
                 'payments'                          => $cash_reconciliation_payments,
             ];
         } catch (\Throwable $e) {
@@ -144,6 +149,8 @@ class CashReconciliationService extends Service
         $cash_register = $this->normalizeRequiredText($data['cash_register'] ?? null, 'Es necesario seleccionar una caja.');
         $initialize_amount = $this->normalizeRequiredFloat($data['initialize_amount'] ?? null, 'Es necesario capturar el monto de inicio.');
 
+        $datetimeService = new DateTimeService($data['timezone']);
+
         $conn = $this->cashReconciliationRepository->getConnection();
         $conn->beginTransaction();
         try {
@@ -157,7 +164,7 @@ class CashReconciliationService extends Service
                     'uuid'                          => $this->uuidStringtoBinary($cash_register),
                     'branch'                        => $branchId
                 ]);
-                $year = date('Y');
+                $year = $datetimeService->nowFormatted('Y');
                 $c_aux = $this->foliosRepository->getConsecutive([
                     'type'                                  => 'corte',
                     'branch'                                => $branchId,

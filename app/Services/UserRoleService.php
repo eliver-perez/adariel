@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Service;
+use App\Core\DateTimeService;
 use App\Repositories\UserRoleRepository;
 use App\Repositories\UsersRepository;
 use InvalidArgumentException;
@@ -18,8 +19,12 @@ class UserRoleService extends Service
     ) {
     }
 
-    public function getRoles(?string $search = null, int $limit = 10, int $offset = 0, string $status = ''): array {
+    public function getRoles(array $data): array {
         try {
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+
+            $datetimeService = new DateTimeService($data['timezone']);
+
             $data = $this->userRoleRepository->getRoles();
             $roles = array();
 
@@ -28,7 +33,7 @@ class UserRoleService extends Service
                     'id'                        => $d['id'],
                     'role'                      => $d['permiso'],
                     'description'               => $d['descripcion'],
-                    'registered_date'           => $d['f_registro'],
+                    'registered_date'           => $datetimeService->fromUtcFormatted($d['f_registro']),
                 ));
             }
 
@@ -42,9 +47,13 @@ class UserRoleService extends Service
         
     }
 
-    public function getUserTypeRoles($id): array {
+    public function getUserTypeRoles(array $data): array {
         try {
-            $data = $this->userRoleRepository->getUserTypeRoles($id);
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+
+            $datetimeService = new DateTimeService($data['timezone']);
+
+            $data = $this->userRoleRepository->getUserTypeRoles($data['id']);
             $roles = array();
 
             foreach($data as $d) {
@@ -52,7 +61,7 @@ class UserRoleService extends Service
                     'id'                        => $this->uuidBinaryToString($d['uuid']),
                     'role'                      => $d['permiso'],
                     'description'               => $d['descripcion'],
-                    'update_date'               => $d['f_actualizacion'],
+                    'update_date'               => $datetimeService->fromUtcFormatted($d['f_actualizacion']),
                 ));
             }
 
@@ -64,10 +73,14 @@ class UserRoleService extends Service
 
     public function getUserRoles(array $data): array {
         try {
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+
             $user = $this->normalizeRequiredText(
                 $data['user'] ?? null,
                 'Error al recibir el usuario.'
             );
+
+            $datetimeService = new DateTimeService($data['timezone']);
 
             $user_id = $this->usersRepository->getUserIdByUuid($this->uuidStringtoBinary($user));
 
@@ -80,7 +93,7 @@ class UserRoleService extends Service
                     'id'                        => $this->uuidBinaryToString($d['uuid']),
                     'role'                      => $d['permiso'],
                     'description'               => $d['descripcion'],
-                    'update_date'               => $d['f_actualizacion'],
+                    'update_date'               => $datetimeService->fromUtcFormatted($d['f_actualizacion']),
                 ));
             }
 

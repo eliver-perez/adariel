@@ -62,6 +62,7 @@ class AuthController extends Controller
                        e.id empresa_id,
                        e.uuid empresa_uuid,
                        e.empresa empresa,
+                       e.zona_horaria,
                        u.nombre,
                        u.email,
                        u.password_hash,
@@ -96,6 +97,7 @@ class AuthController extends Controller
 
             $organization_id = $user['empresa_id'];
             $organization_uuid = $user['empresa_uuid'];
+            $organization_timezone = $user['zona_horaria'];
             $organization = $user['empresa'];
             $user_role = null;
             $user_type_id = $user['tipo_usuario_id'];
@@ -108,6 +110,7 @@ class AuthController extends Controller
                 s.id sucursal_id,
                 s.uuid sucursal_uuid,
                 s.sucursal,
+                s.zona_horaria,
                 TRIM(
                     CONCAT(
                         COALESCE(s.calle, ''), ' ',
@@ -147,14 +150,15 @@ class AuthController extends Controller
             $data = $stmt->fetchAll();
             $tipos_usuario = array();
             foreach($data as $tu) {
-                array_push($tipos_usuario, array('id'                   => $tu['id'],
-                                                'sucursal_id'           => $tu['sucursal_id'],
-                                                'sucursal_uuid'         => $tu['sucursal_uuid'],
-                                                'sucursal'              => $tu['sucursal'],
-                                                'domicilio'             => $tu['domicilio'],
-                                                'tipo_usuario_id'       => $tu['tipo_usuario_id'],
-                                                'tipo_usuario_codigo'   => $tu['tipo_usuario_codigo'],
-                                                'tipo_usuario'          => $tu['tipo_usuario']));
+                array_push($tipos_usuario, array('id'                               => $tu['id'],
+                                                'sucursal_id'                       => $tu['sucursal_id'],
+                                                'sucursal_uuid'                     => $tu['sucursal_uuid'],
+                                                'sucursal'                          => $tu['sucursal'],
+                                                'zona_horaria'                      => $tu['zona_horaria'],
+                                                'domicilio'                         => $tu['domicilio'],
+                                                'tipo_usuario_id'                   => $tu['tipo_usuario_id'],
+                                                'tipo_usuario_codigo'               => $tu['tipo_usuario_codigo'],
+                                                'tipo_usuario'                      => $tu['tipo_usuario']));
             }
 
             $conn->beginTransaction();
@@ -189,9 +193,11 @@ class AuthController extends Controller
             $_SESSION['ADARIEL_ERP_NAME'] = $user['nombre'];
             $_SESSION['ADARIEL_ERP_ORGANIZATION_ID'] = $organization_id;
             $_SESSION['ADARIEL_ERP_ORGANIZATION_UUID'] = $organization_uuid != null ? $service->uuidBinarytoString($organization_uuid) : '';
+            $_SESSION['ADARIEL_ERP_ORGANIZATION_TIMEZONE'] = $organization_timezone;
             $_SESSION['ADARIEL_ERP_ORGANIZATION'] = $organization;
             if(count($tipos_usuario) > 0) {
                 $_SESSION['ADARIEL_ERP_ORGANIZATION_BRANCH_ID'] = count($tipos_usuario) == 1 ? $tipos_usuario[0]['sucursal_id'] : null;
+                $_SESSION['ADARIEL_ERP_ORGANIZATION_BRANCH_TIMEZONE'] = count($tipos_usuario) == 1 ? $tipos_usuario[0]['zona_horaria'] : null;
                 $_SESSION['ADARIEL_ERP_ORGANIZATION_BRANCH'] = count($tipos_usuario) == 1 ? $tipos_usuario[0]['sucursal'] : null;
                 $_SESSION['ADARIEL_ERP_USER_ROLE'] = count($tipos_usuario) == 1 ? $tipos_usuario[0]['id'] : null;
                 $_SESSION['ADARIEL_ERP_USER_TYPE_CODE'] = count($tipos_usuario) == 1 ? $tipos_usuario[0]['tipo_usuario_codigo'] : null;

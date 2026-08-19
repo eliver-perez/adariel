@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Service;
+use App\Core\DateTimeService;
 use App\Repositories\StaffRepository;
 use App\Repositories\ScheduleRepository;
 use App\Repositories\ScheduleTemplatesRepository;
@@ -34,6 +35,10 @@ class StaffService extends Service
 
     public function getAll(array $data): array {
         try {
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+
+            $datetimeService = new DateTimeService($data['timezone']);
+
             $data = $this->staffRepository->getAll([
                 'organizationId'                => $data['organizationId'],
                 'search'                        => $data['search'] !== '' ? $data['search'] : null,
@@ -55,7 +60,7 @@ class StaffService extends Service
                     'status'                    => $d['estatus'] ?? '',
                     'role'                      => $d['puesto'],
                     'registered_by'             => $d['registro'],
-                    'registered_date'           => $d['f_registro'],
+                    'registered_date'           => $datetimeService->fromUtcFormatted($d['f_registro']),
                 ));
             }
 
@@ -135,10 +140,6 @@ class StaffService extends Service
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 throw new InvalidArgumentException('El correo electrónico no es válido.');
             }
-
-            // if ($this->staffRepository->emailExists($email)) {
-            //     throw new RuntimeException('Ya existe un registro de personal con ese correo.');
-            // }
         }
 
         $hasMedicalData =

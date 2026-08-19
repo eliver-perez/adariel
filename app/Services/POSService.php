@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Service;
+use App\Core\DateTimeService;
 use App\Repositories\POSRepository;
 use App\Repositories\SalesRepository;
 use App\Repositories\SalesStatusRepository;
@@ -418,6 +419,8 @@ class POSService extends Service
         $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
         $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
         $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
+
+        $datetimeService = new DateTimeService($data['timezone']);
         if($this->validateCart([
             'organization'          => $organizationId,
             'branch'                => $branchId,
@@ -447,7 +450,7 @@ class POSService extends Service
                     $_SESSION['cash_reconciliation']['opened_date'] = $cashReconciliationData['opened_date'];
                 }
 
-                $year = date('Y');
+                $year = $datetimeService->nowFormatted('Y');
                 $c_aux = $this->foliosRepository->getConsecutive([
                     'type'                                  => 'pago',
                     'branch'                                => $branchId,
@@ -503,7 +506,7 @@ class POSService extends Service
                 ]);
                 $remaining_payment = $payment_amount;
                 if(count($_SESSION['cart']['products']) > 0) {
-                    $year = date('Y');
+                    $year = $datetimeService->nowFormatted('Y');
                     $c_aux = $this->foliosRepository->getConsecutive([
                         'type'                                  => 'venta',
                         'branch'                                => $branchId,

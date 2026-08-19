@@ -44,14 +44,19 @@ class UserRoleController extends Controller
     public function roles(Request $request, Response $response) {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new \RuntimeException("No autenticado.");
             }
-
+            $currentTimezone = Auth::organizationBranchTimeZone();
+            if($currentTimezone === null) {
+                $currentTimezone = Auth::organizationTimeZone();
+            }
             $service = $this->getService();
 
-            $roles = $service->getRoles();
+            $roles = $service->getRoles([
+                'timezone'                          => $currentTimezone ?? env('TIMEZONE'),
+                'uid'                               => $currentTimezone
+            ]);
 
             return $response->json([
                 'success' => true,
@@ -70,11 +75,9 @@ class UserRoleController extends Controller
     public function index(Request $request, Response $response) {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new \RuntimeException("No autenticado.");
             }
-
             $database = new Database();
             $conn = $database->getConnection();
 
@@ -98,14 +101,20 @@ class UserRoleController extends Controller
     public function userTypeRoles(Request $request, Response $response, $id) {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new \RuntimeException("No autenticado.");
             }
-
+            $currentTimezone = Auth::organizationBranchTimeZone();
+            if($currentTimezone === null) {
+                $currentTimezone = Auth::organizationTimeZone();
+            }
             $service = $this->getService();
 
-            $data = $service->getUserTypeRoles($id);
+            $data = $service->getUserTypeRoles([
+                'id'                                => $id,
+                'timezone'                          => $currentTimezone ?? env('TIMEZONE'),
+                'uid'                               => $currentTimezone
+            ]);
 
             return $response->json([
                     'success' => true,
@@ -129,15 +138,19 @@ class UserRoleController extends Controller
     public function userRoles(Request $request, Response $response, $id) {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new \RuntimeException("No autenticado.");
             }
-
+            $currentTimezone = Auth::organizationBranchTimeZone();
+            if($currentTimezone === null) {
+                $currentTimezone = Auth::organizationTimeZone();
+            }
             $service = $this->getService();
 
             $data = $service->getUserRoles([
-                'user'                          => $id
+                'user'                              => $id,
+                'timezone'                          => $currentTimezone ?? env('TIMEZONE'),
+                'uid'                               => $currentTimezone
             ]);
 
             return $response->json([

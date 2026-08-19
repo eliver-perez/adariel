@@ -15,7 +15,7 @@ class OrganizationsRepository
         return $this->db;
     }
 
-    public function getAll(?string $search = null, int $limit = 10, int $offset = 0): array {
+    public function getAll(array $data): array {
         $sql = "
             SELECT
                 e.id,
@@ -38,7 +38,7 @@ class OrganizationsRepository
                 e.encargado,
                 e.activo,
                 COALESCE(r.nombre, 'N/D') registro,
-                COALESCE(DATE_FORMAT(e.f_registro, '%d/%m/%Y %r'), '') f_registro
+                COALESCE(DATE_FORMAT(e.f_registro, '%Y-%m-%d %H:%i:%s'), '') f_registro
             FROM empresas e
                 LEFT JOIN colonias c
                     ON e.colonia = c.id
@@ -61,7 +61,7 @@ class OrganizationsRepository
         foreach ($fields as $i => $field) {
             $param = "search_$i";
             $conditions[] = "$field LIKE :$param";
-            $params[$param] = '%' . $search . '%';
+            $params[$param] = '%' . $data['search'] . '%';
         }
 
         $sql .= " AND (" . implode(' OR ', $conditions) . ")";
@@ -77,8 +77,8 @@ class OrganizationsRepository
             $stmt->bindValue(':' . $key, $value, PDO::PARAM_STR);
         }
 
-        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $data['limit'], PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $data['offset'], PDO::PARAM_INT);
 
         $stmt->execute();
 
@@ -108,7 +108,7 @@ class OrganizationsRepository
                 e.encargado,
                 e.activo,
                 COALESCE(r.nombre, 'N/D') registro,
-                COALESCE(DATE_FORMAT(e.f_registro, '%d/%m/%Y %r'), '') f_registro
+                COALESCE(DATE_FORMAT(e.f_registro, '%Y-%m-%d %H:%i:%s'), '') f_registro
             FROM empresas e
                 LEFT JOIN colonias c
                     ON e.colonia = c.id
@@ -151,7 +151,7 @@ class OrganizationsRepository
                 s.encargado,
                 s.activo,
                 COALESCE(r.nombre, 'N/D') registro,
-                COALESCE(DATE_FORMAT(s.f_registro, '%d/%m/%Y %r'), '') f_registro
+                COALESCE(DATE_FORMAT(s.f_registro, '%Y-%m-%d %H:%i:%s'), '') f_registro
             FROM sucursales s
                 INNER JOIN empresas e
                     ON s.empresa = e.id
@@ -179,6 +179,7 @@ class OrganizationsRepository
                 s.id,
                 s.uuid,
                 s.clave,
+                e.empresa,
                 s.sucursal,
                 TRIM(
                     CONCAT(
@@ -196,7 +197,7 @@ class OrganizationsRepository
                 s.encargado,
                 s.activo,
                 COALESCE(r.nombre, 'N/D') registro,
-                COALESCE(DATE_FORMAT(s.f_registro, '%d/%m/%Y %r'), '') f_registro
+                COALESCE(DATE_FORMAT(s.f_registro, '%Y-%m-%d %H:%i:%s'), '') f_registro
             FROM sucursales s
                 INNER JOIN empresas e
                     ON s.empresa = e.id
@@ -229,7 +230,7 @@ class OrganizationsRepository
                 ut.tipo,
                 u.activo,
                 r.nombre registro,
-                COALESCE(DATE_FORMAT(u.f_registro, '%d/%m/%Y %r'), '') f_registro
+                COALESCE(DATE_FORMAT(u.f_registro, '%Y-%m-%d %H:%i:%s'), '') f_registro
             FROM usuarios u
                 INNER JOIN usuarios_tipos ut
                     ON u.tipo_usuario = ut.id
@@ -261,7 +262,7 @@ class OrganizationsRepository
                 ut.tipo,
                 u.activo,
                 r.nombre registro,
-                COALESCE(DATE_FORMAT(u.f_registro, '%d/%m/%Y %r'), '') f_registro
+                COALESCE(DATE_FORMAT(u.f_registro, '%Y-%m-%d %H:%i:%s'), '') f_registro
             FROM usuarios u
                 INNER JOIN usuarios_tipos ut
                     ON u.tipo_usuario = ut.id

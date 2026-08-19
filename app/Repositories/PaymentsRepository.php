@@ -36,9 +36,9 @@ class PaymentsRepository
                 p.monto_pago,
                 r.nombre registro,
                 p.estatus,
-                COALESCE(DATE_FORMAT(p.f_pago, '%d/%m/%Y %r'), '') f_pago,
-                COALESCE(DATE_FORMAT(p.f_registro, '%d/%m/%Y %r'), '') f_registro,
-                COALESCE(DATE_FORMAT(p.f_actualizacion, '%d/%m/%Y %r'), '') f_actualizacion
+                COALESCE(DATE_FORMAT(p.f_pago, '%Y-%m-%d %H:%i:%s'), '') f_pago,
+                COALESCE(DATE_FORMAT(p.f_registro, '%Y-%m-%d %H:%i:%s'), '') f_registro,
+                COALESCE(DATE_FORMAT(p.f_actualizacion, '%Y-%m-%d %H:%i:%s'), '') f_actualizacion
             FROM pagos p
                 LEFT JOIN clientes c
                     ON p.cliente = c.id
@@ -124,9 +124,9 @@ class PaymentsRepository
                 p.monto_pago,
                 r.nombre registro,
                 p.estatus,
-                COALESCE(DATE_FORMAT(p.f_pago, '%d/%m/%Y %r'), '') f_pago,
-                COALESCE(DATE_FORMAT(p.f_registro, '%d/%m/%Y %r'), '') f_registro,
-                COALESCE(DATE_FORMAT(p.f_actualizacion, '%d/%m/%Y %r'), '') f_actualizacion
+                COALESCE(DATE_FORMAT(p.f_pago, '%Y-%m-%d %H:%i:%s'), '') f_pago,
+                COALESCE(DATE_FORMAT(p.f_registro, '%Y-%m-%d %H:%i:%s'), '') f_registro,
+                COALESCE(DATE_FORMAT(p.f_actualizacion, '%Y-%m-%d %H:%i:%s'), '') f_actualizacion
             FROM pagos p
                 LEFT JOIN clientes c
                     ON p.cliente = c.id
@@ -231,9 +231,9 @@ class PaymentsRepository
                     pv.adeudo_actual,
                     ve.estatus,
                     r.nombre registro,
-                    COALESCE(DATE_FORMAT(v.f_venta, '%d/%m/%Y %r'), '') f_venta,
-                    COALESCE(DATE_FORMAT(p.f_registro, '%d/%m/%Y %r'), '') f_registro,
-                    COALESCE(DATE_FORMAT(p.f_actualizacion, '%d/%m/%Y %r'), '') f_actualizacion
+                    COALESCE(DATE_FORMAT(v.f_venta, '%Y-%m-%d %H:%i:%s'), '') f_venta,
+                    COALESCE(DATE_FORMAT(p.f_registro, '%Y-%m-%d %H:%i:%s'), '') f_registro,
+                    COALESCE(DATE_FORMAT(p.f_actualizacion, '%Y-%m-%d %H:%i:%s'), '') f_actualizacion
                     FROM pagos p
                         INNER JOIN pagos_ventas pv
                             ON pv.pago = p.id
@@ -287,9 +287,9 @@ class PaymentsRepository
                 p.monto_pago,
                 r.nombre registro,
                 p.estatus,
-                COALESCE(DATE_FORMAT(p.f_pago, '%d/%m/%Y %r'), '') f_pago,
-                COALESCE(DATE_FORMAT(p.f_registro, '%d/%m/%Y %r'), '') f_registro,
-                COALESCE(DATE_FORMAT(p.f_actualizacion, '%d/%m/%Y %r'), '') f_actualizacion
+                COALESCE(DATE_FORMAT(p.f_pago, '%Y-%m-%d %H:%i:%s'), '') f_pago,
+                COALESCE(DATE_FORMAT(p.f_registro, '%Y-%m-%d %H:%i:%s'), '') f_registro,
+                COALESCE(DATE_FORMAT(p.f_actualizacion, '%Y-%m-%d %H:%i:%s'), '') f_actualizacion
             FROM pagos p
                 LEFT JOIN clientes c
                     ON p.cliente = c.id

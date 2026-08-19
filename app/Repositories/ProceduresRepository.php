@@ -23,8 +23,12 @@ class ProceduresRepository
                 s.costo_base,
                 s.requiere_material,
                 s.es_procedimiento,
-                s.activo
+                s.activo,
+                r.nombre registro,
+                COALESCE(DATE_FORMAT(s.f_registro, '%Y-%m-%d %H:%i:%s'), '') f_registro
             FROM servicios s
+                LEFT JOIN usuarios r
+                    ON s.registro = r.id
             WHERE s.empresa = :empresa
             ORDER BY s.id ASC
         ");

@@ -43,8 +43,8 @@ class ClientsRepository
                 c.telefono,
                 c.movil,
                 c.email,
-                COALESCE(DATE_FORMAT(c.f_registro, '%d/%m/%Y %r'), '') f_registro,
-                COALESCE(DATE_FORMAT(c.ultimo_pago, '%d/%m/%Y %r'), '') ultimo_pago
+                COALESCE(DATE_FORMAT(c.f_registro, '%Y-%m-%d %H:%i:%s'), '') f_registro,
+                COALESCE(DATE_FORMAT(c.ultimo_pago, '%Y-%m-%d %H:%i:%s'), '') ultimo_pago
             FROM clientes c
                 LEFT JOIN generos g
                     ON c.genero = g.id

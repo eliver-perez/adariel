@@ -47,9 +47,9 @@ class SalesRepository
                 ve.id estatus_id,
                 ve.codigo estatus_codigo,
                 ve.estatus,
-                COALESCE(DATE_FORMAT(v.f_venta, '%d/%m/%Y %r'), '') f_venta,
-                COALESCE(DATE_FORMAT(p.f_registro, '%d/%m/%Y %r'), '') f_registro,
-                COALESCE(DATE_FORMAT(p.f_ultima_visita, '%d/%m/%Y %r'), '') f_ultima_visita
+                COALESCE(DATE_FORMAT(v.f_venta, '%Y-%m-%d %H:%i:%s'), '') f_venta,
+                COALESCE(DATE_FORMAT(p.f_registro, '%Y-%m-%d %H:%i:%s'), '') f_registro,
+                COALESCE(DATE_FORMAT(p.f_ultima_visita, '%Y-%m-%d %H:%i:%s'), '') f_ultima_visita
             FROM ventas v
                 LEFT JOIN pacientes p
                     ON v.paciente = p.id
@@ -81,7 +81,7 @@ class SalesRepository
                     'c.paterno',
                     'c.materno',
                     "CONCAT(c.nombre, ' ', c.paterno, ' ', c.materno)",
-                    "COALESCE(DATE_FORMAT(v.f_venta, '%d/%m/%Y %r'), '')"];
+                    "COALESCE(DATE_FORMAT(v.f_venta, '%Y-%m-%d %H:%i:%s'), '')"];
 
         $conditions = [];
         $params = [];
@@ -426,9 +426,9 @@ class SalesRepository
                 ve.codigo estatus_codigo,
                 ve.estatus,
                 v.observaciones,
-                COALESCE(DATE_FORMAT(v.f_venta, '%d/%m/%Y %r'), '') f_venta,
-                COALESCE(DATE_FORMAT(v.f_registro, '%d/%m/%Y %r'), '') f_registro,
-                COALESCE(DATE_FORMAT(v.f_actualizacion, '%d/%m/%Y %r'), '') f_actualizacion
+                COALESCE(DATE_FORMAT(v.f_venta, '%Y-%m-%d %H:%i:%s'), '') f_venta,
+                COALESCE(DATE_FORMAT(v.f_registro, '%Y-%m-%d %H:%i:%s'), '') f_registro,
+                COALESCE(DATE_FORMAT(v.f_actualizacion, '%Y-%m-%d %H:%i:%s'), '') f_actualizacion
             FROM ventas v
                 LEFT JOIN clientes cl
                     ON v.cliente = cl.id

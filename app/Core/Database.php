@@ -28,6 +28,7 @@ class Database
                     PDO::ATTR_EMULATE_PREPARES => false,
                 ]
             );
+            $this->conn->prepare("SET time_zone = '+00:00'")->execute();
         } catch (PDOException $e) {
             throw new \RuntimeException('Error de conexión a la base de datos: ' . $e->getMessage());
         }

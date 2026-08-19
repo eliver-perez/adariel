@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Service;
+use App\Core\DateTimeService;
 use App\Repositories\ProductsRepository;
 use App\Services\SettingsService;
 use InvalidArgumentException;
@@ -21,17 +22,19 @@ class ProductsService extends Service
         try {
             $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
             $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron registros de su empresa.');
+
+            $datetimeService = new DateTimeService($data['timezone']);
             
-            $data = $this->productsRepository->getAll([
+            $products_data = $this->productsRepository->getAll([
                 'organizationId'                => $organizationId,
                 'search'                        => $data['search'],
                 'limit'                         => $data['limit'],
                 'offset'                        => $data['offset'],
             ]);
-            $procedures = array();
+            $products = array();
 
-            foreach($data as $d) {
-                array_push($procedures, array(
+            foreach($products_data as $d) {
+                array_push($products, array(
                     'id'                        => $this->uuidBinaryToString($d['uuid']),
                     'code'                      => $d['clave'],
                     'product'                   => $d['nombre'],
@@ -39,10 +42,12 @@ class ProductsService extends Service
                     'unit_measure'              => $d['unidad'],
                     'total_cost'                => $d['precio_total'],
                     'enabled_sale'              => $d['habilitado_venta'],
+                    'registered_by'             => $d['registro'],
+                    'registered_date'           => $datetimeService->fromUtcFormatted($d['f_registro']),
                 ));
             }
 
-            return $procedures;
+            return $products;
         } catch (\Throwable $e) {
             throw $e;
         }
@@ -52,6 +57,8 @@ class ProductsService extends Service
         try {
             $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
             $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+
+            $datetimeService = new DateTimeService($data['timezone']);
 
             $uuid = $this->normalizeRequiredText(
                 $data['uuid'] ?? null,
@@ -80,7 +87,7 @@ class ProductsService extends Service
                 'total_cost'                        => $product_data['precio_total'],
                 'sale_enabled'                      => $product_data['habilitado_venta'],
                 'registered_by'                     => $product_data['registro'],
-                'registered_date'                   => $product_data['f_registro']
+                'registered_date'                   => $datetimeService->fromUtcFormatted($product_data['f_registro']),
             ];
         } catch (\Throwable $e) {
             throw $e;

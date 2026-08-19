@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Service;
+use App\Core\DateTimeService;
 use App\Repositories\ProceduresRepository;
 use App\Repositories\StaffRepository;
 use App\Services\SettingsService;
@@ -20,8 +21,11 @@ class ProceduresService extends Service
     }
 
     public function getAll(array $data): array {
-
         try {
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+            
+            $datetimeService = new DateTimeService($data['timezone']);
+
             $procedures_data = $this->proceduresRepository->getAll([
                 'organization'                  => $data['organization'],
                 'uid'                           => $data['uid']
@@ -37,6 +41,8 @@ class ProceduresService extends Service
                     'material_required'         => $d['requiere_material'],
                     'is_procedure'              => $d['es_procedimiento'],
                     'active'                    => $d['activo'],
+                    'registered_by'             => $d['registro'],
+                    'registered_date'           => $datetimeService->fromUtcFormatted($d['f_registro']),
                 ));
             }
 
@@ -161,7 +167,7 @@ class ProceduresService extends Service
 
             $procedure_data = $this->proceduresRepository->getProcedureData([
                 'uuid'                          => $this->uuidStringtoBinary($uuid),
-                'organizationId'                => $organizationId
+                'organization'                  => $organizationId
             ]);
 
             if(!$procedure_data)
@@ -230,7 +236,7 @@ class ProceduresService extends Service
 
             $procedure_data = $this->proceduresRepository->getProcedureData([
                 'uuid'                          => $this->uuidStringtoBinary($uuid),
-                'organizationId'                => $organizationId
+                'organization'                  => $organizationId
             ]);
 
             if(!$procedure_data)

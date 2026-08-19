@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Service;
+use App\Core\DateTimeService;
 use App\Repositories\ClientsRepository;
 use App\Repositories\GenderRepository;
 use App\Repositories\LocationRepository;
@@ -30,6 +31,8 @@ class ClientsService extends Service
             $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
             $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron registros de su empresa.');
 
+            $datetimeService = new DateTimeService($data['timezone']);
+
             $data = $this->clientsRepository->getAll([
                 'organization'                  => $organizationId,
                 'search'                        => $data['search'],
@@ -49,8 +52,8 @@ class ClientsService extends Service
                     'phone'                     => $d['telefono'] ?? '',
                     'mobile'                    => $d['movil'] ?? '',
                     'email'                     => $d['email'] ?? '',
-                    'registered_date'           => $d['f_registro'],
-                    'last_payment_date'         => $d['ultimo_pago'],
+                    'registered_date'           => $datetimeService->fromUtcFormatted($d['f_registro']),
+                    'last_payment_date'         => $datetimeService->fromUtcFormatted($d['ultimo_pago']),
                 ));
             }
 

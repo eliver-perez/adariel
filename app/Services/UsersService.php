@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Service;
+use App\Core\DateTimeService;
 use App\Repositories\UsersRepository;
 use App\Repositories\OrganizationsRepository;
 use InvalidArgumentException;
@@ -22,6 +23,8 @@ class UsersService extends Service
         try {
             $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
 
+            $datetimeService = new DateTimeService($data['timezone']);
+
             $data = $this->usersRepository->getAll([
                 'search'                        => $data['search'] !== '' ? $data['search'] : null,
                 'limit'                         => $data['limit'],
@@ -38,8 +41,8 @@ class UsersService extends Service
                     'name'                      => $d['nombre'] ?? '',
                     'type'                      => $d['tipo'] ?? '',
                     'active'                    => $d['activo'] ?? 0,
-                    'registered_date'           => $d['f_registro'] ?? '',
-                    'last_active_date'          => $d['f_ultima_conexion'] ?? ''
+                    'registered_date'           => $datetimeService->fromUtcFormatted($d['f_registro']),
+                    'last_active_date'          => $d['f_ultima_conexion'] != '' ? $datetimeService->fromUtcFormatted($d['f_ultima_conexion']) : ''
                 ));
             }
 

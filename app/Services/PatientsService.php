@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Service;
+use App\Core\DateTimeService;
 use App\Repositories\PatientsRepository;
 use App\Repositories\ScheduleRepository;
 use App\Repositories\ScheduleTemplatesRepository;
@@ -34,6 +35,8 @@ class PatientsService extends Service
             $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
             $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron registros de su empresa.');
 
+            $datetimeService = new DateTimeService($data['timezone']);
+
             $data = $this->patientsRepository->getAll([
                 'organizationId'                => $organizationId,
                 'search'                        => $data['search'],
@@ -51,8 +54,8 @@ class PatientsService extends Service
                     'gender'                    => $d['genero'] ?? '',
                     'phone'                     => $d['telefono'] ?? '',
                     'mobile'                    => $d['movil'] ?? '',
-                    'registered_date'           => $d['f_registro'] ?? '',
-                    'last_visit_date'           => $d['f_ultima_visita'] ?? '',
+                    'registered_date'           => $datetimeService->fromUtcFormatted($d['f_registro']),
+                    'last_visit_date'           => $d['f_ultima_visita'] != null ? $datetimeService->fromUtcFormatted($d['f_ultima_visita']) : '',
                 ));
             }
 
@@ -209,9 +212,9 @@ class PatientsService extends Service
 
             $clientPatientUuid = $this->generateUuidBinary();
             $this->patientsRepository->insertClientPatient($clientId, $patientId, [
-                'uuid'                          => $clientPatientUuid,
-                'relationship'                  => $relationship,
-                'uid'                           => $uid,
+                'uuid'                              => $clientPatientUuid,
+                'relationship'                      => $relationship,
+                'uid'                               => $uid,
             ]);
 
             if($add_billing != 'off') {

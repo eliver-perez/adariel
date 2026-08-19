@@ -61,19 +61,20 @@ class SalesController extends Controller
     public function indexBranch(Request $request, Response $response) {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
             $organizationId = Auth::organizationId();
-
             if($organizationId === null) {
                 throw new RuntimeException("No se encontraron registros de su empresa.");
             }
             $organizationBranchId = Auth::organizationBranchId();
-
             if($organizationBranchId === null) {
                 throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
+            $currentTimezone = Auth::organizationBranchTimeZone();
+            if($currentTimezone === null) {
+                $currentTimezone = Auth::organizationTimeZone();
             }
             $service = $this->getService();
 
@@ -95,6 +96,7 @@ class SalesController extends Controller
                 'limit'                             => $limit,
                 'offset'                            => $offset,
                 'status'                            => $status,
+                'timezone'                          => $currentTimezone ?? env('TIMEZONE'),
                 'uid'                               => $currentUserId,
             ]);
 
@@ -120,19 +122,20 @@ class SalesController extends Controller
     public function show(Request $request, Response $response, string $id) {
         try {
             $currentUserId = Auth::id();
-
             if($currentUserId === null) {
                 throw new RuntimeException("No autenticado.");
             }
             $organizationId = Auth::organizationId();
-
             if($organizationId === null) {
                 throw new RuntimeException("No se encontraron registros de su empresa.");
             }
             $organizationBranchId = Auth::organizationBranchId();
-
             if($organizationBranchId === null) {
                 throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
+            $currentTimezone = Auth::organizationBranchTimeZone();
+            if($currentTimezone === null) {
+                $currentTimezone = Auth::organizationTimeZone();
             }
             $service = $this->getService();
 
@@ -140,6 +143,7 @@ class SalesController extends Controller
                 'organizationId'                    => $organizationId,
                 'branchId'                          => $organizationBranchId,
                 'uuid'                              => $id,
+                'timezone'                          => $currentTimezone ?? env('TIMEZONE'),
                 'uid'                               => $currentUserId,
             ]);
 

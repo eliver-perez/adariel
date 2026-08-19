@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Service;
+use App\Core\DateTimeService;
 use App\Repositories\OrganizationsRepository;
 use App\Repositories\ScheduleTemplatesRepository;
 use App\Repositories\UsersRepository;
@@ -31,15 +32,20 @@ class OrganizationsService extends Service
     ) {
     }
 
-    public function getAll(?string $search = null, int $limit = 10, int $offset = 0): array {
+    public function getAll(array $data): array {
         try {
-            $data = $this->organizationsRepository->getAll($search !== '' ? $search : null,
-                $limit,
-                $offset
-            );
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+
+            $datetimeService = new DateTimeService($data['timezone']);
+
+            $organizations_data = $this->organizationsRepository->getAll([
+                'search'                        => $data['search'] !== '' ? $data['search'] : null,
+                'limit'                         => $data['limit'],
+                'offset'                        => $data['offset']
+            ]);
             $organizations = array();
 
-            foreach($data as $d) {
+            foreach($organizations_data as $d) {
                 array_push($organizations, array(
                     'id'                        => $this->uuidBinaryToString($d['uuid']),
                     'code'                      => $d['clave'],
@@ -51,7 +57,7 @@ class OrganizationsService extends Service
                     'manager'                   => $d['encargado'] ?? '',
                     'active'                    => $d['activo'],
                     'registered_by'             => $d['registro'],
-                    'registered_date'           => $d['f_registro'],
+                    'registered_date'           => $datetimeService->fromUtcFormatted($d['f_registro']),
                 ));
             }
 
@@ -65,6 +71,8 @@ class OrganizationsService extends Service
         try {
             $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
             $organizationId = $this->normalizeOptionalInt($data['organizationId'] ?? null);
+
+            $datetimeService = new DateTimeService($data['timezone']);
 
             $user_type = $this->usersRepository->getUserTypeCodeById($uid);
             if($user_type == null)
@@ -97,7 +105,7 @@ class OrganizationsService extends Service
                     'manager'                   => $d['encargado'] ?? '',
                     'active'                    => $d['activo'],
                     'registered_by'             => $d['registro'],
-                    'registered_date'           => $d['f_registro'],
+                    'registered_date'           => $datetimeService->fromUtcFormatted($d['f_registro']),
                 ));
             }
 
@@ -109,9 +117,17 @@ class OrganizationsService extends Service
 
     public function getOrganizationData(array $data): ?array {
         try {
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+            $organizationId = $this->normalizeOptionalInt($data['organizationId'] ?? null);
+
             $organizationData = $this->organizationsRepository->getOrganizationData($this->uuidStringToBinary($data['uuid']));
 
-            $branches_data = $this->organizationsRepository->getOrganizationBranches($this->uuidStringToBinary($data['uuid']));
+            $datetimeService = new DateTimeService($data['timezone']);
+
+            $branches_data = $this->organizationsRepository->getOrganizationBranches([
+                'uuid'                          => $this->uuidStringToBinary($data['uuid']),
+                'organization'                  => $organizationData['id']
+            ]);
             $branches = array();
             foreach($branches_data as $d) {
                 array_push($branches, array(
@@ -126,7 +142,7 @@ class OrganizationsService extends Service
                     'manager'                   => $d['encargado'] ?? '',
                     'active'                    => $d['activo'],
                     'registered_by'             => $d['registro'],
-                    'registered_date'           => $d['f_registro'],
+                    'registered_date'           => $datetimeService->fromUtcFormatted($d['f_registro']),
                 ));
             }
 
@@ -143,7 +159,7 @@ class OrganizationsService extends Service
                     'type'                      => $d['tipo'],
                     'active'                    => $d['activo'],
                     'registered_by'             => $d['registro'],
-                    'registered_date'           => $d['f_registro'],
+                    'registered_date'           => $datetimeService->fromUtcFormatted($d['f_registro']),
                 ));
             }
             return [
@@ -157,7 +173,7 @@ class OrganizationsService extends Service
                 'manager'                   => $organizationData['encargado'] ?? '',
                 'active'                    => $organizationData['activo'],
                 'registered_by'             => $organizationData['registro'],
-                'registered_date'           => $organizationData['f_registro'],
+                'registered_date'           => $datetimeService->fromUtcFormatted($organizationData['f_registro']),
                 'branches'                  => $branches,
                 'users'                     => $users
             ];
@@ -263,12 +279,7 @@ class OrganizationsService extends Service
                 'code'                              => $sucursalCode,
             ]);
 
-            // $options = [
-            //     'cost' => 11
-            // ];
-            // $password_hash = password_hash($password, PASSWORD_BCRYPT, $options);
             $password_hash = $this->encrypt_hash($password);
-            // throw new RuntimeException($password.'   -   '.$password_hash);
             $userUuid = $this->generateUuidBinary();
             $userId = $this->usersRepository->insertUser([
                 'uuid'                              => $userUuid,
@@ -292,8 +303,6 @@ class OrganizationsService extends Service
             ]);
 
             $organizationSchedule = $settingsService->get('agenda_horario_empresa', $organizationId, '[]');
-            // die(var_dump($organizationSchedule));
-            // $schedule = json_decode($organizationSchedule, true);
             $schedule = $organizationSchedule;
 
             if (is_array($schedule)) {
@@ -381,6 +390,8 @@ class OrganizationsService extends Service
             $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de empresa.');
             $active = $this->normalizeOptionalInt($data['active'] ?? null, true);
 
+            $datetimeService = new DateTimeService($data['timezone']);
+
             $data = $this->organizationsRepository->getOrganizationUsersById([
                 'organizationId'                => $organizationId,
                 'active'                        => $active,
@@ -395,7 +406,7 @@ class OrganizationsService extends Service
                     'type'                      => $d['tipo'],
                     'active'                    => $d['activo'],
                     'registered_by'             => $d['registro'],
-                    'registered_date'           => $d['f_registro'],
+                    'registered_date'           => $datetimeService->fromUtcFormatted($d['f_registro']),
                 ));
             }
 

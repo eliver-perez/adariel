@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Service;
+use App\Core\DateTimeService;
 use App\Repositories\ConsultationsRepository;
 use App\Repositories\SalesRepository;
 use App\Repositories\SalesStatusRepository;
@@ -49,18 +50,20 @@ class ConsultationsService extends Service
 
             $status_id = $this->appointmentsStatusRepository->getBlockIdByCode($data['status']);
 
-            $data = $this->consultationsRepository->getAll([
-                'organization'      => $organizationId,
-                'branch'            => $branchId,
-                'status'            => $status_id,
-                'search'            => $data['search'] !== '' ? $data['search'] : null,
-                'limit'             => $data['limit'],
-                'offset'            => $data['offset'],
-                'uid'               => $data['uid'],
+            $datetimeService = new DateTimeService($data['timezone']);
+
+            $consultations_data = $this->consultationsRepository->getAll([
+                'organization'                  => $organizationId,
+                'branch'                        => $branchId,
+                'status'                        => $status_id,
+                'search'                        => $data['search'] !== '' ? $data['search'] : null,
+                'limit'                         => $data['limit'],
+                'offset'                        => $data['offset'],
+                'uid'                           => $data['uid'],
             ]);
             $consultations = array();
 
-            foreach($data as $d) {
+            foreach($consultations_data as $d) {
                 array_push($consultations, array(
                     'id'                        => $this->uuidBinaryToString($d['uuid']),
                     'folio'                     => $d['folio'],
@@ -1314,6 +1317,8 @@ class ConsultationsService extends Service
             $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
             $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
 
+            $datetimeService = new DateTimeService($data['timezone']);
+
             $uuid = $this->normalizeRequiredText(
                 $data['uuid'] ?? null,
                 'Error al recibir identificador de la consulta.'
@@ -1406,7 +1411,7 @@ class ConsultationsService extends Service
 
             $sale_pending_status = $this->salesStatusRepository->getIdByCode('pendiente');
 
-            $year = date('Y');
+            $year = $datetimeService->nowFormatted('Y');
             $c_aux = $this->foliosRepository->getConsecutive([
                 'type'                                  => 'venta',
                 'branch'                                => $branchId,

@@ -27,12 +27,15 @@ class ProductsRepository
                 u.unidad,
                 p.precio_total,
                 p.habilitado_venta,
-                COALESCE(DATE_FORMAT(p.f_registro, '%d/%m/%Y %r'), '') f_registro
+                r.nombre registro,
+                COALESCE(DATE_FORMAT(p.f_registro, '%Y-%m-%d %H:%i:%s'), '') f_registro
             FROM productos p
                 LEFT JOIN productos_categoria pc
                     ON p.categoria = pc.id
                 LEFT JOIN unidades u
                     ON p.unidad = u.id
+                LEFT JOIN usuarios r
+                    ON p.registro = r.id
             WHERE p.empresa = :empresa
         ";
 
@@ -232,7 +235,7 @@ class ProductsRepository
                 p.precio_total,
                 p.habilitado_venta,
                 r.nombre registro,
-                COALESCE(DATE_FORMAT(p.f_registro, '%d/%m/%Y %r'), '') f_registro
+                COALESCE(DATE_FORMAT(p.f_registro, '%Y-%m-%d %H:%i:%s'), '') f_registro
             FROM productos p
                 LEFT JOIN productos_categoria pc
                     ON p.categoria = pc.id

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Service;
+use App\Core\DateTimeService;
 use App\Repositories\ConsentTemplatesRepository;
 use App\Repositories\TemplatesStatusRepository;
 use App\Repositories\OrganizationsRepository;
@@ -28,6 +29,8 @@ class ConsentTemplatesService extends Service
         $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
         $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
 
+        $datetimeService = new DateTimeService($data['timezone']);
+
         $data = $this->consentTemplatesRepository->getAll([
             'organization'                  => $organizationId,
             'branch'                        => $branchId,
@@ -44,7 +47,7 @@ class ConsentTemplatesService extends Service
                 'status_code'               => $d['estatus_codigo'],
                 'status'                    => $d['estatus'],
                 'registered_by'             => $d['registro'],
-                'registered_date'           => $d['f_registro'],
+                'registered_date'           => $datetimeService->fromUtcFormatted($d['f_registro']),
             ]);
         }
 
@@ -117,6 +120,8 @@ class ConsentTemplatesService extends Service
                 'Error al recibir identificador de plantilla.'
             );
 
+            $datetimeService = new DateTimeService($data['timezone']);
+
             $organization_uuid = $this->organizationsRepository->getOrganizationUuid($organizationId);
             $organization_branch_uuid = $this->organizationsRepository->getOrganizationBranchUuid($organizationId);
 
@@ -145,8 +150,8 @@ class ConsentTemplatesService extends Service
                 'font_size'                 => $template_data['font_size'],
                 'registered_by'             => $template_data['registro'],
                 'delta'                     => $template_data['delta'],
-                'registered_date'           => $template_data['f_registro'],
-                'updated_date'              => $template_data['f_actualizacion'],
+                'registered_date'           => $datetimeService->fromUtcFormatted($template_data['f_registro']),
+                'updated_date'              => $datetimeService->fromUtcFormatted($template_data['f_actualizacion']),
             ];
         } catch (\Throwable $e) {
             throw $e;

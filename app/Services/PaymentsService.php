@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Service;
+use App\Core\DateTimeService;
 use App\Repositories\CashReconciliationRepository;
 use App\Repositories\CashReconciliationStatusRepository;
 use App\Repositories\CashRegisterRepository;
@@ -31,6 +32,8 @@ class PaymentsService extends Service
             $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
             $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
 
+            $datetimeService = new DateTimeService($data['timezone']);
+
             $payments_data = $this->paymentsRepository->getAll([
                 'search_by'                         => $data['searchBy'],
                 'organization'                      => $organizationId,
@@ -53,9 +56,9 @@ class PaymentsService extends Service
                     'amount'                        => $p['monto_pago'],
                     'registered_by'                 => $p['registro'],
                     'status'                        => $p['estatus'],
-                    'payment_date'                  => $p['f_pago'],
-                    'registered_date'               => $p['f_registro'],
-                    'update_date'                   => $p['f_actualizacion']
+                    'payment_date'                  => $datetimeService->fromUtcFormatted($p['f_pago']),
+                    'registered_date'               => $datetimeService->fromUtcFormatted($p['f_registro']),
+                    'update_date'                   => $datetimeService->fromUtcFormatted($p['f_actualizacion']),
                 ));
             }
 
@@ -70,6 +73,8 @@ class PaymentsService extends Service
             $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
             $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
             $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
+
+            $datetimeService = new DateTimeService($data['timezone']);
 
             $uuid = $this->normalizeRequiredText(
                 $data['uuid'] ?? null,
@@ -107,9 +112,9 @@ class PaymentsService extends Service
                     'balance_due_after'                 => $psd['adeudo_actual'],
                     'registered_by'                     => $psd['registro'],
                     'status'                            => $psd['estatus'],
-                    'sale_date'                         => $psd['f_venta'],
-                    'registered_date'                   => $psd['f_registro'],
-                    'update_date'                       => $psd['f_actualizacion'],
+                    'sale_date'                         => $datetimeService->fromUtcFormatted($psd['f_venta']),
+                    'registered_date'                   => $datetimeService->fromUtcFormatted($psd['f_registro']),
+                    'update_date'                       => $datetimeService->fromUtcFormatted($psd['f_actualizacion'])
                 ));
             }
 
@@ -149,11 +154,11 @@ class PaymentsService extends Service
                 'amount_payment'                    => $payment_data['monto_pago'],
                 'registered_by'                     => $payment_data['registro'],
                 'status'                            => $payment_data['estatus'],
-                'payment_date'                      => $payment_data['f_pago'],
-                'registered_date'                   => $payment_data['f_registro'],
-                'update_date'                       => $payment_data['f_actualizacion'],
+                'payment_date'                      => $datetimeService->fromUtcFormatted($payment_data['f_pago']),
+                'registered_date'                   => $datetimeService->fromUtcFormatted($payment_data['f_registro']),
+                'update_date'                       => $datetimeService->fromUtcFormatted($payment_data['f_actualizacion']),
                 'sales'                             => $payment_sales,
-                'payment_details'                     => $payment_details
+                'payment_details'                   => $payment_details
             ];
         } catch (\Throwable $e) {
             throw $e;
@@ -165,6 +170,8 @@ class PaymentsService extends Service
             $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
             $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
             $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
+
+            $datetimeService = new DateTimeService($data['timezone']);
 
             $uuid = $this->normalizeRequiredText(
                 $data['uuid'] ?? null,
@@ -214,9 +221,9 @@ class PaymentsService extends Service
                 'amount_payment'                    => $payment_data['monto_pago'],
                 'registered_by'                     => $payment_data['registro'],
                 'status'                            => $payment_data['estatus'],
-                'payment_date'                      => $payment_data['f_pago'],
-                'registered_date'                   => $payment_data['f_registro'],
-                'update_date'                       => $payment_data['f_actualizacion'],
+                'payment_date'                      => $datetimeService->fromUtcFormatted($payment_data['f_pago']),
+                'registered_date'                   => $datetimeService->fromUtcFormatted($payment_data['f_registro']),
+                'update_date'                       => $datetimeService->fromUtcFormatted($payment_data['f_actualizacion']),
                 'details'                           => $payment_details,
             ];
         } catch (\Throwable $e) {
