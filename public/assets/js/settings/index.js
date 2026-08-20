@@ -278,7 +278,7 @@ function GetOrganizationData(id) {
 				$(`#field-street`).val(response.data.street);
 				$(`#field-ext-no`).val(response.data.no_ext);
 				$(`#field-int-no`).val(response.data.no_int);
-				if(response.data.logo != null) {
+				if(response.data.logo != null && response.data.logo != '') {
 					console.log(`${homeURL}/media/${response.data.logo}`);
 					$('#logo-preview').attr('src', `${homeURL}/media/${response.data.logo}`);
 				}
