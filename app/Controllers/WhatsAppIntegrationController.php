@@ -135,6 +135,7 @@ class WhatsAppIntegrationController
             }
             $service = $this->getService();
 
+            die('');
             $integration = $service->findForSettings([
                 'organizationId'                    => $organizationId,
                 'branchId'                          => $organizationBranchId,
