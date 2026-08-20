@@ -119,7 +119,6 @@ function GetCountries() {
             type: 'get',
             dataType: "json",
             success: function(response) {
-				console.log(response);
                 $.each(response.data.countries, function(k, v) {
                     $('#select-country').append($('<option>', {
                         value: v.id,
