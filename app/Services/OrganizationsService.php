@@ -170,7 +170,7 @@ class OrganizationsService extends Service
                 'id'                        => $this->uuidBinaryToString($organizationData['uuid']),
                 'code'                      => $organizationData['clave'],
                 'organization'              => $organizationData['empresa'],
-                'logo'                      => $this->uuidBinaryToString($organizationData['logo']),
+                'logo'                      => $organizationData['logo'] != null ? $this->uuidBinaryToString($organizationData['logo']) : '',
                 'street'                    => $organizationData['calle'] ?? '',
                 'no_ext'                    => $organizationData['num_ext'] ?? '',
                 'no_int'                    => $organizationData['num_int'] ?? '',

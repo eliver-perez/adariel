@@ -49,6 +49,7 @@ CREATE TABLE empresas (
     registro                        INT NOT NULL,
     f_registro                      DATETIME NOT NULL,
     CONSTRAINT UK_empresas_clave UNIQUE(clave),
+    CONSTRAINT FK_empresas_logo FOREIGN KEY(logo) REFERENCES archivos(uuid),
     CONSTRAINT FK_empresas_colonia FOREIGN KEY(colonia) REFERENCES colonias(id)
 );
 
