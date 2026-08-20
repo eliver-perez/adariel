@@ -34,6 +34,7 @@ CREATE TABLE empresas (
     consecutivo                     INT DEFAULT NULL,
     clave                           VARCHAR(20) DEFAULT NULL,
     empresa                         VARCHAR(120) NOT NULL,
+    logo                            BINARY(16) DEFAULT NULL,
     calle                           VARCHAR(120) DEFAULT NULL,
     num_ext                         VARCHAR(12) DEFAULT NULL,
     num_int                         VARCHAR(12) DEFAULT NULL,
@@ -60,6 +61,7 @@ CREATE TABLE sucursales (
     clave                           VARCHAR(20) DEFAULT NULL,
     empresa                         INT NOT NULL,
     sucursal                        VARCHAR(120) NOT NULL,
+    logo                            BINARY(16) DEFAULT NULL,
     calle                           VARCHAR(120) DEFAULT NULL,
     num_ext                         VARCHAR(12) DEFAULT NULL,
     num_int                         VARCHAR(12) DEFAULT NULL,
@@ -3148,8 +3150,10 @@ CREATE TABLE archivos (
 
     nombre_original                 VARCHAR(255) NOT NULL,
     nombre_archivo                  VARCHAR(255) NOT NULL,
-    ruta                            VARCHAR(500) NOT NULL,
+    ruta_raiz                       VARCHAR(1000) NOT NULL,
+    ruta                            VARCHAR(1000) NOT NULL,
     mime_type                       VARCHAR(100) NOT NULL,
+    hash                            CHAR(64) NOT NULL,
     tamanio                         BIGINT UNSIGNED NOT NULL,
 
     registro                        INT NOT NULL,
@@ -3164,7 +3168,8 @@ CREATE TABLE archivos (
     CONSTRAINT FK_archivos_registro FOREIGN KEY(registro) REFERENCES usuarios(id)
 );
 
-
+ALTER TABLE empresas ADD CONSTRAINT FK_empresas_logo FOREIGN KEY(logo) REFERENCES archivos(uuid);
+ALTER TABLE sucursales ADD CONSTRAINT FK_sucursales_logo FOREIGN KEY(logo) REFERENCES archivos(uuid);
 
 
 

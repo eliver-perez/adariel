@@ -68,7 +68,7 @@
             <div class="absolute bg-info/10 flex h-full items-center justify-start ltr:-right-[140px] max-md:w-[210px] max-ssm:w-[230px] overflow-hidden px-[30px] rounded-full rtl:-left-[140px] text-info top-0 w-[230px]">
                 <div class="flex items-center justify-center text-info">
                     <div class="flex items-center text-info text-[36px]">
-                        <i class="uil uil-users-alt"></i>
+                        <i class="uil uil-usd-circle"></i>
                     </div>
                 </div>
             </div>
@@ -97,10 +97,10 @@
                     </span>
                 </div>
             </div>
-            <div class="absolute bg-secondary/10 flex h-full items-center justify-start ltr:-right-[140px] max-md:w-[210px] max-ssm:w-[230px] overflow-hidden px-[30px] rounded-full rtl:-left-[140px] text-secondary top-0 w-[230px]">
-                <div class="flex items-center justify-center text-secondary">
-                    <div class="flex items-center text-secondary text-[36px]">
-                        <i class="uil uil-usd-circle"></i>
+            <div class="absolute bg-warning/10 flex h-full items-center justify-start ltr:-right-[140px] max-md:w-[210px] max-ssm:w-[230px] overflow-hidden px-[30px] rounded-full rtl:-left-[140px] text-warning top-0 w-[230px]">
+                <div class="flex items-center justify-center text-warning">
+                    <div class="flex items-center text-warning text-[36px]">
+                        <i class="uil uil-users-alt"></i>
                     </div>
                 </div>
             </div>
@@ -134,9 +134,9 @@
                     </span>
                 </div>
             </div>
-            <div class="absolute bg-primary/10 flex h-full items-center justify-start ltr:-right-[140px] max-md:w-[210px] max-ssm:w-[230px] overflow-hidden px-[30px] rounded-full rtl:-left-[140px] text-primary top-0 w-[230px]">
-                <div class="flex items-center justify-center text-primary">
-                    <div class="flex items-center text-primary text-[36px]">
+            <div class="absolute bg-danger/10 flex h-full items-center justify-start ltr:-right-[140px] max-md:w-[210px] max-ssm:w-[230px] overflow-hidden px-[30px] rounded-full rtl:-left-[140px] text-danger top-0 w-[230px]">
+                <div class="flex items-center justify-center text-danger">
+                    <div class="flex items-center text-danger text-[36px]">
                         <i class="uil uil-tachometer-fast"></i>
                     </div>
                 </div>

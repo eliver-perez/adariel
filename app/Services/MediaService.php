@@ -51,7 +51,9 @@ class MediaService extends Service
             );
         }
 
-        $path = STORAGE_PATH . $file['ruta'] . DIRECTORY_SEPARATOR . $file['nombre_archivo'];
+        $path = STORAGE_PATH . $file['ruta_raiz'] . $file['nombre_archivo'];
+
+        // die($path);
 
         if (!is_file($path)) {
             throw new RuntimeException(

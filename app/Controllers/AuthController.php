@@ -197,6 +197,7 @@ class AuthController extends Controller
             $_SESSION['ADARIEL_ERP_ORGANIZATION'] = $organization;
             if(count($tipos_usuario) > 0) {
                 $_SESSION['ADARIEL_ERP_ORGANIZATION_BRANCH_ID'] = count($tipos_usuario) == 1 ? $tipos_usuario[0]['sucursal_id'] : null;
+                $_SESSION['ADARIEL_ERP_ORGANIZATION_BRANCH_UUID'] = count($tipos_usuario) == 1 ? $service->uuidBinarytoString($tipos_usuario[0]['sucursal_uuid']) : null;
                 $_SESSION['ADARIEL_ERP_ORGANIZATION_BRANCH_TIMEZONE'] = count($tipos_usuario) == 1 ? $tipos_usuario[0]['zona_horaria'] : null;
                 $_SESSION['ADARIEL_ERP_ORGANIZATION_BRANCH'] = count($tipos_usuario) == 1 ? $tipos_usuario[0]['sucursal'] : null;
                 $_SESSION['ADARIEL_ERP_USER_ROLE'] = count($tipos_usuario) == 1 ? $tipos_usuario[0]['id'] : null;

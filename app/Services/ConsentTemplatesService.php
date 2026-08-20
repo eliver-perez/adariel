@@ -209,7 +209,7 @@ class ConsentTemplatesService extends Service
             $organization_uuid_plain = $this->uuidBinaryToString($organization_uuid);
             $organization_branch_uuid_plain = $this->uuidBinaryToString($organization_branch_uuid);
 
-            $relative_path = '/consent-templates/logos/' . $organization_uuid_plain . '/' . $uuid;
+            $relative_path = '/consent-templates/logos/' . $organization_uuid_plain . '/' . $uuid . '/';
             $base_path = STORAGE_PATH . $relative_path;
             $this->checkDirectory($base_path);
 

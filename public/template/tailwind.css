@@ -5095,6 +5095,30 @@ body {
   height: 100vh;
 }
 
+.max-h-\[160px\] {
+  max-height: 160px;
+}
+
+.max-h-\[168px\] {
+  max-height: 168px;
+}
+
+.max-h-\[180px\] {
+  max-height: 180px;
+}
+
+.max-h-\[192px\] {
+  max-height: 192px;
+}
+
+.max-h-\[200px\] {
+  max-height: 200px;
+}
+
+.max-h-\[210px\] {
+  max-height: 210px;
+}
+
 .max-h-\[220px\] {
   max-height: 220px;
 }
@@ -15063,6 +15087,46 @@ body {
   color: rgb(156 163 175 / var(--tw-text-opacity));
 }
 
+.col-span-2 {
+  grid-column: span 2 / span 2;
+}
+
+.col-span-3 {
+  grid-column: span 3 / span 3;
+}
+
+.col-span-4 {
+  grid-column: span 4 / span 4;
+}
+
+.col-span-5 {
+  grid-column: span 5 / span 5;
+}
+
+.col-span-6 {
+  grid-column: span 6 / span 6;
+}
+
+.col-span-7 {
+  grid-column: span 7 / span 7;
+}
+
+.col-span-8 {
+  grid-column: span 8 / span 8;
+}
+
+.col-span-9 {
+  grid-column: span 9 / span 9;
+}
+
+.col-span-10 {
+  grid-column: span 10 / span 10;
+}
+
+.col-span-11 {
+  grid-column: span 11 / span 11;
+}
+
 @media not all and (min-width: 1699px) {
   .max-4xl\:fixed {
     position: fixed;
@@ -15965,6 +16029,10 @@ body {
 }
 
 @media (min-width: 575px) {
+  .sm\:col-span-2 {
+    grid-column: span 2 / span 2;
+  }
+
   .sm\:col-span-3 {
     grid-column: span 3 / span 3;
   }
@@ -15991,6 +16059,14 @@ body {
 
   .sm\:col-span-9 {
     grid-column: span 9 / span 9;
+  }
+
+  .sm\:col-span-10 {
+    grid-column: span 10 / span 10;
+  }
+
+  .sm\:col-span-11 {
+    grid-column: span 11 / span 11;
   }
 
   .sm\:-mx-6 {
@@ -16432,6 +16508,10 @@ body {
     order: 0;
   }
 
+  .md\:col-span-2 {
+    grid-column: span 2 / span 2;
+  }
+
   .md\:col-span-3 {
     grid-column: span 3 / span 3;
   }
@@ -16458,6 +16538,14 @@ body {
 
   .md\:col-span-9 {
     grid-column: span 9 / span 9;
+  }
+
+  .md\:col-span-10 {
+    grid-column: span 10 / span 10;
+  }
+
+  .md\:col-span-11 {
+    grid-column: span 11 / span 11;
   }
 
   .md\:mx-auto {
@@ -16599,6 +16687,10 @@ body {
 }
 
 @media (min-width: 991px) {
+  .lg\:col-span-2 {
+    grid-column: span 2 / span 2;
+  }
+
   .lg\:col-span-3 {
     grid-column: span 3 / span 3;
   }
@@ -16625,6 +16717,14 @@ body {
 
   .lg\:col-span-9 {
     grid-column: span 9 / span 9;
+  }
+
+  .lg\:col-span-10 {
+    grid-column: span 10 / span 10;
+  }
+
+  .lg\:col-span-11 {
+    grid-column: span 11 / span 11;
   }
 
   .lg\:-mx-8 {
@@ -16753,6 +16853,10 @@ body {
     z-index: 999;
   }
 
+  .xl\:col-span-2 {
+    grid-column: span 2 / span 2;
+  }
+
   .xl\:col-span-3 {
     grid-column: span 3 / span 3;
   }
@@ -16779,6 +16883,14 @@ body {
 
   .xl\:col-span-9 {
     grid-column: span 9 / span 9;
+  }
+
+  .xl\:col-span-10 {
+    grid-column: span 10 / span 10;
+  }
+
+  .xl\:col-span-11 {
+    grid-column: span 11 / span 11;
   }
 
   .xl\:col-start-4 {

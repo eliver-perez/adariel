@@ -10,6 +10,10 @@ class SettingsRepository
 {
     public function __construct(private PDO $db) {}
 
+    public function getConnection() : PDO {
+        return $this->db;
+    }
+
     public function getGlobalById(string $id): ?array
     {
         $sql = "
@@ -57,5 +61,29 @@ class SettingsRepository
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
         return $row ?: null;
+    }
+
+    public function updateOrganizationLogo(array $data): void {
+        $stmt = $this->db->prepare("
+            UPDATE empresas
+            SET logo = :logo
+            WHERE uuid = :uuid
+        ");
+        $stmt->bindValue(':logo', $data['logo'], PDO::PARAM_LOB);
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->execute();
+    }
+
+    public function updateOrganizationBranchLogo(array $data): void {
+        $stmt = $this->db->prepare("
+            UPDATE sucursales
+            SET logo = :logo
+            WHERE id = :id
+        ");
+
+        $stmt->execute([
+            'logo' => $data['logo'],
+            'id' => $data['uuid'],
+        ]);
     }
 }

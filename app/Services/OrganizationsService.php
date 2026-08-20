@@ -129,6 +129,10 @@ class OrganizationsService extends Service
                 'organization'                  => $organizationData['id']
             ]);
             $branches = array();
+                // c.id colonia,
+                // c.codigo_postal,
+                // m.id municipio,
+                // es.id estado,
             foreach($branches_data as $d) {
                 array_push($branches, array(
                     'id'                        => $this->uuidBinaryToString($d['uuid']),
@@ -166,6 +170,15 @@ class OrganizationsService extends Service
                 'id'                        => $this->uuidBinaryToString($organizationData['uuid']),
                 'code'                      => $organizationData['clave'],
                 'organization'              => $organizationData['empresa'],
+                'logo'                      => $this->uuidBinaryToString($organizationData['logo']),
+                'street'                    => $organizationData['calle'] ?? '',
+                'no_ext'                    => $organizationData['num_ext'] ?? '',
+                'no_int'                    => $organizationData['num_int'] ?? '',
+                'locality_id'               => $organizationData['colonia_id'] ?? null,
+                'municipality_id'           => $organizationData['municipio_id'] ?? null,
+                'state_id'                  => $organizationData['estado_id'] ?? null,
+                'country_id'                => $organizationData['pais_id'] ?? null,
+                'zip_code'                  => $organizationData['cp'] ?? '',
                 'address'                   => $organizationData['domicilio'] ?? '',
                 'phone'                     => $organizationData['telefono'] ?? '',
                 'mobile'                    => $organizationData['movil'] ?? '',

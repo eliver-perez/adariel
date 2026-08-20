@@ -2,6 +2,10 @@
 /.env
 /storage/logs/*.log
 /storage/cache/*
+/storage/consent-templates/*
+/storage/consultations/*
+/storage/logos/*
+/storage/templates/*
 !.gitkeep
 /whatsapptoken
 /public/whatsapp-factory-s-test.php

@@ -22,6 +22,12 @@
             <nav class="px-[20px] pt-8 pb-5">
                 <ul class="listItemActive" role="tablist" data-te-nav-ref>
                     <li role="presentation">
+                        <a href="#tabs-organizationSettings" data-te-toggle="pill" data-te-target="#tabs-organizationSettings" role="tab" aria-controls="tabs-organizationSettings" aria-selected="true" class="[&.active]:bg-primary/10 [&.active]:text-primary bg-transparent cursor-pointer dark:text-subtitle-dark duration-300 flex font-normal gap-[12px] items-center px-[10px] [&.active]:px-[20px] hover:px-[20px] py-[10px] rounded-[6px] text-[14px] text-light transition-[0.3s]">
+                        <i class="uil uil-building text-[18px]"></i>
+                        <span>Empresa</span>
+                        </a>
+                    </li>
+                    <li role="presentation">
                         <a href="#tabs-accountSettings" data-te-toggle="pill" data-te-target="#tabs-accountSettings" role="tab" aria-controls="tabs-accountSettings" aria-selected="true" class="[&.active]:bg-primary/10 [&.active]:text-primary bg-transparent cursor-pointer dark:text-subtitle-dark duration-300 flex font-normal gap-[12px] items-center px-[10px] [&.active]:px-[20px] hover:px-[20px] py-[10px] rounded-[6px] text-[14px] text-light transition-[0.3s]">
                         <i class="uil uil-setting text-[18px]"></i>
                         <span>Ajustes Generales</span>
@@ -51,7 +57,254 @@
         </div>
     </div>
     <div class="col-span-12 2xl:col-span-9">
-        <!-- sector -->
+        <div class="hidden opacity-100 transition-opacity duration-150 ease-linear data-[te-tab-active]:block" id="tabs-organizationSettings" role="tabpanel" aria-labelledby="tabs-organizationSettings-tab">
+            <div class="bg-white dark:bg-box-dark rounded-10">
+            <div class="py-[18px] px-[25px] text-dark dark:text-title-dark font-medium text-[17px] border-regular dark:border-box-dark-up border-b">
+                <h1 class="mb-0 text-lg font-medium text-dark dark:text-title-dark">Empresa</h1>
+                <span class="mb-0.5 text-light dark:text-subtitle-dark text-13 font-normal">Modifica los datos de la empresa</span>
+            </div>
+            <div class="px-[25px] pb-[50px] pt-[40px]">
+                        <div class="flex flex-col gap-[15px] w-full">
+                            <div class="mt-6 w-full flex items-center justify-center">
+                                <img
+                                    id="logo-preview"
+                                    src="<?= asset('/images/mart_pic.png'); ?>"
+                                    alt="Logotipo"
+                                    class="max-w-full max-h-[160px] object-contain">
+                            </div>
+                            <div class="w-full grid grid-cols-12 gap-[5px]">
+                                <label class="col-span-9 2xl:col-span-9 lg:col-span-8 flex cursor-pointer overflow-hidden rounded border border-gray-200 bg-white text-sm text-gray-400">
+                                    <span id="file-logo-name" class="flex-1 px-4 py-3">
+                                        Logotipo
+                                    </span>
+
+                                    <span class="border-l border-gray-200 px-6 py-3 text-gray-500 hover:bg-gray-50">
+                                        Buscar
+                                    </span>
+
+                                    <input 
+                                        type="file" 
+                                        name="organization-logo" 
+                                        id="file-organization-logo" 
+                                        class="hidden"
+                                        accept="image/png,image/jpeg,image/webp">
+                                </label>
+                                <div class="col-span-3 2xl:col-span-3 lg:col-span-4">
+                                    <button 
+                                        type="button"
+                                        id="btn-upload-logo"
+                                        class="w-full group text-[13px] border-normal font-semibold text-white text-center dark:text-title-dark btn-outlined h-[46px] dark:border-box-dark-up sm:px-[20px] px-[15px] rounded-6 hover:text-white hover:bg-primary-hbr bg-primary transition duration-300"
+                                        data-te-ripple-init=""
+                                        data-te-ripple-color="light">
+                                        Subir Logo
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="w-full">
+                                <label for="field-organization" class="inline-flex items-center mb-[2px] text-[14px] font-medium capitalize dark:text-title-dark">
+                                    Empresa
+                                </label>
+                                <div class="flex flex-col flex-1 md:flex-row">
+                                    <input type="text"
+                                            id="field-organization"
+                                            name="organization"
+                                            class="rounded-4 border-normal border-1 text-[14px] dark:bg-box-dark-up dark:border-box-dark-up px-[20px] py-[6px] min-h-[40px] outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full focus:ring-primary focus:border-primary"
+                                            placeholder="Empresa"
+                                            maxlength="120"
+                                            required>
+                                </div>
+                            </div>
+                            <div class="w-full">
+                                <label for="field-street" class="inline-flex items-center mb-[2px] text-[14px] font-medium capitalize dark:text-title-dark">
+                                    Calle
+                                </label>
+                                <div class="flex flex-col flex-1 md:flex-row">
+                                    <input type="text"
+                                            id="field-street"
+                                            name="street"
+                                            class="rounded-4 border-normal border-1 text-[14px] dark:bg-box-dark-up dark:border-box-dark-up px-[20px] py-[6px] min-h-[40px] outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full focus:ring-primary focus:border-primary"
+                                            placeholder="Calle"
+                                            maxlength="120">
+                                </div>
+                            </div>
+                            <div class="flex flex-row gap-[5px]">
+                                <div class="w-full">
+                                    <label for="field-ext-no" class="inline-flex items-center mb-[2px] text-[14px] font-medium capitalize dark:text-title-dark">
+                                        No. Exterior
+                                    </label>
+                                    <div class="flex flex-col flex-1 md:flex-row">
+                                        <input type="text"
+                                                id="field-ext-no"
+                                                name="ext_no"
+                                                class="rounded-4 border-normal border-1 text-[14px] dark:bg-box-dark-up dark:border-box-dark-up px-[20px] py-[6px] min-h-[40px] outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full focus:ring-primary focus:border-primary"
+                                                placeholder="No. Exterior"
+                                                maxlength="12">
+                                    </div>
+                                </div>
+                                <div class="w-full">
+                                    <label for="field-int-no" class="inline-flex items-center mb-[2px] text-[14px] font-medium capitalize dark:text-title-dark">
+                                        No. Interno
+                                    </label>
+                                    <div class="flex flex-col flex-1 md:flex-row">
+                                        <input type="text"
+                                                id="field-int-no"
+                                                name="int-no"
+                                                class="rounded-4 border-normal border-1 text-[14px] dark:bg-box-dark-up dark:border-box-dark-up px-[20px] py-[6px] min-h-[40px] outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full focus:ring-primary focus:border-primary"
+                                                placeholder="No. Interno"
+                                                maxlength="12">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex flex-row gap-[5px]">
+                                <div class="w-full hidden">
+                                    <label for="select-country" class="inline-flex items-center mb-2 text-sm font-medium capitalize text-dark dark:text-title-dark">Pais</label>
+                                    <div class="flex items-center flex-1">
+                                        <div class="w-full">
+                                            <select id="select-country"
+                                                name="country"
+                                                autocomplete="off"
+                                                data-te-select-init
+                                                data-te-select-filter="true"
+                                                data-te-class-select-input="py-[11px] px-[20px] text-[14px] capitalize [&~span]:top-[18px] [&~span]:w-[12px] w-full [&~span]:h-[15px] [&~span]:text-body dark:[&~span]:text-white text-dark dark:text-subtitle-dark border-normal dark:border-box-dark-up border-1 rounded-6 dark:bg-box-dark-up focus:border-primary outline-none ltr:[&~span]:right-[3px] rtl:[&~span]:left-[3px] rtl:[&~span]:right-auto"
+                                                data-te-class-notch-leading="!border-0 !shadow-none group-data-[te-input-focused]:shadow-none group-data-[te-input-focused]:border-none"
+                                                data-te-class-notch-middle="!border-0 !shadow-none !outline-none"
+                                                data-te-class-notch-trailing="!border-0 !shadow-none !outline-none">
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="w-full">
+                                    <label for="select-state" class="inline-flex items-center mb-2 text-sm font-medium capitalize text-dark dark:text-title-dark">Estado</label>
+                                    <div class="flex items-center flex-1">
+                                        <div class="w-full">
+                                            <select id="select-state"
+                                                name="state"
+                                                autocomplete="off"
+                                                data-te-select-init
+                                                data-te-select-filter="true"
+                                                data-te-class-select-input="py-[11px] px-[20px] text-[14px] capitalize [&~span]:top-[18px] [&~span]:w-[12px] w-full [&~span]:h-[15px] [&~span]:text-body dark:[&~span]:text-white text-dark dark:text-subtitle-dark border-normal dark:border-box-dark-up border-1 rounded-6 dark:bg-box-dark-up focus:border-primary outline-none ltr:[&~span]:right-[3px] rtl:[&~span]:left-[3px] rtl:[&~span]:right-auto"
+                                                data-te-class-notch-leading="!border-0 !shadow-none group-data-[te-input-focused]:shadow-none group-data-[te-input-focused]:border-none"
+                                                data-te-class-notch-middle="!border-0 !shadow-none !outline-none"
+                                                data-te-class-notch-trailing="!border-0 !shadow-none !outline-none">
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="w-full">
+                                    <label for="select-municipality" class="inline-flex items-center mb-2 text-sm font-medium capitalize text-dark dark:text-title-dark">Municipio</label>
+                                    <div class="flex items-center flex-1">
+                                        <div class="w-full">
+                                            <select id="select-municipality"
+                                                name="municipality"
+                                                autocomplete="off"
+                                                data-te-select-init
+                                                data-te-select-filter="true"
+                                                data-te-class-select-input="py-[11px] px-[20px] text-[14px] capitalize [&~span]:top-[18px] [&~span]:w-[12px] w-full [&~span]:h-[15px] [&~span]:text-body dark:[&~span]:text-white text-dark dark:text-subtitle-dark border-normal dark:border-box-dark-up border-1 rounded-6 dark:bg-box-dark-up focus:border-primary outline-none ltr:[&~span]:right-[3px] rtl:[&~span]:left-[3px] rtl:[&~span]:right-auto"
+                                                data-te-class-notch-leading="!border-0 !shadow-none group-data-[te-input-focused]:shadow-none group-data-[te-input-focused]:border-none"
+                                                data-te-class-notch-middle="!border-0 !shadow-none !outline-none"
+                                                data-te-class-notch-trailing="!border-0 !shadow-none !outline-none">
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex flex-row gap-[5px]">
+                                <div class="w-full">
+                                    <label for="select-locality" class="inline-flex items-center mb-2 text-sm font-medium capitalize text-dark dark:text-title-dark">Colonia</label>
+                                    <div class="flex items-center flex-1">
+                                        <div class="w-full">
+                                            <select id="select-locality"
+                                                name="locality"
+                                                autocomplete="off"
+                                                data-te-select-init
+                                                data-te-select-filter="true"
+                                                data-te-class-select-input="py-[11px] px-[20px] text-[14px] capitalize [&~span]:top-[18px] [&~span]:w-[12px] w-full [&~span]:h-[15px] [&~span]:text-body dark:[&~span]:text-white text-dark dark:text-subtitle-dark border-normal dark:border-box-dark-up border-1 rounded-6 dark:bg-box-dark-up focus:border-primary outline-none ltr:[&~span]:right-[3px] rtl:[&~span]:left-[3px] rtl:[&~span]:right-auto"
+                                                data-te-class-notch-leading="!border-0 !shadow-none group-data-[te-input-focused]:shadow-none group-data-[te-input-focused]:border-none"
+                                                data-te-class-notch-middle="!border-0 !shadow-none !outline-none"
+                                                data-te-class-notch-trailing="!border-0 !shadow-none !outline-none">
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="w-full">
+                                    <label for="field-zip-code" class="inline-flex items-center mb-[2px] text-[14px] font-medium capitalize dark:text-title-dark">
+                                        Código Postal
+                                    </label>
+                                    <div class="flex flex-col flex-1 md:flex-row">
+                                        <input type="text"
+                                                id="field-zip-code"
+                                                name="zip-code"
+                                                oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1')"
+                                                class="rounded-4 border-normal border-1 text-[14px] dark:bg-box-dark-up dark:border-box-dark-up px-[20px] py-[6px] min-h-[40px] outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full focus:ring-primary focus:border-primary"
+                                                placeholder="Código Postal"
+                                                maxlength="5"
+                                                required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex flex-row gap-[5px]">
+                                <div class="w-full">
+                                    <label for="field-phone" class="inline-flex items-center mb-[2px] text-[14px] font-medium capitalize dark:text-title-dark">
+                                        Teléfono
+                                    </label>
+                                    <div class="flex flex-col flex-1 md:flex-row">
+                                        <input type="text"
+                                                id="field-phone"
+                                                name="phone"
+                                                class="rounded-4 border-normal border-1 text-[14px] dark:bg-box-dark-up dark:border-box-dark-up px-[20px] py-[6px] min-h-[40px] outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full focus:ring-primary focus:border-primary"
+                                                placeholder="Teléfono"
+                                                maxlength="40">
+                                    </div>
+                                </div>
+                                <div class="w-full">
+                                    <label for="field-mobile-phone" class="inline-flex items-center mb-[2px] text-[14px] font-medium capitalize dark:text-title-dark">
+                                        Móvil
+                                    </label>
+                                    <div class="flex flex-col flex-1 md:flex-row">
+                                        <input type="text"
+                                                id="field-mobile-phone"
+                                                name="mobile-phone"
+                                                class="rounded-4 border-normal border-1 text-[14px] dark:bg-box-dark-up dark:border-box-dark-up px-[20px] py-[6px] min-h-[40px] outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full focus:ring-primary focus:border-primary"
+                                                placeholder="Móvil"
+                                                maxlength="40">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex flex-row gap-[5px]">
+                                <div class="w-full">
+                                    <label for="field-email" class="inline-flex items-center mb-[2px] text-[14px] font-medium capitalize dark:text-title-dark">
+                                        Email
+                                    </label>
+                                    <div class="flex flex-col flex-1 md:flex-row">
+                                        <input type="text"
+                                                id="field-email"
+                                                name="email"
+                                                class="rounded-4 border-normal border-1 text-[14px] dark:bg-box-dark-up dark:border-box-dark-up px-[20px] py-[6px] min-h-[40px] outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full focus:ring-primary focus:border-primary"
+                                                placeholder="email"
+                                                maxlength="255"
+                                                required>
+                                    </div>
+                                </div>
+                            </div>
+                                <div class="w-full">
+                                    <label for="field-manager" class="inline-flex items-center mb-[2px] text-[14px] font-medium capitalize dark:text-title-dark">
+                                        Encargado
+                                    </label>
+                                    <div class="flex flex-col flex-1 md:flex-row">
+                                        <input type="text"
+                                                id="field-manager"
+                                                name="manager"
+                                                class="rounded-4 border-normal border-1 text-[14px] dark:bg-box-dark-up dark:border-box-dark-up px-[20px] py-[6px] min-h-[40px] outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full focus:ring-primary focus:border-primary"
+                                                placeholder="Encargado"
+                                                maxlength="255"
+                                                required>
+                                    </div>
+                                </div>
+                        </div>
+            </div>
+            </div>
+        </div>
+
         <div class="hidden opacity-100 transition-opacity duration-150 ease-linear data-[te-tab-active]:block" id="tabs-accountSettings" role="tabpanel" aria-labelledby="tabs-accountSettings-tab">
             <div class="bg-white dark:bg-box-dark rounded-10">
             <div class="py-[18px] px-[25px] text-dark dark:text-title-dark font-medium text-[17px] border-regular dark:border-box-dark-up border-b">
@@ -64,8 +317,7 @@
             </div>
             </div>
         </div>
-        <!-- end sector -->
-        <!-- sector -->
+
         <div class="hidden opacity-100 transition-opacity duration-150 ease-linear data-[te-tab-active]:block" id="tabs-passwordSettings" role="tabpanel" aria-labelledby="tabs-passwordSettings-tab">
             <div class="bg-white dark:bg-box-dark rounded-10">
             <div class="py-[18px] px-[25px] text-dark dark:text-title-dark font-medium text-[17px] border-regular dark:border-box-dark-up border-b">
@@ -355,5 +607,7 @@
 <script src="<?= asset('js/settings/index.js'); ?>"></script>
 
 <script>
+    var organization = '<?= $_SESSION['ADARIEL_ERP_ORGANIZATION_UUID']; ?>';
+    var branch = '<?= $_SESSION['ADARIEL_ERP_ORGANIZATION_BRANCH_UUID']; ?>';
     var currentLink = '<?= base_url('settings'); ?>';
 </script>

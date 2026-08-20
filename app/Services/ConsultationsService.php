@@ -1145,13 +1145,13 @@ class ConsultationsService extends Service
             }
 
             if (!$source)
-                throw new RuntimeException('No se pudo procesar imagen');
+                throw new RuntimeException('No fue posible procesar imagen');
             
             $evidence_uuid = $this->generateUuidBinary();
             $evidence_uuid_plain = $this->uuidBinaryToString($evidence_uuid);
 
-            $relativePath = 'consultations/'.$organization_uuid_plain.'/'.$consultation_uuid_plain.'/evidence/';
-            $basePath = STORAGE_PATH . '/' . $relativePath;
+            $relativePath = '/consultations/'.$organization_uuid_plain.'/'.$consultation_uuid_plain.'/evidence/';
+            $basePath = STORAGE_PATH . $relativePath;
 
             if (!is_dir($basePath)) {
                 if (!mkdir($basePath, 0775, true) && !is_dir($basePath)) {

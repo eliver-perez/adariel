@@ -92,6 +92,15 @@ class OrganizationsRepository
                 e.uuid,
                 e.clave,
                 e.empresa,
+                e.logo,
+                e.calle,
+                e.num_ext,
+                e.num_int,
+                c.id colonia_id,
+                e.cp,
+                m.id municipio_id,
+                es.id estado_id,
+                es.pais pais_id,
                 TRIM(
                     CONCAT(
                         e.calle, ' ',

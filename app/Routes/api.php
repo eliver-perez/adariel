@@ -8,6 +8,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 use App\Controllers\AuthController;
 use App\Controllers\OrganizationsController;
+use App\Controllers\SettingsController;
 use App\Controllers\StaffController;
 use App\Controllers\UsersController;
 use App\Controllers\BillingController;
@@ -53,6 +54,8 @@ $router->get('/api/organizations', [OrganizationsController::class, 'index']);  
 $router->get('/api/organizations/{id}', [OrganizationsController::class, 'show']);                                                                          // ✅
 $router->get('/api/organizations/{id}/branches', [OrganizationsController::class, 'indexBranches']);                                                        // ✅
 $router->post('/api/organizations', [OrganizationsController::class, 'store']);                                                                             // ✅
+
+$router->post('/api/organizations/{id}/logo', [SettingsController::class, 'updateLogo']);                                                        
 
 $router->get('/api/my-users', [OrganizationsController::class, 'myUsers']);                                                                                 // ✅
 
