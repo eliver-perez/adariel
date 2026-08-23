@@ -5,6 +5,7 @@ var homeURL;
 var selected_payment_receipt = '';
 var loading_status = true;
 let receiptModal = null;
+let sending_receipt_mail = false;
 
 function InitializeValues(home) {
 	homeURL = home;
@@ -26,46 +27,56 @@ function PrintReceipt() {
 }
 
 function SendReceiptMail() {
-	if(selected_payment_receipt != '') {
-		if($('#field-send-receipt-email').val() != '') {
-			$.ajax({
-				url: `${homeURL}/api/payments/${selected_payment_receipt}/send`,
-				type: 'post',
-				data: {
-					method: 'email',
-					recipient: $('#field-send-receipt-email').val()
-				},
-				dataType: "json",
-				success: function(response) {
-					console.log(response);
-					if(response.success) {
-						ShowToastMessage(
-							'El comprobante fue enviado por correo electrónico.',
-							'success'
-						);
+	if(!sending_receipt_mail) {
+		if(selected_payment_receipt != '') {
+			if($('#field-send-receipt-email').val() != '') {
+				sending_receipt_mail = true;
+				$('#btn-send-receipt').attr('disabled', true);
+				$.ajax({
+					url: `${homeURL}/api/payments/${selected_payment_receipt}/send`,
+					type: 'post',
+					data: {
+						method: 'email',
+						recipient: $('#field-send-receipt-email').val()
+					},
+					dataType: "json",
+					success: function(response) {
+						sending_receipt_mail = false;
+						$('#btn-send-receipt').attr('disabled', false);
+						console.log(response);
+						if(response.success) {
+							ShowToastMessage(
+								'El comprobante fue enviado por correo electrónico.',
+								'success'
+							);
 
-						$('#field-send-receipt-email').val('');
-					} else {
-						ShowToastMessage(
-							response.message || 'No fue posible enviar el comprobante.',
-							'error'
-						);
-					}
-				},
-				error: function(XMLHttpRequest, textStatus, errorThrown) { 
-					try {
-						var response = JSON.parse(XMLHttpRequest.responseText);
-						console.log(response.message);
-						ShowToastMessage(response.message, 'error');
-						
-					} catch (e) {
-						ShowToastMessage(XMLHttpRequest.responseText, 'error');
-					}
-				}  
-			});
+							$('#field-send-receipt-email').val('');
+						} else {
+							ShowToastMessage(
+								response.message || 'No fue posible enviar el comprobante.',
+								'error'
+							);
+						}
+					},
+					error: function(XMLHttpRequest, textStatus, errorThrown) { 
+						sending_receipt_mail = false;
+						$('#btn-send-receipt').attr('disabled', false);
+						try {
+							var response = JSON.parse(XMLHttpRequest.responseText);
+							console.log(response.message);
+							ShowToastMessage(response.message, 'error');
+							
+						} catch (e) {
+							ShowToastMessage(XMLHttpRequest.responseText, 'error');
+						}
+					}  
+				});
+			}
+		} else {
+			ShowToastMessage('Es necesario seleccionar un pago.', 'error');
 		}
 	} else {
-		ShowToastMessage('Es necesario seleccionar un pago.', 'error');
+		ShowToastMessage("Hay un proceso de envio pendiente.", "error");
 	}
 }
 

@@ -42,7 +42,7 @@
                         </div>
                         <button
                             id="btn-send-receipt"
-                            class="capitalize border-1 border-primary bg-primary text-white text-[14px] font-semibold leading-[22px] inline-flex items-center justify-center rounded-[10px] px-[30px] h-[38px] transition duration-300 ease-in-out gap-[7px] dark:pointer-events-none"
+                            class="capitalize border-1 border-primary bg-primary text-white text-[14px] font-semibold leading-[22px] inline-flex items-center justify-center disabled:border-0 disabled:border-lightgray disabled:text-neutral-600 disabled:bg-lightgray disabled:cursor-not-allowed rounded-[10px] px-[30px] h-[38px] transition duration-300 ease-in-out gap-[7px] dark:pointer-events-none"
                             data-te-ripple-init
                             data-te-ripple-color="light">
                             <i class="uil uil-message "></i>
