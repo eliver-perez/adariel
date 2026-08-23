@@ -4,7 +4,8 @@
     "type": "project",
     "require": {
         "tecnickcom/tcpdf": "^6.11",
-        "chillerlan/php-qrcode": "^6.0"
+        "chillerlan/php-qrcode": "^6.0",
+        "phpmailer/phpmailer": "^7.1"
     },
     "autoload": {
         "psr-4": {

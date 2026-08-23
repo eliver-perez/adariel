@@ -6,12 +6,17 @@ namespace App\Services;
 
 use App\Core\Service;
 use App\Core\DateTimeService;
+use App\Repositories\PaymentsRepository;
 use App\Repositories\CashReconciliationRepository;
 use App\Repositories\CashReconciliationStatusRepository;
 use App\Repositories\CashRegisterRepository;
-use App\Repositories\PaymentsRepository;
+use App\Repositories\MediaRepository;
 use App\Repositories\SettingsRepository;
 use App\Services\SettingsService;
+use App\Services\MailService;
+use chillerlan\QRCode\QRCode;
+use chillerlan\QRCode\QROptions;
+use chillerlan\QRCode\Output\QRGdImagePNG;
 use InvalidArgumentException;
 use RuntimeException;
 
@@ -22,6 +27,7 @@ class PaymentsService extends Service
         private CashReconciliationRepository $cashReconciliationRepository,
         private CashReconciliationStatusRepository $cashReconciliationStatusRepository,
         private CashRegisterRepository $cashRegisterRepository,
+        private MediaRepository $mediaRepository,
         private SettingsRepository $settingsRepository
     ) {
     }
@@ -178,6 +184,11 @@ class PaymentsService extends Service
                 'Error al recibir identificador del pago.'
             );
 
+            $organization_data = $this->mediaRepository->findByOrganizationType([
+                'type'                          => 'ORGANIZATION_LOGO',
+                'organization'                  => $organizationId,
+            ]);
+
             $payment_data = $this->paymentsRepository->getPayment([
                 'uuid'                          => $this->uuidStringtoBinary($uuid),
                 'organization'                  => $organizationId
@@ -213,6 +224,7 @@ class PaymentsService extends Service
             
             return [
                 'id'                                => $this->uuidBinarytoString($payment_data['uuid']),
+                'logo'                              => $organization_data != null ? $this->uuidBinaryToString($organization_data['uuid']) : '',
                 'folio'                             => $payment_data['folio'],
                 'cash_reconciliation_folio'         => $payment_data['folio_corte'],
                 'consecutive'                       => $payment_data['consecutivo'],
@@ -227,6 +239,240 @@ class PaymentsService extends Service
                 'details'                           => $payment_details,
             ];
         } catch (\Throwable $e) {
+            throw $e;
+        }
+    }
+
+    public function sendReceipt(array $data): ?array {
+        try {
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+            $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron registros de su empresa.');
+            $uuid = $this->normalizeRequiredText($data['uuid'] ?? null, 'Error al recibir identificador del pago.');
+
+            $method = $this->normalizeOptionalText($data['method'] ?? 'email');
+            $recipient = $this->normalizeRequiredText($data['recipient'] ?? null, 'No se recibio información del destinatario.');
+
+            if($method == 'email') {
+                if (!filter_var($recipient, FILTER_VALIDATE_EMAIL)) {
+                    throw new InvalidArgumentException('El correo electrónico no es válido.');
+                }
+            }
+
+            $datetimeService = new DateTimeService($data['timezone']);
+
+            $organization_data = $this->mediaRepository->findByOrganizationType([
+                'type'                          => 'ORGANIZATION_LOGO',
+                'organization'                  => $organizationId,
+            ]);
+
+            $payment_data = $this->paymentsRepository->getPayment([
+                'uuid'                          => $this->uuidStringtoBinary($uuid),
+                'organization'                  => $organizationId
+            ]);
+
+            if(!$payment_data)
+                throw new RuntimeException("Ocurrio un error al intentar obtener la información.");
+
+            $payment_details_data = $this->paymentsRepository->getPaymentDetails([
+                'uuid'                          => $this->uuidStringtoBinary($uuid),
+                'organization'                  => $organizationId
+            ]);
+
+            $payment_details = array();
+            foreach($payment_details_data as $pd) {
+                array_push($payment_details, array(
+                    'id'                            => $this->uuidBinarytoString($pd['uuid']),
+                    'type'                          => $pd['tipo'],
+                    'description'                   => $pd['descripcion'],
+                    'quantity'                      => $pd['cantidad'],
+                    'base_cost'                     => $pd['precio_base'],
+                    'subtotal'                      => $pd['subtotal'],
+                    'discount'                      => $pd['descuento'],
+                    'taxes'                         => $pd['impuestos'],
+                    'total'                         => $pd['total'],
+                    'paid'                          => $pd['pagado'],
+                    'current_balance_due'           => $pd['adeudo'],
+                    'balance_before_payment'        => $pd['adeudo_anterior'],
+                    'payment_amount'                => $pd['monto_pago'],
+                    'balance_after_payment'         => $pd['adeudo_actual'],
+                ));
+            }
+
+            /**
+             * AGREGAR CODIGO PARA ENVIO DE COMPROBANTE, POR AHORA SOLO EMAIL DESPUES AGREGAREMOS PARA WHATSAPP
+             */
+            if ($method !== 'email') {
+                throw new InvalidArgumentException(
+                    'El método de envío todavía no está disponible.'
+                );
+            }
+
+            /*
+            * Aquí debes usar los nombres exactos que devuelve getPayment().
+            * Dejé alternativas en español/inglés para mostrarte el mapeo.
+            */
+            $receipt = [
+                'id' => $uuid,
+
+                'folio' => $payment_data['folio'],
+
+                'payment_date' =>
+                    $datetimeService->fromUtcFormatted($payment_data['f_pago']),
+
+                'client' =>
+                    $payment_data['cliente']
+                    ?? 'Público en general',
+
+                'payment_method' =>
+                    $payment_data['metodo_pago']
+                    ?? '',
+
+                'amount_payment' =>
+                    $payment_data['monto_pago']
+                    ?? 0,
+
+                'details' => $payment_details,
+            ];
+
+            /*
+            * Generamos el QR como PNG binario, no como data URI.
+            */
+            $qrPayload = json_encode([
+                'type' => 'receipt',
+                'uuid' => $uuid,
+            ], JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+
+            $qrOptions = new QROptions([
+                'outputInterface' => QRGdImagePNG::class,
+                'outputBase64'    => false,
+                'scale'           => 6,
+            ]);
+
+            $qrBinary = (new QRCode($qrOptions))->render($qrPayload);
+
+            /*
+            * Localizamos el logotipo físicamente dentro de /storage.
+            */
+            $logoPath = null;
+            $logoMime = null;
+
+            $storageRoot = realpath(STORAGE_PATH);
+
+            $logoRelativePath =
+                $organization_data['ruta_thumbnail']
+                ?? $organization_data['ruta']
+                ?? null;
+
+            if ($storageRoot !== false && $logoRelativePath !== null) {
+                $candidatePath = realpath(
+                    rtrim($storageRoot, '/\\')
+                    .DIRECTORY_SEPARATOR
+                    .ltrim($logoRelativePath, '/\\')
+                );
+
+                if (
+                    $candidatePath !== false &&
+                    str_starts_with(
+                        $candidatePath,
+                        $storageRoot.DIRECTORY_SEPARATOR
+                    ) &&
+                    is_file($candidatePath) &&
+                    is_readable($candidatePath)
+                ) {
+                    $detectedMime = (new \finfo(
+                        FILEINFO_MIME_TYPE
+                    ))->file($candidatePath);
+
+                    if (in_array($detectedMime, [
+                        'image/png',
+                        'image/jpeg',
+                        'image/gif',
+                    ], true)) {
+                        $logoPath = $candidatePath;
+                        $logoMime = $detectedMime;
+                    }
+                }
+            }
+
+            $templatePath = dirname(__DIR__).
+                '/Views/emails/payment-receipt.php';
+
+            $html = $this->renderEmailTemplate($templatePath, [
+                'receipt' => $receipt,
+                'hasLogo' => $logoPath !== null,
+            ]);
+
+            $embeddedImages = [
+                [
+                    'content' => $qrBinary,
+                    'cid'     => 'receipt_qr',
+                    'name'    => 'receipt-qr.png',
+                    'mime'    => 'image/png',
+                ],
+            ];
+
+            if ($logoPath !== null) {
+                $embeddedImages[] = [
+                    'path' => $logoPath,
+                    'cid'  => 'organization_logo',
+                    'name' => basename($logoPath),
+                    'mime' => $logoMime,
+                ];
+            }
+
+            $mailService = new MailService();
+
+            $delivery = $mailService->send([
+                'to'      => $recipient,
+                'subject' => 'Recibo de pago '.$receipt['folio'],
+                'html'    => $html,
+
+                'text' =>
+                    "Recibo de pago {$receipt['folio']}\n".
+                    "Cliente: {$receipt['client']}\n".
+                    "Fecha: {$receipt['payment_date']}\n".
+                    "Método de pago: {$receipt['payment_method']}\n".
+                    'Total pagado: $'.
+                    number_format(
+                        (float) $receipt['amount_payment'],
+                        2
+                    ),
+
+                'embeddedImages' => $embeddedImages,
+            ]);
+
+            return [
+                'id'        => $uuid,
+                'method'    => 'email',
+                'recipient' => $recipient,
+                'sent'      => $delivery['accepted'],
+                'messageId' => $delivery['messageId'],
+            ];
+        } catch (\Throwable $e) {
+            throw $e;
+        }
+    }
+
+    private function renderEmailTemplate(
+        string $template,
+        array $variables
+    ): string {
+        if (!is_file($template)) {
+            throw new RuntimeException(
+                'No se encontró la plantilla del correo.'
+            );
+        }
+
+        extract($variables, EXTR_SKIP);
+
+        ob_start();
+
+        try {
+            require $template;
+
+            return (string) ob_get_clean();
+        } catch (\Throwable $e) {
+            ob_end_clean();
             throw $e;
         }
     }

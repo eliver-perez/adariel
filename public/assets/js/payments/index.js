@@ -2,7 +2,7 @@
 
 var homeURL;
 
-var selected_payment = '';
+var selected_payment_receipt = '';
 var loading_status = true;
 let receiptModal = null;
 
@@ -14,6 +14,7 @@ function InitializeValues(home) {
 		generated_report_id = '';
 	});
 	$('#btn-print-receipt').on('click', PrintReceipt);
+	$('#btn-send-receipt').on('click', SendReceiptMail);
 	GetPayments();
 }
 
@@ -22,6 +23,50 @@ function PrintReceipt() {
 
 	iframe.contentWindow.focus();
 	iframe.contentWindow.print();
+}
+
+function SendReceiptMail() {
+	if(selected_payment_receipt != '') {
+		if($('#field-send-receipt-email').val() != '') {
+			$.ajax({
+				url: `${homeURL}/api/payments/${selected_payment_receipt}/send`,
+				type: 'post',
+				data: {
+					method: 'email',
+					recipient: $('#field-send-receipt-email').val()
+				},
+				dataType: "json",
+				success: function(response) {
+					console.log(response);
+					if(response.success) {
+						ShowToastMessage(
+							'El comprobante fue enviado por correo electrónico.',
+							'success'
+						);
+
+						$('#field-send-receipt-email').val('');
+					} else {
+						ShowToastMessage(
+							response.message || 'No fue posible enviar el comprobante.',
+							'error'
+						);
+					}
+				},
+				error: function(XMLHttpRequest, textStatus, errorThrown) { 
+					try {
+						var response = JSON.parse(XMLHttpRequest.responseText);
+						console.log(response.message);
+						ShowToastMessage(response.message, 'error');
+						
+					} catch (e) {
+						ShowToastMessage(XMLHttpRequest.responseText, 'error');
+					}
+				}  
+			});
+		}
+	} else {
+		ShowToastMessage('Es necesario seleccionar un pago.', 'error');
+	}
 }
 
 function GetPayments() {
@@ -67,6 +112,8 @@ function GetPayments() {
 													</td>
 												</tr>`);
 				});
+			} else {
+				ShowToastMessage(response.message, 'error');
 			}
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) { 
@@ -83,6 +130,7 @@ function GetPayments() {
 }
 
 function ClearPaymentData() {
+	selected_payment = '';
 	$('#field-payment-registrar').html('...');
 	$('#field-payment-status').removeClass('text-primary bg-primary/20 text-secondary bg-secondary/20 text-danger bg-danger/20 text-success bg-success/20');
 	$('#field-payment-status').addClass('text-warning bg-warning/20');
@@ -95,7 +143,6 @@ function ClearPaymentData() {
 
 function SelectPayment(id) {
 	if(selected_payment != id) {
-		selected_payment = id;
 		ClearPaymentData();
 		$.ajax({
 			url: `${homeURL}/api/payments/${id}`,
@@ -104,6 +151,8 @@ function SelectPayment(id) {
 			success: function(response) {
 				console.log(response);
 				if(response.success) {
+					selected_payment = response.data.id;
+
 					$('#field-payment-cash-reconciliation').html(response.data.cash_reconciliation_folio);
 
 					$('#field-payment-status').removeClass('text-warning bg-warning/20');
@@ -190,6 +239,7 @@ function SelectPayment(id) {
 var generated_report_id = '';
 
 function PaymentReport(id) {
+	selected_payment_receipt = id;
 	const modal = new te.Modal(receiptModal);
 	
 	$('#receipt-preview').attr('src', `${homeURL}/receipt-modal?id=${id}`);

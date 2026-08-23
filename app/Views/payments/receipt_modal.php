@@ -26,22 +26,43 @@
                         class="w-full"
                         style="margin: 0 auto; height: 85vh;"></iframe>
 
-                <div class="flex flex-wrap items-center justify-end flex-shrink-0 gap-2 p-4 border-t-2 border-b border-opacity-100 rounded-b-md border-regular dark:border-box-dark-up">
-                    <button id="btn-print-receipt" class="capitalize border-1 border-regular bg-regular dark:bg-white text-light dark:text-dark bg-transparent text-[14px] font-semibold leading-[22px] inline-flex items-center justify-center rounded-[10px] px-[30px] h-[38px] transition duration-300 ease-in-out gap-[7px] dark:pointer-events-none" data-te-ripple-init data-te-ripple-color="dark">
-                        <i class="uil uil-print text-light dark:text-dark "></i>
-                        Imprimir
-                    </button>
-                    <!-- <button class="invoice-btn capitalize border-1 border-regular bg-regular dark:bg-white text-light dark:text-dark bg-transparent text-[14px] font-semibold leading-[22px] inline-flex items-center justify-center rounded-[10px] px-[30px] h-[38px] transition duration-300 ease-in-out gap-[7px]" data-te-ripple-init data-te-ripple-color="dark">
-                        <i class="uil uil-message text-light dark:text-dark "></i>
-                        invoice
-                    </button> -->
-                    <button onclick="javascript:ViewReport()" class="capitalize border-1 border-primary bg-primary text-white text-[14px] font-semibold leading-[22px] inline-flex items-center justify-center rounded-[10px] px-[30px] h-[38px] transition duration-300 ease-in-out gap-[7px] dark:pointer-events-none" data-te-ripple-init data-te-ripple-color="light">
-                        <i class="uil uil-eye "></i>
-                        Ver
-                    </button>
-                    <button type="button" id="btn-close-payment-report-modal" class="close-receipt-modal ml-1 inline-block rounded bg-danger px-6 pb-2 pt-2.5 text-14 font-medium capitalize leading-normal text-white  transition duration-150 ease-in-out hover:bg-primary-600 hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:bg-primary-600 focus:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:outline-none focus:ring-0 active:bg-primary-700 active:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] dark:shadow-[0_4px_9px_-4px_rgba(59,113,202,0.5)] dark:hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)] dark:focus:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)] dark:active:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)]" data-te-modal-dismiss data-te-ripple-init data-te-ripple-color="light">
-                        Cerrar
-                    </button>
+                
+                <div class="flex items-center justify-between flex-shrink-0 border-t-2 border-b border-opacity-100 rounded-b-md rounded-t-md border-regular dark:border-box-dark-up">
+                    <div class="flex flex-wrap items-center justify-start flex-shrink-0 gap-2 p-4">
+                        <div class="rounded-4 border-normal border-1 text-[15px] dark:bg-box-dark-up dark:border-box-dark-up px-[12px] py-[4px] min-h-[40px] min-w-[250px] focus:ring-primary focus:border-primary gap-[4px]  flex items-center">
+                            <span class="inline-flex items-center text-sm text-light dark:text-subtitle-dark me-[4px]">
+                                <i class="uil uil-envelope-alt text-[16px]"></i>
+                            </span>
+                            <input type="text"
+                                id="field-send-receipt-email"
+                                name="send_receipt"
+                                class="outline-none placeholder:text-[#A0A0A0] text-body dark:text-subtitle-dark w-full bg-transparent"
+                                placeholder="Correo Electrónico"
+                                value="">
+                        </div>
+                        <button
+                            id="btn-send-receipt"
+                            class="capitalize border-1 border-primary bg-primary text-white text-[14px] font-semibold leading-[22px] inline-flex items-center justify-center rounded-[10px] px-[30px] h-[38px] transition duration-300 ease-in-out gap-[7px] dark:pointer-events-none"
+                            data-te-ripple-init
+                            data-te-ripple-color="light">
+                            <i class="uil uil-message "></i>
+                            Enviar
+                        </button>
+                    </div>
+
+                    <div class="flex flex-wrap items-center justify-end flex-shrink-0 gap-2 p-4">
+                        <button id="btn-print-receipt" class="capitalize border-1 border-regular bg-regular dark:bg-white text-light dark:text-dark bg-transparent text-[14px] font-semibold leading-[22px] inline-flex items-center justify-center rounded-[10px] px-[30px] h-[38px] transition duration-300 ease-in-out gap-[7px] dark:pointer-events-none" data-te-ripple-init data-te-ripple-color="dark">
+                            <i class="uil uil-print text-light dark:text-dark "></i>
+                            Imprimir
+                        </button>
+                        <button onclick="javascript:ViewReport()" class="capitalize border-1 border-primary bg-primary text-white text-[14px] font-semibold leading-[22px] inline-flex items-center justify-center rounded-[10px] px-[30px] h-[38px] transition duration-300 ease-in-out gap-[7px] dark:pointer-events-none" data-te-ripple-init data-te-ripple-color="light">
+                            <i class="uil uil-eye "></i>
+                            Ver
+                        </button>
+                        <button type="button" id="btn-close-payment-report-modal" class="close-receipt-modal ml-1 inline-block rounded bg-danger px-6 pb-2 pt-2.5 text-14 font-medium capitalize leading-normal text-white  transition duration-150 ease-in-out hover:bg-primary-600 hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:bg-primary-600 focus:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:outline-none focus:ring-0 active:bg-primary-700 active:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] dark:shadow-[0_4px_9px_-4px_rgba(59,113,202,0.5)] dark:hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)] dark:focus:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)] dark:active:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)]" data-te-modal-dismiss data-te-ripple-init data-te-ripple-color="light">
+                            Cerrar
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

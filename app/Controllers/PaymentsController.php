@@ -13,6 +13,7 @@ use App\Repositories\PaymentsRepository;
 use App\Repositories\CashReconciliationRepository;
 use App\Repositories\CashReconciliationStatusRepository;
 use App\Repositories\CashRegisterRepository;
+use App\Repositories\MediaRepository;
 use App\Repositories\SettingsRepository;
 use App\Services\PaymentsService;
 use InvalidArgumentException;
@@ -32,12 +33,14 @@ class PaymentsController extends Controller
         $cashReconciliationRepository = new CashReconciliationRepository($conn);
         $cashReconciliationStatusRepository = new CashReconciliationStatusRepository($conn);
         $cashRegisterRepository = new CashRegisterRepository($conn);
+        $mediaRepository = new MediaRepository($conn);
         $settingsRepository = new SettingsRepository($conn);
 
         return new PaymentsService($paymentsRepository,
                                             $cashReconciliationRepository,
                                             $cashReconciliationStatusRepository,
                                             $cashRegisterRepository,
+                                            $mediaRepository,
                                             $settingsRepository);
     }
 
@@ -212,6 +215,53 @@ class PaymentsController extends Controller
                 'success' => false,
                 'message' => $e->getMessage(),
             ]);
+        }
+    }
+
+    public function sendReceipt(Request $request, Response $response, string $id) {
+        try {
+            $currentUserId = Auth::id();
+            if($currentUserId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
+            $organizationId = Auth::organizationId();
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron datos para la empresa.");
+            }
+            $organizationBranchId = Auth::organizationBranchId();
+            if($organizationBranchId === null) {
+                throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
+            $currentTimezone = Auth::organizationBranchTimeZone();
+            if($currentTimezone === null) {
+                $currentTimezone = Auth::organizationTimeZone();
+            }
+            $service = $this->getService();
+
+            $receipt = $service->sendReceipt([
+                'organizationId'            => $organizationId,
+                'uuid'                      => $id,
+                'method'                    => $request->input('method'),
+                'recipient'                 => $request->input('recipient'),
+                'timezone'                  => $currentTimezone ?? env('TIMEZONE'),
+                'uid'                       => $currentUserId,
+            ]);
+
+            return $response->json([
+                'success' => true,
+                'message' => 'Comprobante Enviado.',
+                'data' => $receipt
+            ], 200);
+        } catch (InvalidArgumentException | RuntimeException $e) {
+            return $response->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        } catch (Throwable $e) {
+            return $response->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
         }
     }
 }

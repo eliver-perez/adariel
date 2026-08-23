@@ -1,26 +1,32 @@
 <div class=" bg-white dark:bg-box-dark rounded-10 xl:px-[60px] px-[30px] xl:pt-[80px] pt-[30px] pb-[30px]">
     <div class="print-body">
+        <h1 class="leading-[1.27] text-center font-semibold text-dark dark:text-title-dark mb-[5px] text-[36px]">
+            Recibo de Pago
+        </h1>
         <div class=" flex items-center md:justify-between justify-center flex-wrap xl:gap-x-[30px] gap-x-[15px] gap-y-[15px] xl:px-[50px] px-[30px] py-[30px] mb-[40px] bg-regularBG dark:bg-box-dark rounded-[20px]">
             <div class="">
-            <h1 class="leading-[1.27] font-semibold text-dark dark:text-title-dark mb-[5px] text-[36px]">
-                Recibo
-            </h1>
-            <div class="text-[15px] leading-[1.73] font-medium text-dark dark:text-title-dark">
-                Folio: <?= $payment->data->folio; ?>
-            </div>
-            <div class="text-[15px] leading-[1.73] font-medium text-dark dark:text-title-dark">
-                Fecha: <?= $payment->data->payment_date; ?>
-            </div>
+                <?= $payment->data->logo != null && $payment->data->logo != '' ? "<img class='max-h-[160px]' src='".config('url')."/media/".$payment->data->logo."' />" : "" ?>
             </div>
             <div class="p-[5px] rounded-10 bg-white dark:bg-box-dark-up flex text-center flex-col justify-center">
                 <img class="w-full h-[120px]" src="<?= $qr ?>" alt="QR del recibo">
             </div>
             <address class="not-italic font-normal capitalize text-body dark:text-subtitle-dark text-[15px]">
+                <div class="text-[15px] leading-[1.73] font-medium text-dark dark:text-title-dark">
+                    Folio: <?= $payment->data->folio; ?>
+                </div>
+                <div class="text-[15px] leading-[1.73] font-medium text-dark dark:text-title-dark">
+                    Fecha: <?= $payment->data->payment_date; ?>
+                </div><br />
                 <h5 class="text-[15px] leading-[1.6] font-medium text-dark dark:text-title-dark uppercase mb-[4px]">
                     Recibo De:
                 </h5>
-                <span><?= $payment->data->client; ?></span><br>
-                <span><span class="text-[15px] leading-[1.73] font-medium text-dark dark:text-title-dark">Metodo de Pago:</span> <?= $payment->data->payment_method; ?></span><br>
+                <span>
+                    <?= $payment->data->client; ?>
+                </span><br>
+                <span>
+                    <span class="text-[15px] leading-[1.73] font-medium text-dark dark:text-title-dark">Metodo de Pago:</span>
+                    <?= $payment->data->payment_method; ?>
+                </span>
             </address>
         </div>
         <div class="pb-[15px] max-xl:scrollbar max-xl:overflow-x-auto">
