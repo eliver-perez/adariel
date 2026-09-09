@@ -168,8 +168,7 @@ class CashReconciliationRepository
                 c.efectivo_esperado,
                 c.retiros,
                 c.depositos,
-                c.diferencia
-
+                c.diferencia,
                 c.uuid,
                 ca.caja,
                 opened.uuid opened_by_id,
@@ -227,6 +226,34 @@ class CashReconciliationRepository
         $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
         $stmt->bindValue(':amount', $data['amount'], PDO::PARAM_STR);
         $stmt->bindValue(':amount_2', $data['amount'], PDO::PARAM_STR);
+        $stmt->execute();
+    }
+
+    public function cancelCashPayment(array $data) {
+        $stmt = $this->db->prepare("UPDATE cortes SET
+                                            efectivo = efectivo - :cash_1,
+                                            efectivo_esperado = efectivo_esperado - :cash_2,
+                                            total_venta = total_venta - :cash_3,
+                                            cancelado = cancelado + :cash_4
+                                            WHERE uuid = :uuid");
+
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':cash_1', $data['cash'], PDO::PARAM_STR);
+        $stmt->bindValue(':cash_2', $data['cash'], PDO::PARAM_STR);
+        $stmt->bindValue(':cash_3', $data['cash'], PDO::PARAM_STR);
+        $stmt->bindValue(':cash_4', $data['cash'], PDO::PARAM_STR);
+        $stmt->execute();
+    }
+
+    public function cancelOtherPayment(array $data) {
+        $stmt = $this->db->prepare("UPDATE cortes SET otros_medios = otros_medios + :amount,
+                                            total_venta = total_venta + :amount_2,
+                                            cancelado = cancelado + :amount_3 WHERE uuid = :uuid");
+
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':amount', $data['amount'], PDO::PARAM_STR);
+        $stmt->bindValue(':amount_2', $data['amount'], PDO::PARAM_STR);
+        $stmt->bindValue(':amount_3', $data['amount'], PDO::PARAM_STR);
         $stmt->execute();
     }
 

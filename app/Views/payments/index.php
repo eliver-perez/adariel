@@ -62,10 +62,52 @@
                         ...
                     </div>
                 </div>
-                <div class="col-span-12 2xl:col-span-3 lg:col-span-4">
+                <div class="col-span-12 lg:col-span-4">
                     <h4 class="text-[14px] text-light dark:text-subtitle-dark mb-[8px] font-normal">Folio:</h4>
                     <div class="flex items-center mb-[15px] gap-[15px]">
                         <span class="text-[14px] font-medium text-theme-gray dark:text-subtitle-dark capitalize" id="field-payment-folio">...</span>
+                    </div>
+                </div>
+                <div class="col-span-12 lg:col-span-8">
+                    <h4 class="text-[14px] text-light dark:text-subtitle-dark mb-[8px] font-normal">Fecha:</h4>
+                    <div class="flex items-center mb-[15px] gap-[15px]">
+                        <span class="text-[14px] font-medium text-theme-gray dark:text-subtitle-dark capitalize" id="field-payment-date">...</span>
+                    </div>
+                </div>
+                <div class="col-span-12">
+                    <h4 class="text-[14px] text-light dark:text-subtitle-dark mb-[8px] font-normal">Cliente:</h4>
+                    <div class="flex items-center mb-[15px] gap-[15px]">
+                        <span class="text-[14px] font-medium text-theme-gray dark:text-subtitle-dark capitalize" id="field-payment-client">...</span>
+                    </div>
+                </div>
+                <div class="col-span-12">
+                    <h4 class="text-[14px] text-light dark:text-subtitle-dark mb-[8px] font-normal">Método de Pago:</h4>
+                    <div class="flex items-center mb-[15px] gap-[15px]">
+                        <span class="text-[14px] font-medium text-theme-gray dark:text-subtitle-dark capitalize" id="field-payment-method">...</span>
+                    </div>
+                </div>
+                <div class="col-span-12">
+                    <h4 class="text-[14px] text-light dark:text-subtitle-dark mb-[8px] font-normal">Registrado por:</h4>
+                    <div class="flex items-center mb-[15px] gap-[15px]">
+                        <span class="text-[14px] font-medium text-theme-gray dark:text-subtitle-dark capitalize" id="field-payment-registered-by">...</span>
+                    </div>
+                </div>
+                <div class="col-span-12 sector-cancelled hidden">
+                    <h4 class="text-[14px] text-light dark:text-subtitle-dark mb-[8px] font-normal">Cancelado por:</h4>
+                    <div class="flex items-center mb-[15px] gap-[15px]">
+                        <span class="text-[14px] font-medium text-theme-gray dark:text-subtitle-dark capitalize" id="field-payment-cancelled-by">...</span>
+                    </div>
+                </div>
+                <div class="col-span-12 sector-cancelled hidden">
+                    <h4 class="text-[14px] text-light dark:text-subtitle-dark mb-[8px] font-normal">Fecha de Cancelación:</h4>
+                    <div class="flex items-center mb-[15px] gap-[15px]">
+                        <span class="text-[14px] font-medium text-theme-gray dark:text-subtitle-dark capitalize" id="field-payment-cancelled-date">...</span>
+                    </div>
+                </div>
+                <div class="col-span-12 sector-cancelled hidden">
+                    <h4 class="text-[14px] text-light dark:text-subtitle-dark mb-[8px] font-normal">Motivo de Cancelación:</h4>
+                    <div class="flex items-center mb-[15px] gap-[15px]">
+                        <span class="text-[14px] font-medium text-theme-gray dark:text-subtitle-dark capitalize" id="field-payment-cancelled-reason">...</span>
                     </div>
                 </div>
             </div>
@@ -164,6 +206,7 @@
 
 </div>
 
+<script src="<?= asset('js/payments/receipt-modal.js'); ?>"></script>
 <script src="<?= asset('js/payments/index.js'); ?>"></script>
 
 <script>

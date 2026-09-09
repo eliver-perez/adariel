@@ -1,13 +1,14 @@
 // JavaScript Document
 
 var homeURL;
-var new_procedure = modify_procedure = registering_procedure = modifying_procedure = false;
 var selected_cash_reconciliation = null;
 
 var loading_status = true;
 
 function InitializeValues(home) {
 	homeURL = home;
+	InitializeReceiptModal();
+	InitializeCashReconciliationModal();
 	GetCashReconciliations();
 }
 
@@ -156,7 +157,7 @@ function SelectCashReconciliation(id) {
 														</td>
 														<td class="ps-4 pe-0 py-2.5 font-normal last:text-end capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent rounded-e-[4px]">
 															<div class="text-primary dark:text-subtitle-dark text-[19px] flex justify-start p-0 m-0 gap-[5px]">
-																<button type="button" class="uil uil-eye hover:text-secondary cursor-pointer" title="Iniciar Consulta" onclick="PaymentReport('${v.id}');"></button>
+																<button type="button" class="uil uil-eye hover:text-secondary cursor-pointer" title="Visualizar Pago" onclick="PaymentReport('${v.id}');"></button>
 															</div>
 														</td>
 													</tr>`);

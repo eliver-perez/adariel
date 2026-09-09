@@ -3,6 +3,8 @@
     $section = "Cortes";
 
     require_once __DIR__.'/../layout/title.php';
+    require_once __DIR__.'/cash-reconciliation-modal.php';
+    require_once __DIR__.'/../payments/receipt_modal.php';
 ?>
 
 <div class="sm:grid sm:grid-cols-12 max-sm:flex max-sm:flex-col gap-[25px]">
@@ -206,6 +208,8 @@
     </div>
 </div>
 
+<script src="<?= asset('js/payments/receipt-modal.js'); ?>"></script>
+<script src="<?= asset('js/cash-reconciliation/cash-reconciliation-modal.js'); ?>"></script>
 <script src="<?= asset('js/cash-reconciliation/index.js'); ?>"></script>
 
 <script>

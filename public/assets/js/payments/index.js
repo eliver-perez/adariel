@@ -2,82 +2,70 @@
 
 var homeURL;
 
-var selected_payment_receipt = '';
+let selected_payment = '';
+let selected_payment_folio = '';
+let selected_payment_receipt = '';
 var loading_status = true;
-let receiptModal = null;
-let sending_receipt_mail = false;
+let deleting_payment = false;
 
 function InitializeValues(home) {
 	homeURL = home;
-	receiptModal = document.getElementById('modal-receipt');
-	$('#modal-receipt').on('hidden.te.modal', function () {
-		$('#receipt-preview').attr('src', '');
-		generated_report_id = '';
-	});
-	$('#btn-print-receipt').on('click', PrintReceipt);
-	$('#btn-send-receipt').on('click', SendReceiptMail);
-	GetPayments();
-}
-
-function PrintReceipt() {
-	const iframe = document.getElementById('receipt-preview');
-
-	iframe.contentWindow.focus();
-	iframe.contentWindow.print();
-}
-
-function SendReceiptMail() {
-	if(!sending_receipt_mail) {
-		if(selected_payment_receipt != '') {
-			if($('#field-send-receipt-email').val() != '') {
-				sending_receipt_mail = true;
-				$('#btn-send-receipt').attr('disabled', true);
-				$.ajax({
-					url: `${homeURL}/api/payments/${selected_payment_receipt}/send`,
-					type: 'post',
-					data: {
-						method: 'email',
-						recipient: $('#field-send-receipt-email').val()
-					},
-					dataType: "json",
-					success: function(response) {
-						sending_receipt_mail = false;
-						$('#btn-send-receipt').attr('disabled', false);
-						console.log(response);
-						if(response.success) {
-							ShowToastMessage(
-								'El comprobante fue enviado por correo electrónico.',
-								'success'
-							);
-
-							$('#field-send-receipt-email').val('');
-						} else {
-							ShowToastMessage(
-								response.message || 'No fue posible enviar el comprobante.',
-								'error'
-							);
-						}
-					},
-					error: function(XMLHttpRequest, textStatus, errorThrown) { 
-						sending_receipt_mail = false;
-						$('#btn-send-receipt').attr('disabled', false);
-						try {
-							var response = JSON.parse(XMLHttpRequest.responseText);
-							console.log(response.message);
-							ShowToastMessage(response.message, 'error');
-							
-						} catch (e) {
-							ShowToastMessage(XMLHttpRequest.responseText, 'error');
-						}
-					}  
-				});
+	InitializeReceiptModal();
+	$('#btn-payment-cancel').on('click', function() {
+		if(selected_payment != '') {
+			if(!deleting_payment) {
+				ShowSweetAlertConfirmCancelCallback('info',
+						'Cancelar Pago',
+						'Deseas cancelar el pago seleccionado, con folio: ' + selected_payment_folio,
+						'Cancelar Pago',
+						'No',
+						(response) => {
+							if(response.isConfirmed) {
+								deleting_payment = true;
+								$('#btn-payment-cancel').attr('disabled', true);
+								$.ajax({
+									url: `${homeURL}/api/payments/${selected_payment}`,
+									type: 'delete',
+									dataType: "json",
+									success: function(response) {
+										deleting_payment = false;
+										$('#btn-payment-cancel').attr('disabled', false);
+										console.log(response);
+										if(response.success) {
+											ShowToastMessage(
+												response.message,
+												'success'
+											);
+											selected_payment = '';
+											SelectPayment(response.data.id);
+										} else {
+											ShowToastMessage(
+												response.message,
+												'error'
+											);
+										}
+									},
+									error: function(XMLHttpRequest, textStatus, errorThrown) { 
+										deleting_payment = false;
+										$('#btn-payment-cancel').attr('disabled', false);
+										try {
+											var response = JSON.parse(XMLHttpRequest.responseText);
+											console.log(response.message);
+											ShowToastMessage(response.message, 'error');
+											
+										} catch (e) {
+											ShowToastMessage(XMLHttpRequest.responseText, 'error');
+										}
+									}  
+								});
+							}
+						});
+			} else {
+				ShowToastMessage('Hay un proceso de cancelación pendiente...', 'error');
 			}
-		} else {
-			ShowToastMessage('Es necesario seleccionar un pago.', 'error');
 		}
-	} else {
-		ShowToastMessage("Hay un proceso de envio pendiente.", "error");
-	}
+	});
+	GetPayments();
 }
 
 function GetPayments() {
@@ -142,11 +130,21 @@ function GetPayments() {
 
 function ClearPaymentData() {
 	selected_payment = '';
+	selected_payment_folio = '';
 	$('#field-payment-registrar').html('...');
 	$('#field-payment-status').removeClass('text-primary bg-primary/20 text-secondary bg-secondary/20 text-danger bg-danger/20 text-success bg-success/20');
 	$('#field-payment-status').addClass('text-warning bg-warning/20');
 	$('#field-payment-status').html('...');
 	$('#field-payment-folio').html('...');
+	$('#field-payment-date').html('...');
+	$('#field-payment-client').html('...');
+	$('#field-payment-method').html('...');
+	$('#field-payment-registered-by').html('...');
+	$('#field-payment-cancelled-by').html('...');
+	$('#field-payment-cancelled-date').html('...');
+	$('#field-payment-cancelled-reason').html('...');
+	if(!$('.sector-cancelled').hasClass('hidden'))
+		$('.sector-cancelled').addClass('hidden');
 	$('#btn-payment-cancel').attr('disabled', true);
 	$('#table-sales tbody').empty();
 	$('#table-payment-details tbody').empty();
@@ -163,19 +161,35 @@ function SelectPayment(id) {
 				console.log(response);
 				if(response.success) {
 					selected_payment = response.data.id;
+					selected_payment_folio = response.data.folio;
 
 					$('#field-payment-cash-reconciliation').html(response.data.cash_reconciliation_folio);
 
 					$('#field-payment-status').removeClass('text-warning bg-warning/20');
-					if(response.data.status == 1)
+					if(response.data.status_code == 'active')
 						$('#field-payment-status').addClass('text-success bg-success/20');
-					else if(response.data.status == 2)
+					else if(response.data.status_code == 'cancelled')
 						$('#field-payment-status').addClass('text-danger bg-danger/20');
 					else
 						$('#field-payment-status').addClass('text-warning bg-warning/20');
-					$('#field-payment-status').html(response.data.status == 1 ? 'Activo' : 'Cancelado');
+					$('#field-payment-status').html(response.data.status);
+
+					if(response.data.status_code == 'active' && response.data.cash_reconciliation_status == 'open')
+						$('#btn-payment-cancel').attr('disabled', false);
+					else
+						$('#btn-payment-cancel').attr('disabled', true);
+
+					if(response.data.status_code != 'active' && $('.sector-cancelled').hasClass('hidden'))
+						$('.sector-cancelled').removeClass('hidden');
 
 					$('#field-payment-folio').html(response.data.folio);
+					$('#field-payment-date').html(response.data.payment_date);
+					$('#field-payment-client').html(response.data.client);
+					$('#field-payment-method').html(response.data.payment_method);
+					$('#field-payment-registered-by').html(response.data.registered_by);
+					$('#field-payment-cancelled-by').html(response.data.cancelled_by);
+					$('#field-payment-cancelled-date').html(response.data.cancelled_date);
+					$('#field-payment-cancelled-reason').html(response.data.cancelled_reason);
 					
 					$.each(response.data.sales, function(k, v) {
 						$('#table-sales tbody').append(`<tr class="transition duration-300 ease-in-out border-b hover:bg-neutral-100 dark:border-neutral-500 dark:hover:bg-neutral-600 cursor-pointer">
@@ -244,23 +258,5 @@ function SelectPayment(id) {
 				}
 			}  
 		});
-	}
-}
-
-var generated_report_id = '';
-
-function PaymentReport(id) {
-	selected_payment_receipt = id;
-	const modal = new te.Modal(receiptModal);
-	
-	$('#receipt-preview').attr('src', `${homeURL}/receipt-modal?id=${id}`);
-	generated_report_id = id;
-
-	modal.show();
-}
-
-function ViewReport() {
-	if(generated_report_id != '') {
-		window.open(`${homeURL}/receipt/${generated_report_id}`, '_self');
 	}
 }

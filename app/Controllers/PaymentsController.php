@@ -10,6 +10,7 @@ use App\Core\Request;
 use App\Core\Response;
 use App\Core\Database;
 use App\Repositories\PaymentsRepository;
+use App\Repositories\PaymentsStatusRepository;
 use App\Repositories\CashReconciliationRepository;
 use App\Repositories\CashReconciliationStatusRepository;
 use App\Repositories\CashRegisterRepository;
@@ -30,6 +31,7 @@ class PaymentsController extends Controller
         $conn = $database->getConnection();
 
         $paymentsRepository = new PaymentsRepository($conn);
+        $paymentsStatusRepository = new PaymentsStatusRepository($conn);
         $cashReconciliationRepository = new CashReconciliationRepository($conn);
         $cashReconciliationStatusRepository = new CashReconciliationStatusRepository($conn);
         $cashRegisterRepository = new CashRegisterRepository($conn);
@@ -37,6 +39,7 @@ class PaymentsController extends Controller
         $settingsRepository = new SettingsRepository($conn);
 
         return new PaymentsService($paymentsRepository,
+                                            $paymentsStatusRepository,
                                             $cashReconciliationRepository,
                                             $cashReconciliationStatusRepository,
                                             $cashRegisterRepository,
@@ -252,6 +255,50 @@ class PaymentsController extends Controller
                 'message' => 'Comprobante Enviado.',
                 'data' => $receipt
             ], 200);
+        } catch (InvalidArgumentException | RuntimeException $e) {
+            return $response->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        } catch (Throwable $e) {
+            return $response->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function delete(Request $request, Response $response, string $uuid) {
+        try {
+            $currentUserId = Auth::id();
+            if($currentUserId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
+            $organizationId = Auth::organizationId();
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron registros de su empresa.");
+            }
+            $organizationBranchId = Auth::organizationBranchId();
+            if($organizationBranchId === null) {
+                throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
+            $service = $this->getService();
+
+            $service->delete([
+                'organizationId'            => $organizationId,
+                'branchId'                  => $organizationBranchId,
+                'uuid'                      => $uuid,
+                'reason'                    => $request->input('reason', ''),
+                'uid'                       => $currentUserId
+            ]);
+
+            return $response->json([
+                    'success' => true,
+                    'message' => 'Pago cancelado.',
+                    'data' => [
+                        'id'                => $uuid
+                    ]
+                ], 200);
         } catch (InvalidArgumentException | RuntimeException $e) {
             return $response->json([
                 'success' => false,

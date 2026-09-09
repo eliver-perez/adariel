@@ -14,7 +14,9 @@ use App\Repositories\CashReconciliationStatusRepository;
 use App\Repositories\CashRegisterRepository;
 use App\Repositories\PaymentsRepository;
 use App\Repositories\FoliosRepository;
+use App\Repositories\OrganizationsRepository;
 use App\Repositories\SettingsRepository;
+use App\Repositories\MediaRepository;
 use App\Services\CashReconciliationService;
 use InvalidArgumentException;
 use RuntimeException;
@@ -34,14 +36,18 @@ class CashReconciliationController extends Controller
         $cashRegisterRepository = new CashRegisterRepository($conn);
         $paymentsRepository = new PaymentsRepository($conn);
         $foliosRepository = new FoliosRepository($conn);
+        $organizationsRepository = new OrganizationsRepository($conn);
         $settingsRepository = new SettingsRepository($conn);
+        $mediaRepository = new MediaRepository($conn);
 
         return new CashReconciliationService($cashReconciliationRepository,
                                             $cashReconciliationStatusRepository,
                                             $cashRegisterRepository,
                                             $paymentsRepository,
                                             $foliosRepository,
-                                            $settingsRepository);
+                                            $organizationsRepository,
+                                            $settingsRepository,
+                                            $mediaRepository);
     }
 
     private function getRepository(): CashReconciliationRepository {
@@ -353,6 +359,64 @@ class CashReconciliationController extends Controller
                 'success' => false,
                 'message' => $e->getMessage(),
             ]);
+        }
+    }
+
+    public function preview(Request $request, Response $response, string $id) {
+        try {
+            $currentUserId = Auth::id();
+            if($currentUserId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
+            $organizationId = Auth::organizationId();
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron registros de su empresa.");
+            }
+            $organizationBranchId = Auth::organizationBranchId();
+            if($organizationBranchId === null) {
+                throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
+            $currentTimezone = Auth::organizationBranchTimeZone();
+            if($currentTimezone === null) {
+                $currentTimezone = Auth::organizationTimeZone();
+            }
+            $service = $this->getService();
+
+            $pdfContent = $service->previewPdf([
+                'appName'                       => env('APP_NAME') ?? 'ERP',
+                'appLogo'                       => env('APP_LOGO') ?? env('APP_LOGO_V'),
+                'uuid'                          => $id,
+                'organizationId'                => $organizationId,
+                'branchId'                      => $organizationBranchId,
+                'timezone'                      => $currentTimezone ?? env('TIMEZONE'),
+                'uid'                           => $currentUserId
+            ]);
+
+            $download = $this->request->query('download', '0');
+
+            header('Content-Type: application/pdf');
+            
+            if ($download) {
+                header('Content-Disposition: attachment; filename="corte-de-caja.pdf"');
+            } else {
+                header('Content-Disposition: inline; filename="corte-de-caja.pdf"');
+            }
+
+            header('Content-Length: ' . strlen($pdfContent));
+
+            echo $pdfContent;
+            exit;
+
+        } catch (InvalidArgumentException | RuntimeException $e) {
+            return $response->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        } catch (Throwable $e) {
+            return $response->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
         }
     }
 }

@@ -137,6 +137,54 @@ class OrganizationsRepository
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
+    public function getOrganizationBranchData(array $data) {
+        $sql = "
+            SELECT
+                s.id,
+                s.uuid,
+                s.clave,
+                e.empresa,
+                s.sucursal,
+                TRIM(
+                    CONCAT(
+                        s.calle, ' ',
+                        COALESCE(s.num_ext, ''), ' ',
+                        COALESCE(s.num_int, ''), ', ',
+                        COALESCE(c.colonia, ''), ', ',
+                        COALESCE(m.municipio, ''), ', ',
+                        COALESCE(es.estado, '')
+                    )
+                ) domicilio,
+                s.telefono,
+                s.movil,
+                s.email,
+                s.encargado,
+                s.activo,
+                COALESCE(r.nombre, 'N/D') registro,
+                COALESCE(DATE_FORMAT(s.f_registro, '%Y-%m-%d %H:%i:%s'), '') f_registro
+            FROM sucursales s
+                INNER JOIN empresas e
+                    ON s.empresa = e.id
+                LEFT JOIN colonias c
+                    ON s.colonia = c.id
+                LEFT JOIN municipios m
+                    ON c.municipio = m.id
+                LEFT JOIN estados es
+                    ON m.estado = es.id
+                LEFT JOIN usuarios r
+                    ON s.registro = r.id
+            WHERE e.uuid = :empresa_uuid
+                AND s.uuid = :sucursal_uuid
+        ";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':empresa_uuid', $data['organization_uuid'], PDO::PARAM_LOB);
+        $stmt->bindParam(':sucursal_uuid', $data['branch_uuid'], PDO::PARAM_LOB);
+        $stmt->execute();
+
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
     public function getAllOrganizationBranches(array $data) {
         $sql = "
             SELECT

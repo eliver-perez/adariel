@@ -2974,6 +2974,15 @@ CREATE TABLE cortes_retiros (
     CONSTRAINT FK_cortesretiros_retiro FOREIGN KEY(retiro) REFERENCES usuarios(id)
 );
 
+CREATE TABLE pagos_estatus (
+    id                              SMALLINT AUTO_INCREMENT PRIMARY KEY,
+    codigo                          VARCHAR(20) NOT NULL UNIQUE,
+    estatus                         VARCHAR(20) NOT NULL
+);
+
+INSERT INTO pagos_estatus(codigo, estatus) VALUES('active', 'Activo'),
+                                                ('cancelled', 'Cancelado');
+
 CREATE TABLE pagos (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
@@ -3002,7 +3011,8 @@ CREATE TABLE pagos (
     CONSTRAINT FK_pagos_cliente FOREIGN KEY(cliente) REFERENCES clientes(id),
     CONSTRAINT FK_pagos_registro FOREIGN KEY(registro) REFERENCES usuarios(id),
     CONSTRAINT FK_pagos_corte FOREIGN KEY(corte) REFERENCES cortes(id),
-    CONSTRAINT FK_pagos_metodopago FOREIGN KEY(metodo_pago) REFERENCES metodos_pago(id)
+    CONSTRAINT FK_pagos_metodopago FOREIGN KEY(metodo_pago) REFERENCES metodos_pago(id),
+    CONSTRAINT FK_pagos_estatus FOREIGN KEY(estatus) REFERENCES pagos_estatus(id)
 );
 
 CREATE TABLE pagos_ventas (

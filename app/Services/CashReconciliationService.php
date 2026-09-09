@@ -11,8 +11,11 @@ use App\Repositories\CashReconciliationStatusRepository;
 use App\Repositories\CashRegisterRepository;
 use App\Repositories\PaymentsRepository;
 use App\Repositories\FoliosRepository;
+use App\Repositories\OrganizationsRepository;
 use App\Repositories\SettingsRepository;
+use App\Repositories\MediaRepository;
 use App\Services\SettingsService;
+use App\Pdf\CashReconciliation\CashReconciliationPdfRenderer;
 use InvalidArgumentException;
 use RuntimeException;
 
@@ -24,7 +27,9 @@ class CashReconciliationService extends Service
         private CashRegisterRepository $cashRegisterRepository,
         private PaymentsRepository $paymentsRepository,
         private FoliosRepository $foliosRepository,
-        private SettingsRepository $settingsRepository
+        private OrganizationsRepository $organizationsRepository,
+        private SettingsRepository $settingsRepository,
+        private MediaRepository $mediaRepository
     ) {
     }
 
@@ -355,5 +360,47 @@ class CashReconciliationService extends Service
         $_SESSION['cash_reconciliation']['opened_by'] = $opened_by;
         $_SESSION['cash_reconciliation']['opened_by_name'] = $opened_by_name;
         $_SESSION['cash_reconciliation']['opened_date'] = $opened_date;
+    }
+
+    public function previewPdf(array $data): string {
+        $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+        $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+        $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
+
+        $uuid = $this->normalizeRequiredText($data['uuid'] ?? null, 'No se recibio un corte.');
+
+        $organization_uuid = $this->organizationsRepository->getOrganizationUuid($organizationId);
+        $organization_data = $this->organizationsRepository->getOrganizationData($organization_uuid);
+        $data['organization'] = $organization_data['empresa'];
+
+        if($branchId != null) {
+            $organization_branch_uuid = $this->organizationsRepository->getOrganizationBranchUuid($branchId);
+            $organization_branch_data = $this->organizationsRepository->getOrganizationBranchData([
+                'organization_uuid'                         => $organization_uuid,
+                'branch_uuid'                               => $organization_branch_uuid
+            ]);
+            $data['branch'] = $organization_branch_data['sucursal'];
+        } else {
+            $data['branch'] = "";
+        }
+        $data['logo'] = $this->mediaRepository->findByOrganizationType([
+            'organization'                                  => $organizationId,
+            'type'                                          => 'ORGANIZATION_LOGO'
+        ]);
+        $data['font_size'] = 8;
+        $data['line_height'] = 1.2;
+
+        $data['cash_reconciliation'] = $this->cashReconciliationRepository->getCashReconciliationData([
+            'uuid'                                          => $this->uuidStringToBinary($uuid),
+            'organization'                                  => $organizationId
+        ]);
+        $data['cash_reconciliation']['payments'] = $this->paymentsRepository->getAllCashReconciliationPayments([
+            'uuid'                                          => $this->uuidStringToBinary($uuid),
+            'organization'                                  => $organizationId
+        ]);
+
+        $renderer = new CashReconciliationPdfRenderer();
+
+        return $renderer->renderPreview($data);
     }
 }

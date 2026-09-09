@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Core\Service;
 use App\Core\DateTimeService;
 use App\Repositories\PaymentsRepository;
+use App\Repositories\PaymentsStatusRepository;
 use App\Repositories\CashReconciliationRepository;
 use App\Repositories\CashReconciliationStatusRepository;
 use App\Repositories\CashRegisterRepository;
@@ -24,6 +25,7 @@ class PaymentsService extends Service
 {
     public function __construct(
         private PaymentsRepository $paymentsRepository,
+        private PaymentsStatusRepository $paymentsStatusRepository,
         private CashReconciliationRepository $cashReconciliationRepository,
         private CashReconciliationStatusRepository $cashReconciliationStatusRepository,
         private CashRegisterRepository $cashRegisterRepository,
@@ -154,11 +156,16 @@ class PaymentsService extends Service
                 'id'                                => $this->uuidBinarytoString($payment_data['uuid']),
                 'folio'                             => $payment_data['folio'],
                 'cash_reconciliation_folio'         => $payment_data['folio_corte'],
+                'cash_reconciliation_status'        => $payment_data['codigo_estatus_corte'],
                 'consecutive'                       => $payment_data['consecutivo'],
                 'client'                            => $payment_data['cliente'],
                 'payment_method'                    => $payment_data['metodo_pago'],
                 'amount_payment'                    => $payment_data['monto_pago'],
                 'registered_by'                     => $payment_data['registro'],
+                'cancelled_by'                      => $payment_data['cancelo'] ?? '',
+                'cancelled_date'                    => $payment_data['f_cancelacion'] != null ? $datetimeService->fromUtcFormatted($payment_data['f_cancelacion']) : '',
+                'cancelled_reason'                  => $payment_data['motivo_cancelacion'] ?? '',
+                'status_code'                       => $payment_data['codigo_estatus_pago'],
                 'status'                            => $payment_data['estatus'],
                 'payment_date'                      => $datetimeService->fromUtcFormatted($payment_data['f_pago']),
                 'registered_date'                   => $datetimeService->fromUtcFormatted($payment_data['f_registro']),
@@ -473,6 +480,56 @@ class PaymentsService extends Service
             return (string) ob_get_clean();
         } catch (\Throwable $e) {
             ob_end_clean();
+            throw $e;
+        }
+    }
+
+    function delete($data): void {
+        try {
+            $uid = $this->normalizeRequiredInt($data['uid'] ?? null, 'No existe una sesion activa.');
+            $organizationId = $this->normalizeRequiredInt($data['organizationId'] ?? null, 'No se encontraron datos de su empresa.');
+            $branchId = $this->normalizeRequiredInt($data['branchId'] ?? null, 'No se encontraron datos de una sucursal.');
+
+            $uuid = $this->normalizeRequiredText($data['uuid'] ?? null, 'Error al recibir identificador de pago.');
+
+            $reason = $this->normalizeOptionalText($data['reason'] ?? null);
+
+            $payment_data = $this->paymentsRepository->getPayment([
+                'uuid'                          => $this->uuidStringtoBinary($uuid),
+                'organization'                  => $organizationId
+            ]);
+
+            if(!$payment_data)
+                throw new RuntimeException("No se encontro información del pago.");
+
+            if($payment_data['codigo_estatus_corte'] != 'open')
+                throw new RuntimeException("El corte ya no se encuentra abierto, no es posible eliminar el pago.");
+
+            if($payment_data['codigo_estatus_pago'] != 'active')
+                throw new RuntimeException("El pago ya no se encuentra activo, no es posible eliminarlo.");
+
+            $payment_cancelled_id = $this->paymentsStatusRepository->getIdByCode('cancelled');
+            $cash_reconciliation_uuid = $payment_data['uuid_corte'];
+
+            if($payment_data['codigo_metodo_pago'] == 'efectivo')
+                $this->cashReconciliationRepository->cancelCashPayment([
+                    'uuid'                              => $cash_reconciliation_uuid,
+                    'cash'                              => $payment_data['monto_pago']
+                ]);
+            else
+                $this->cashReconciliationRepository->cancelOtherPayment([
+                    'uuid'                              => $cash_reconciliation_uuid,
+                    'amount'                            => $payment_data['monto_pago']
+                ]);
+            
+            $this->paymentsRepository->delete([
+                'uuid'                                  => $this->uuidStringToBinary($uuid),
+                'organization'                          => $organizationId,
+                'status'                                => $payment_cancelled_id,
+                'reason'                                => $reason,
+                'uid'                                   => $uid,
+            ]);
+        } catch(\Throwable $e) {
             throw $e;
         }
     }

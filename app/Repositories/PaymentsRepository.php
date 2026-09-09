@@ -108,8 +108,11 @@ class PaymentsRepository
                 p.id,
                 p.uuid,
                 p.folio,
+                cortes.uuid uuid_corte,
                 cortes.folio folio_corte,
+                ce.codigo codigo_estatus_corte,
                 p.consecutivo,
+                pe.codigo codigo_estatus_pago,
                 CASE WHEN c.id IS NOT NULL
                     THEN TRIM(
                                 CONCAT(
@@ -120,22 +123,32 @@ class PaymentsRepository
                             )
                     ELSE 'Publico en General'
                 END cliente,
+                mp.codigo codigo_metodo_pago,
                 mp.metodo metodo_pago,
                 p.monto_pago,
                 r.nombre registro,
-                p.estatus,
+                cancel.nombre cancelo,
+                p.motivo_cancelacion,
+                pe.estatus,
                 COALESCE(DATE_FORMAT(p.f_pago, '%Y-%m-%d %H:%i:%s'), '') f_pago,
+                COALESCE(DATE_FORMAT(p.f_cancelacion, '%Y-%m-%d %H:%i:%s'), '') f_cancelacion,
                 COALESCE(DATE_FORMAT(p.f_registro, '%Y-%m-%d %H:%i:%s'), '') f_registro,
                 COALESCE(DATE_FORMAT(p.f_actualizacion, '%Y-%m-%d %H:%i:%s'), '') f_actualizacion
             FROM pagos p
+                INNER JOIN pagos_estatus pe
+                    ON p.estatus = pe.id
                 LEFT JOIN clientes c
                     ON p.cliente = c.id
                 LEFT JOIN metodos_pago mp
                     ON p.metodo_pago = mp.id
                 LEFT JOIN usuarios r
                     ON p.registro = r.id
+                LEFT JOIN usuarios cancel
+                    ON p.cancelado_por = cancel.id
                 INNER JOIN cortes
                     ON p.corte = cortes.id
+                INNER JOIN cortes_estatus ce
+                    ON cortes.estatus = ce.id
                 LEFT JOIN sucursales s
                     ON p.sucursal = s.id
             WHERE p.uuid = :uuid
@@ -329,6 +342,57 @@ class PaymentsRepository
         foreach ($params as $key => $value) {
             $stmt->bindValue(':' . $key, $value, PDO::PARAM_STR);
         }
+
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+        $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getAllCashReconciliationPayments(array $data): array {
+        $sql = "SELECT
+                    p.id,
+                    p.uuid,
+                    p.folio,
+                    p.consecutivo,
+                    CASE WHEN c.id IS NOT NULL
+                        THEN TRIM(
+                                    CONCAT(
+                                        c.nombre, ' ',
+                                        COALESCE(c.paterno, ''), ' ',
+                                        COALESCE(c.materno, '')
+                                    )
+                                )
+                        ELSE 'Publico en General'
+                    END cliente,
+                    mp.metodo metodo_pago,
+                    p.monto_pago,
+                    r.nombre registro,
+                    pe.id estatus_id,
+                    pe.codigo estatus_codigo,
+                    pe.estatus,
+                    COALESCE(DATE_FORMAT(p.f_pago, '%Y-%m-%d %H:%i:%s'), '') f_pago,
+                    COALESCE(DATE_FORMAT(p.f_registro, '%Y-%m-%d %H:%i:%s'), '') f_registro,
+                    COALESCE(DATE_FORMAT(p.f_actualizacion, '%Y-%m-%d %H:%i:%s'), '') f_actualizacion
+                FROM pagos p
+                    LEFT JOIN pagos_estatus pe
+                        ON p.estatus = pe.id
+                    LEFT JOIN clientes c
+                        ON p.cliente = c.id
+                    LEFT JOIN metodos_pago mp
+                        ON p.metodo_pago = mp.id
+                    LEFT JOIN usuarios r
+                        ON p.registro = r.id
+                    INNER JOIN cortes
+                        ON p.corte = cortes.id
+                    INNER JOIN sucursales s
+                        ON p.sucursal = s.id
+                WHERE cortes.uuid = :uuid
+                    AND s.empresa = :empresa
+                ORDER BY p.f_pago DESC
+        ";
+        $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
         $stmt->bindValue(':empresa', $data['organization'], PDO::PARAM_INT);
         $stmt->execute();
@@ -482,5 +546,30 @@ class PaymentsRepository
         }
 
         return $this->db->lastInsertId();
+    }
+    
+    public function delete(array $data) {
+        $sql = "UPDATE pagos SET
+                            estatus = :estatus,
+                            cancelado_por = :cancelado_por,
+                            f_cancelacion = NOW(),
+                            motivo_cancelacion = :motivo
+                            WHERE uuid = :uuid
+        ";
+
+        $stmt = $this->db->prepare($sql);
+
+        $stmt->bindValue(':estatus', $data['status'], PDO::PARAM_INT);
+        $stmt->bindValue(':cancelado_por', $data['uid'], PDO::PARAM_INT);
+        $stmt->bindValue(':motivo', $data['reason'], PDO::PARAM_STR);
+        $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
+
+        $stmt->execute();
+
+        if ($stmt->rowCount() === 0) {
+            return false;
+        }
+
+        return true;
     }
 }

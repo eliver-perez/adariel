@@ -251,6 +251,7 @@ $router->put('/api/cash-reconciliation', [CashReconciliationController::class, '
 $router->get('/api/cash-reconciliation-branch', [CashReconciliationController::class, 'indexBranch']);                                                      // ✅
 $router->get('/api/cash-reconciliation/{id}', [CashReconciliationController::class, 'show']);                                                               // ✅
 $router->get('/api/cash-reconciliation-closing-data', [CashReconciliationController::class, 'cashReconciliationClosingData']);                              // ✅
+$router->get('/api/cash-reconciliation/{id}/preview', [CashReconciliationController::class, 'preview']);                                                               
 
 /**
  * UNITS MEASURE ROUTES
@@ -262,7 +263,7 @@ $router->get('/api/units-measure', [UnitsMeasureController::class, 'index']);   
  */
 $router->get('/api/products/categories', [ProductsController::class, 'categories']);                                                                        // ✅
 $router->get('/api/products', [ProductsController::class, 'index']);                                                                                        // ✅
-$router->get('/api/products/{id}', [ProductsController::class, 'show']);                                                                                     // ✅
+$router->get('/api/products/{id}', [ProductsController::class, 'show']);                                                                                    // ✅
 $router->post('/api/products', [ProductsController::class, 'store']);                                                                                       // ✅
 
 /**
@@ -270,6 +271,7 @@ $router->post('/api/products', [ProductsController::class, 'store']);           
  */
 $router->get('/api/payments-branch', [PaymentsController::class, 'indexBranch']);                                                                           // ✅
 $router->get('/api/payments/{id}', [PaymentsController::class, 'show']);                                                                                    // ✅
+$router->delete('/api/payments/{id}', [PaymentsController::class, 'delete']);                                                                              
 $router->post('/api/payments/{id}/send', [PaymentsController::class, 'sendReceipt']);                                                                       // ✅
 
 /**
