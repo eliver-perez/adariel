@@ -401,13 +401,17 @@ class SalesRepository
                 v.uuid,
                 v.folio,
                 cl.uuid cliente_uuid,
-                TRIM(
-                    CONCAT(
-                        cl.nombre, ' ',
-                        COALESCE(cl.paterno, ''), ' ',
-                        COALESCE(cl.materno, '')
-                    )
-                ) cliente,
+                CASE
+                    WHEN cl.id IS NOT NULL THEN
+                        TRIM(
+                            CONCAT(
+                                cl.nombre, ' ',
+                                COALESCE(cl.paterno, ''), ' ',
+                                COALESCE(cl.materno, '')
+                            )
+                        )
+                    ELSE 'Público en General'
+                END cliente,
                 p.uuid paciente_uuid,
                 TRIM(
                     CONCAT(
@@ -422,12 +426,17 @@ class SalesRepository
                 v.descuento,
                 v.pagado,
                 v.adeudo,
+                v.monto_cancelado,
                 ve.id estatus_id,
                 ve.codigo estatus_codigo,
                 ve.estatus,
                 v.observaciones,
+                u.nombre registro,
+                cancelo.nombre cancelo,
                 COALESCE(DATE_FORMAT(v.f_venta, '%Y-%m-%d %H:%i:%s'), '') f_venta,
                 COALESCE(DATE_FORMAT(v.f_registro, '%Y-%m-%d %H:%i:%s'), '') f_registro,
+                COALESCE(DATE_FORMAT(v.f_pagado, '%Y-%m-%d %H:%i:%s'), '') f_pagado,
+                COALESCE(DATE_FORMAT(v.f_cancelacion, '%Y-%m-%d %H:%i:%s'), '') f_cancelacion,
                 COALESCE(DATE_FORMAT(v.f_actualizacion, '%Y-%m-%d %H:%i:%s'), '') f_actualizacion
             FROM ventas v
                 LEFT JOIN clientes cl
@@ -438,6 +447,8 @@ class SalesRepository
                     ON v.estatus = ve.id
                 INNER JOIN usuarios u
                     ON v.registro = u.id
+                LEFT JOIN usuarios cancelo
+                    ON v.cancelo = cancelo.id
             WHERE v.uuid = :uuid
                 AND v.sucursal = :sucursal
             LIMIT 1");
@@ -478,6 +489,7 @@ class SalesRepository
                     ON vd.producto = p.id
             WHERE v.uuid = :uuid
                 AND v.sucursal = :sucursal
+            ORDER BY vd.id ASC
         ");
 
         $stmt->bindValue(':uuid', $data['uuid'], PDO::PARAM_LOB);
@@ -547,6 +559,37 @@ class SalesRepository
 
             $stmt->bindValue(':payment_amount', $data['payment_amount'], PDO::PARAM_STR);
             $stmt->bindValue(':balance_due', $data['balance_due'], PDO::PARAM_STR);
+            $stmt->bindValue(':sale', $data['sale'], PDO::PARAM_LOB);
+
+            $stmt->execute();
+
+            if ($stmt->rowCount() === 0) {
+                return false;
+            }
+
+            return true;
+        } catch(Exception $ex) {
+            throw $ex;
+        }
+    }
+    
+    public function cancelSale(array $data) {
+        try {
+            $sql = "
+                UPDATE ventas SET
+                    estatus = :estatus,
+                    adeudo = 0,
+                    monto_cancelado = :adeudo,
+                    cancelo = :cancelo,
+                    f_cancelacion = NOW()
+                WHERE uuid = :sale
+            ";
+
+            $stmt = $this->db->prepare($sql);
+
+            $stmt->bindValue(':estatus', $data['status'], PDO::PARAM_INT);
+            $stmt->bindValue(':adeudo', $data['balance_due'], PDO::PARAM_STR);
+            $stmt->bindValue(':cancelo', $data['uid'], PDO::PARAM_INT);
             $stmt->bindValue(':sale', $data['sale'], PDO::PARAM_LOB);
 
             $stmt->execute();

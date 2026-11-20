@@ -3,11 +3,14 @@
 var homeURL;
 
 var selected_sale = '';
+var selected_sale_folio = '';
+var selected_sale_client = '';
 var loading_status = true;
 var searchTimer = null, searchValue = '';
 
 function InitializeValues(home) {
 	homeURL = home;
+	InitializeSaleModal();
 	$('#modal-receipt').on('hidden.te.modal', function () {
 		$('#receipt-preview').attr('src', '');
 		generated_report_id = '';
@@ -22,6 +25,7 @@ function InitializeValues(home) {
 			}, 500);
 		}
 	});
+	$('#btn-sale-cancel').on('click', CancelSale);
 	GetSalesStatus();
 }
 
@@ -98,13 +102,13 @@ function GetBranchSales() {
 													<td onclick="SelectSale('${v.id}');" class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
 														${accounting.formatMoney(v.paid)}
 													</td>
-													<td onclick="SelectSale('${v.id}');" class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
+													<td onclick="SelectSale('${v.id}');" class="${v.id}-balance-due px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
 														${accounting.formatMoney(v.balance_due)}
 													</td>
 													<td onclick="SelectSale('${v.id}');" class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
 														${v.registered_by}
 													</td>
-													<td onclick="SelectSale('${v.id}');" class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
+													<td onclick="SelectSale('${v.id}');" class="${v.id}-status px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
 														<div class="inline-flex items-center gap-[10px] text-light dark:text-subtitle-dark text-[10px] capitalize">
 															<span class="${status_color} rounded-[15px] py-[4px] px-[8.23px] text-[12px] font-medium leading-[13px] text-center text-white">${v.status}</span>
 														</div>
@@ -135,6 +139,9 @@ function GetBranchSales() {
 }
 
 function ClearSaleData() {
+	selected_sale = '';
+	selected_sale_folio = '';
+	selected_sale_client = '';
 	$('#field-sale-client-tag').html('...');
 	$('#field-sale-status').removeClass('text-primary bg-primary/20 text-secondary bg-secondary/20 text-danger bg-danger/20 text-success bg-success/20');
 	$('#field-sale-status').addClass('text-warning bg-warning/20');
@@ -156,8 +163,8 @@ function ClearSaleData() {
 
 function SelectSale(id) {
 	if(selected_sale != id) {
-		selected_sale = id;
 		ClearSaleData();
+		selected_sale = id;
 		$.ajax({
 			url: `${homeURL}/api/sales/${id}`,
 			type: 'get',
@@ -165,6 +172,10 @@ function SelectSale(id) {
 			success: function(response) {
 				console.log(response);
 				if(response.success) {
+					selected_sale = response.data.id;
+					selected_sale_folio = response.data.folio;
+					selected_sale_client = response.data.client;
+
 					$('#field-sale-client-tag').html(response.data.client ?? '');
 					
 					$('#field-sale-status').removeClass('text-warning bg-warning/20');
@@ -189,6 +200,10 @@ function SelectSale(id) {
 					$('#field-sale-paid').html(accounting.formatMoney(response.data.amount_paid ?? 0));
 					$('#field-sale-balance-due').html(accounting.formatMoney(response.data.balance_due ?? 0));
 					$('#field-sale-observations').html(response.data.observations ?? '');
+
+					if(response.data.balance_due > 0 && response.data.status_code == 'pendiente') {
+						$('#btn-sale-cancel').attr('disabled', false);
+					}
 					
 					$.each(response.data.details, function(k, v) {
 						$('#table-sale-details tbody').append(`<tr class="transition duration-300 ease-in-out border-b hover:bg-neutral-100 dark:border-neutral-500 dark:hover:bg-neutral-600 cursor-pointer">
@@ -208,7 +223,7 @@ function SelectSale(id) {
 															${accounting.formatMoney(v.total)}
 														</td>
 														<td class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
-															${accounting.formatMoney(v.balance_before_payment)}
+															${accounting.formatMoney(v.balance_due)}
 														</td>
 														<td class="px-4 py-2.5 font-normal capitalize text-[14px] text-dark dark:text-title-dark border-none group-hover:bg-transparent">
 															${accounting.formatMoney(v.amount_paid)}
@@ -229,6 +244,53 @@ function SelectSale(id) {
 				}
 			}  
 		});
+	}
+}
+
+function CancelSale() {
+	if(selected_sale != '') {
+		ShowSweetAlertConfirmCancelCallback(
+			'question',
+			'Cancelar Venta',
+			`¿Deseas proceder con la cancelación de la venta ${selected_sale_folio} del cliente ${selected_sale_client}?`,
+			'Cancelar Venta',
+			'No',
+			(result) => {
+				if(result.isConfirmed) {
+					$.ajax({
+						url: `${homeURL}/api/sales/${selected_sale}/cancel`,
+						type: 'put',
+						dataType: "json",
+						success: function(response) {
+							console.log(response);
+							if(response.success) {
+								ShowToastMessage(response.message, 'success');
+								$(`.${response.data.id}-balance-due`).html(accounting.formatMoney(0));
+								$(`.${response.data.id}-status`).html(`<div class="inline-flex items-center gap-[10px] text-light dark:text-subtitle-dark text-[10px] capitalize">
+															<span class="bg-danger rounded-[15px] py-[4px] px-[8.23px] text-[12px] font-medium leading-[13px] text-center text-white">Cancelado</span>
+														</div>`);
+								selected_sale = '';
+								SelectSale(response.data.id);
+							} else {
+								ShowToastMessage(response.message, 'error');
+							}
+						},
+						error: function(XMLHttpRequest, textStatus, errorThrown) { 
+							try {
+								var response = JSON.parse(XMLHttpRequest.responseText);
+								console.log(response.message);
+								ShowToastMessage(response.message, 'error');
+								
+							} catch (e) {
+								ShowToastMessage(XMLHttpRequest.responseText, 'error');
+							}
+						}  
+					});
+				}
+			}
+		)
+	} else {
+		ShowToastMessage('Es necesario seleccionar una venta.', 'error');
 	}
 }
 

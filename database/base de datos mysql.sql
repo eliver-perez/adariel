@@ -2503,6 +2503,7 @@ CREATE TABLE proveedores (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
     uuid                            BINARY(16) NOT NULL UNIQUE,
     empresa                         INT NOT NULL,
+    clave                           VARCHAR(10) DEFAULT NULL,
     rfc                             VARCHAR(15) DEFAULT NULL,
     razon_social                    VARCHAR(255) NOT NULL,
     representante                   VARCHAR(255) NOT NULL,
@@ -2519,6 +2520,7 @@ CREATE TABLE proveedores (
     registro                        INT NOT NULL,
     f_registro                      DATETIME NOT NULL,
     f_actualizacion                 DATETIME NOT NULL,
+    CONSTRAINT UK_proveedores_clave UNIQUE(clave),
     CONSTRAINT FK_proveedores_empresa FOREIGN KEY(empresa) REFERENCES empresas(id),
     CONSTRAINT FK_proveedores_tipocontribuyente FOREIGN KEY(tipo_contribuyente) REFERENCES tipo_contribuyente(id),
     CONSTRAINT FK_proveedores_colonia FOREIGN KEY(colonia) REFERENCES colonias(id),
@@ -2776,11 +2778,15 @@ CREATE TABLE ventas (
     descuento                       NUMERIC(18, 2) NOT NULL DEFAULT 0,
     pagado                          NUMERIC(18, 2) NOT NULL DEFAULT 0,
     adeudo                          NUMERIC(18, 2) NOT NULL DEFAULT 0,
+    monto_cancelado                 NUMERIC(18, 2) NOT NULL DEFAULT 0,
     estatus                         SMALLINT NOT NULL,
     observaciones                   VARCHAR(1024) NOT NULL,
     registro                        INT NOT NULL,
+    cancelo                         INT DEFAULT NULL,
     f_venta                         DATETIME NOT NULL,
     f_registro                      DATETIME NOT NULL,
+    f_pagado                        DATETIME DEFAULT NULL,
+    f_cancelacion                   DATETIME DEFAULT NULL,
     f_actualizacion                 DATETIME DEFAULT NULL,
     CONSTRAINT UK_ventas_consecutivo UNIQUE(sucursal, ejercicio, consecutivo),
     CONSTRAINT FK_ventas_sucursal FOREIGN KEY(sucursal) REFERENCES sucursales(id),
@@ -2789,8 +2795,13 @@ CREATE TABLE ventas (
     CONSTRAINT FK_ventas_cliente FOREIGN KEY(cliente) REFERENCES clientes(id),
     CONSTRAINT FK_ventas_paciente FOREIGN KEY(paciente) REFERENCES pacientes(id),
     CONSTRAINT FK_ventas_registro FOREIGN KEY(registro) REFERENCES usuarios(id),
+    CONSTRAINT FK_ventas_cancelo FOREIGN KEY(cancelo) REFERENCES usuarios(id),
     CONSTRAINT FK_ventas_estatus FOREIGN KEY(estatus) REFERENCES ventas_estatus(id)
 );
+
+ALTER TABLE `ventas` ADD `cancelo` INT NULL DEFAULT NULL AFTER `registro`;
+ALTER TABLE `ventas` ADD `f_pagado` DATETIME NULL DEFAULT NULL AFTER `f_registro`, ADD `f_cancelacion` DATETIME NULL DEFAULT NULL AFTER `f_pagado`;
+ALTER TABLE ventas ADD CONSTRAINT FK_ventas_cancelo FOREIGN KEY(cancelo) REFERENCES usuarios(id);
 
 CREATE TABLE folios_consecutivos (
     id                              INT AUTO_INCREMENT PRIMARY KEY,

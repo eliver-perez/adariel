@@ -40,6 +40,7 @@ use App\Controllers\ProductsController;
 use App\Controllers\WhatsAppIntegrationController;
 use App\Controllers\WhatsAppMessageController;
 use App\Controllers\MediaController;
+use App\Controllers\SuppliersController;
 use App\Core\Response;
 
 $router->post('/api/auth/login', [AuthController::class, 'login']);                                                                                         // ✅
@@ -237,6 +238,8 @@ $router->post('/api/pos/empty-cart', [POSController::class, 'empty_cart']);     
 $router->get('/api/sales-branch', [SalesController::class, 'indexBranch']);                                                                                 // ✅
 $router->get('/api/sales/status', [SalesStatusController::class, 'index']);                                                                                 // ✅
 $router->get('/api/sales/{id}', [SalesController::class, 'show']);                                                                                          // ✅
+$router->put('/api/sales/{id}/cancel', [SalesController::class, 'cancel']);                                                                                 // ✅
+$router->get('/api/sales/{id}/preview', [SalesController::class, 'preview']);                                                                  
 
 /**
  * CASH REGISTER ROUTES
@@ -251,7 +254,7 @@ $router->put('/api/cash-reconciliation', [CashReconciliationController::class, '
 $router->get('/api/cash-reconciliation-branch', [CashReconciliationController::class, 'indexBranch']);                                                      // ✅
 $router->get('/api/cash-reconciliation/{id}', [CashReconciliationController::class, 'show']);                                                               // ✅
 $router->get('/api/cash-reconciliation-closing-data', [CashReconciliationController::class, 'cashReconciliationClosingData']);                              // ✅
-$router->get('/api/cash-reconciliation/{id}/preview', [CashReconciliationController::class, 'preview']);                                                               
+$router->get('/api/cash-reconciliation/{id}/preview', [CashReconciliationController::class, 'preview']);                                                    // ✅
 
 /**
  * UNITS MEASURE ROUTES
@@ -285,3 +288,8 @@ $router->post('/api/whatsapp-integration/test-connection', [WhatsAppIntegrationC
  * WHATSAPP MESSAGES ROUTES
  */
 $router->post('/api/whatsapp-messages/test', [WhatsAppMessageController::class, 'sendTestTemplate']);                                                       // ✅
+
+/**
+ * SUPPLIERS ROUTES
+ */
+$router->get('/api/suppliers', [SuppliersController::class, 'index']);                                                                                      // ✅

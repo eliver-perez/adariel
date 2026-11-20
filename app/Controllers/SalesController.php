@@ -18,7 +18,9 @@ use App\Repositories\AppointmentsStatusRepository;
 use App\Repositories\PatientsRepository;
 use App\Repositories\StaffRepository;
 use App\Repositories\ProceduresRepository;
+use App\Repositories\OrganizationsRepository;
 use App\Repositories\SettingsRepository;
+use App\Repositories\MediaRepository;
 use App\Services\SalesService;
 use InvalidArgumentException;
 use RuntimeException;
@@ -42,9 +44,22 @@ class SalesController extends Controller
         $patientsRepository = new PatientsRepository($conn);
         $staffRepository = new StaffRepository($conn);
         $proceduresRepository = new ProceduresRepository($conn);
+        $organizationsRepository = new OrganizationsRepository($conn);
         $settingsRepository = new SettingsRepository($conn);
+        $mediaRepository = new MediaRepository($conn);
 
-        return new SalesService($salesRepository, $salesStatusRepository, $appointmentsRepository, $appointmentsTypeRepository, $bookingChannelsRepository, $appointmentsStatusRepository, $patientsRepository, $staffRepository, $proceduresRepository, $settingsRepository);
+        return new SalesService($salesRepository,
+                                $salesStatusRepository,
+                                $appointmentsRepository,
+                                $appointmentsTypeRepository,
+                                $bookingChannelsRepository,
+                                $appointmentsStatusRepository,
+                                $patientsRepository,
+                                $staffRepository,
+                                $proceduresRepository,
+                                $organizationsRepository,
+                                $settingsRepository,
+                                $mediaRepository);
     }
 
     private function getRepository(): SalesRepository {
@@ -152,6 +167,107 @@ class SalesController extends Controller
                 'message' => 'Datos de Venta.',
                 'data' => $sale
             ], 200);
+        } catch (InvalidArgumentException | RuntimeException $e) {
+            return $response->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        } catch (Throwable $e) {
+            return $response->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function cancel(Request $request, Response $response, string $id) {
+        try {
+            $currentUserId = Auth::id();
+            if($currentUserId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
+            $organizationId = Auth::organizationId();
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron registros de su empresa.");
+            }
+            $organizationBranchId = Auth::organizationBranchId();
+            if($organizationBranchId === null) {
+                throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
+            $service = $this->getService();
+
+            $sale = $service->cancelSale([
+                'organizationId'                    => $organizationId,
+                'branchId'                          => $organizationBranchId,
+                'uuid'                              => $id,
+                'uid'                               => $currentUserId,
+            ]);
+
+            return $response->json([
+                'success' => true,
+                'message' => 'Venta Cancelada',
+                'data' => [
+                    'id'                            => $id
+                ]
+            ], 201);
+        } catch (InvalidArgumentException | RuntimeException $e) {
+            return $response->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        } catch (Throwable $e) {
+            return $response->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function preview(Request $request, Response $response, string $id) {
+        try {
+            $currentUserId = Auth::id();
+            if($currentUserId === null) {
+                throw new RuntimeException("No autenticado.");
+            }
+            $organizationId = Auth::organizationId();
+            if($organizationId === null) {
+                throw new RuntimeException("No se encontraron registros de su empresa.");
+            }
+            $organizationBranchId = Auth::organizationBranchId();
+            if($organizationBranchId === null) {
+                throw new RuntimeException("No se encontraron registros de su sucursal.");
+            }
+            $currentTimezone = Auth::organizationBranchTimeZone();
+            if($currentTimezone === null) {
+                $currentTimezone = Auth::organizationTimeZone();
+            }
+            $service = $this->getService();
+
+            $pdfContent = $service->previewPdf([
+                'appName'                       => env('APP_NAME') ?? 'ERP',
+                'appLogo'                       => env('APP_LOGO') ?? env('APP_LOGO_V'),
+                'uuid'                          => $id,
+                'organizationId'                => $organizationId,
+                'branchId'                      => $organizationBranchId,
+                'timezone'                      => $currentTimezone ?? env('TIMEZONE'),
+                'uid'                           => $currentUserId
+            ]);
+
+            $download = $this->request->query('download', '0');
+
+            header('Content-Type: application/pdf');
+            
+            if ((string)$download === '1') {
+                header('Content-Disposition: attachment; filename="reporte-venta.pdf"');
+            } else {
+                header('Content-Disposition: inline; filename="reporte-venta.pdf"');
+            }
+
+            header('Content-Length: ' . strlen($pdfContent));
+
+            echo $pdfContent;
+            exit;
+
         } catch (InvalidArgumentException | RuntimeException $e) {
             return $response->json([
                 'success' => false,

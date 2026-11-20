@@ -3,6 +3,7 @@
     $section = "Ventas";
 
     require_once __DIR__.'/../layout/title.php';
+    require_once __DIR__.'/sale-modal.php';
     require_once __DIR__.'/receipt_modal.php';
 ?>
 
@@ -334,6 +335,7 @@
 
 </div>
 
+<script src="<?= asset('js/sales/sale-modal.js'); ?>"></script>
 <script src="<?= asset('js/sales/index.js'); ?>"></script>
 
 <script>
