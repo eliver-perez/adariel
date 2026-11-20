@@ -13,6 +13,8 @@ use App\Repositories\AppointmentsStatusRepository;
 use App\Repositories\PatientsRepository;
 use App\Repositories\StaffRepository;
 use App\Repositories\ProceduresRepository;
+use App\Repositories\MediaRepository;
+use App\Repositories\OrganizationsRepository;
 use App\Repositories\SettingsRepository;
 use App\Services\SettingsService;
 use InvalidArgumentException;
@@ -28,12 +30,14 @@ class AppointmentsService extends Service
         private PatientsRepository $patientsRepository,
         private StaffRepository $staffRepository,
         private ProceduresRepository $proceduresRepository,
+        private MediaRepository $mediaRepository,
+        private OrganizationsRepository $organizationsRepository,
         private SettingsRepository $settingsRepository
     ) {
     }
 
     public function getAvailableSlots(int $organization): array {
-        $settingsService = new SettingsService($this->settingsRepository);
+        $settingsService = new SettingsService($this->settingsRepository, $this->mediaRepository, $this->organizationsRepository);
         $interval = $settingsService->get('agenda_intervalo_minutos', $organization);
     }
 
@@ -44,7 +48,7 @@ class AppointmentsService extends Service
 
         $datetimeService = new DateTimeService($data['timezone']);
 
-        $settingsService = new SettingsService($this->settingsRepository);
+        $settingsService = new SettingsService($this->settingsRepository, $this->mediaRepository, $this->organizationsRepository);
         $appointmentCodePrefix = $settingsService->get('codigo_cita', $organizationId);
 
         $date = $this->formatDateToSQL($data['appointment']['date'] ?? null);
@@ -217,7 +221,7 @@ class AppointmentsService extends Service
         );
         $chiefComplaint = $this->normalizeOptionalText($data['chief_complaint'] ?? null);
 
-        $settingsService = new SettingsService($this->settingsRepository);
+        $settingsService = new SettingsService($this->settingsRepository, $this->mediaRepository, $this->organizationsRepository);
         $appointmentCodePrefix = $settingsService->get('codigo_cita', $organizationId);
 
         $patientId = $this->patientsRepository->getPatientId([
@@ -447,7 +451,7 @@ class AppointmentsService extends Service
 
         $slots = [];
 
-        $settingsService = new SettingsService($this->settingsRepository);
+        $settingsService = new SettingsService($this->settingsRepository, $this->mediaRepository, $this->organizationsRepository);
         $interval = (int)$settingsService->get('agenda_intervalo_minutos', $organizationId);
         
         $date_sql = \DateTime::createFromFormat('d/m/Y', $data['date']);

@@ -16,6 +16,8 @@ use App\Repositories\AppointmentsStatusRepository;
 use App\Repositories\PatientsRepository;
 use App\Repositories\StaffRepository;
 use App\Repositories\ProceduresRepository;
+use App\Repositories\MediaRepository;
+use App\Repositories\OrganizationsRepository;
 use App\Repositories\SettingsRepository;
 use App\Services\AppointmentsService;
 use InvalidArgumentException;
@@ -38,9 +40,20 @@ class AppointmentsController extends Controller
         $patientsRepository = new PatientsRepository($conn);
         $staffRepository = new StaffRepository($conn);
         $proceduresRepository = new ProceduresRepository($conn);
+        $mediaRepository = new MediaRepository($conn);
+        $organizationsRepository = new OrganizationsRepository($conn);
         $settingsRepository = new SettingsRepository($conn);
 
-        return new AppointmentsService($appointmentsRepository, $appointmentsTypeRepository, $bookingChannelsRepository, $appointmentsStatusRepository, $patientsRepository, $staffRepository, $proceduresRepository, $settingsRepository);
+        return new AppointmentsService($appointmentsRepository,
+                                        $appointmentsTypeRepository,
+                                        $bookingChannelsRepository,
+                                        $appointmentsStatusRepository,
+                                        $patientsRepository,
+                                        $staffRepository,
+                                        $proceduresRepository,
+                                        $mediaRepository,
+                                        $organizationsRepository,
+                                        $settingsRepository);
     }
 
     private function getRepository(): AppointmentsRepository {
