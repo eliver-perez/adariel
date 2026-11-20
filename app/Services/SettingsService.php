@@ -17,10 +17,6 @@ class SettingsService extends Service
         private OrganizationsRepository $organizationsRepository
         ) {}
 
-    public function __construct(
-        private SettingsRepository $settingsRepository
-        ) {}
-
     private array $cache = [];
 
     public function getGlobal(string $id, mixed $default = null): mixed
